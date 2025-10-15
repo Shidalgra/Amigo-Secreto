@@ -2,6 +2,17 @@
 let participants = [];
 let assignments = []; // Cambio: ahora guardamos asignaciones en lugar de pares
 
+// Detectar entorno de hosting
+const isNetlify = window.location.hostname.includes('.netlify.app') || window.location.hostname.includes('.netlify.com');
+const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+
+console.log('🌐 Entorno detectado:', {
+    netlify: isNetlify,
+    localhost: isLocalhost,
+    hostname: window.location.hostname,
+    origin: window.location.origin
+});
+
 // ===== ELEMENTOS DEL DOM =====
 let nameInput, phoneInput, countrySelect, participantsList, participantsCount;
 let addBtn, clearBtn, generateBtn, resultsSection, pairsList;
@@ -9,6 +20,12 @@ let addBtn, clearBtn, generateBtn, resultsSection, pairsList;
 // ===== EVENT LISTENERS =====
 document.addEventListener('DOMContentLoaded', function() {
     console.log('🎄 DOM cargado, inicializando aplicación...');
+    
+    // Limpiar asignaciones expiradas al cargar
+    cleanExpiredAssignments();
+    
+    // Mostrar información del almacenamiento
+    showStorageInfo();
     
     // Verificar SweetAlert2
     console.log('Verificando SweetAlert2:', typeof Swal !== 'undefined' ? '✅ Disponible' : '❌ No disponible');
@@ -217,26 +234,73 @@ function clearParticipants() {
     console.log('Mostrando confirmación para limpiar lista');
     Swal.fire({
         title: '🗑️ ¿Limpiar Lista?',
-        text: `¿Estás seguro de que quieres eliminar todos los ${participants.length} participantes?`,
-        icon: 'warning',
+        html: `
+            <p>¿Qué quieres hacer con los ${participants.length} participantes?</p>
+            <div style="margin: 1rem 0; padding: 1rem; background: rgba(255, 193, 7, 0.1); border-radius: 8px;">
+                <strong>⚠️ IMPORTANTE:</strong><br>
+                <small>Si mantienes las asignaciones, los enlaces únicos seguirán funcionando</small>
+            </div>
+        `,
+        icon: 'question',
         showCancelButton: true,
-        confirmButtonText: '🗑️ Sí, Limpiar Todo',
-        cancelButtonText: '❌ Cancelar'
+        showDenyButton: true,
+        confirmButtonText: '🗑️ Limpiar Todo (Incluyendo Asignaciones)',
+        denyButtonText: '📝 Solo Limpiar Lista (Mantener Asignaciones)',
+        cancelButtonText: '❌ Cancelar',
+        confirmButtonColor: '#dc3545',
+        denyButtonColor: '#28a745',
+        cancelButtonColor: '#6c757d'
     }).then((result) => {
         if (result.isConfirmed) {
-            // Limpiar la lista
+            // Limpiar todo incluyendo asignaciones permanentes
             participants = [];
             assignments = [];
+            
+            // Limpiar TODO el localStorage relacionado
+            try {
+                // Limpiar asignaciones individuales
+                for (let i = localStorage.length - 1; i >= 0; i--) {
+                    const key = localStorage.key(i);
+                    if (key && (key.startsWith('assignment_') || key.startsWith('secretSanta'))) {
+                        localStorage.removeItem(key);
+                    }
+                }
+                console.log('🗑️ TODAS las asignaciones eliminadas del localStorage');
+            } catch (error) {
+                console.error('Error al limpiar localStorage completo:', error);
+            }
+            
             updateUI();
             hideResults();
             
-            // Mostrar confirmación de éxito
             Swal.fire({
-                title: '✅ ¡Lista Limpiada!',
-                text: 'Todos los participantes han sido eliminados correctamente.',
+                title: '✅ ¡Todo Limpiado!',
+                text: 'Participantes y asignaciones eliminados. Los enlaces únicos ya no funcionarán.',
                 icon: 'success',
                 confirmButtonText: '👍 ¡Perfecto!',
-                timer: 2000
+                timer: 3000
+            });
+            
+        } else if (result.isDenied) {
+            // Solo limpiar la lista, mantener asignaciones
+            participants = [];
+            assignments = []; // Solo limpiar de memoria
+            
+            updateUI();
+            hideResults();
+            
+            Swal.fire({
+                title: '✅ ¡Lista Limpiada!',
+                html: `
+                    <p>Lista de participantes eliminada.</p>
+                    <div style="margin: 1rem 0; padding: 1rem; background: rgba(40, 167, 69, 0.1); border-radius: 8px;">
+                        <strong>✅ Las asignaciones se mantuvieron:</strong><br>
+                        <small>Los enlaces únicos seguirán funcionando normalmente</small>
+                    </div>
+                `,
+                icon: 'success',
+                confirmButtonText: '👍 ¡Perfecto!',
+                timer: 4000
             });
         }
     });
@@ -281,11 +345,67 @@ function generatePairs() {
     // Crear las asignaciones usando el algoritmo de amigo secreto
     assignments = generateSecretSantaAssignments(participants);
     
+    // Generar códigos únicos de acceso para cada asignación
+    assignments = assignments.map(assignment => {
+        const accessCode = generateAccessCode(assignment.giver.name);
+        const secretId = generateSecretId(assignment.giver.name, assignment.receiver.name);
+        const assignmentWithCodes = {
+            ...assignment,
+            accessCode: accessCode,
+            secretId: secretId
+        };
+        assignmentWithCodes.uniqueLink = generateUniqueLink(assignmentWithCodes, accessCode);
+        return assignmentWithCodes;
+    });
+
     if (assignments.length === 0) {
         showNotification('Error al generar las asignaciones. Intenta de nuevo.', 'error');
         return;
     }
-    
+
+    // Guardar las asignaciones en localStorage para acceso posterior
+    try {
+        // Verificar que localStorage esté disponible (funciona en Netlify)
+        if (typeof(Storage) !== "undefined" && localStorage) {
+            // Crear un ID único para esta sesión de amigo secreto
+            const sessionId = 'secretsanta_' + Date.now();
+            const assignmentData = {
+                sessionId: sessionId,
+                timestamp: Date.now(),
+                assignments: assignments,
+                participants: participants,
+                expiryDate: Date.now() + (365 * 24 * 60 * 60 * 1000) // 1 año de duración
+            };
+            
+            // Guardar datos con clave única
+            localStorage.setItem('secretSantaAssignments', JSON.stringify(assignmentData));
+            localStorage.setItem('secretSantaCurrentSession', sessionId);
+            
+            // Guardar también cada asignación individual para acceso directo
+            assignments.forEach(assignment => {
+                const key = `assignment_${assignment.secretId}`;
+                localStorage.setItem(key, JSON.stringify({
+                    ...assignment,
+                    sessionId: sessionId,
+                    timestamp: Date.now(),
+                    permanent: true
+                }));
+            });
+            
+            console.log('✅ Asignaciones guardadas PERMANENTEMENTE para Netlify');
+            console.log('📅 Duración: 1 año desde hoy');
+            console.log('🔑 Session ID:', sessionId);
+        } else {
+            console.warn('⚠️ localStorage no disponible, usando almacenamiento temporal');
+            // Fallback: usar variable global temporal
+            window.tempAssignments = assignments;
+        }
+    } catch (error) {
+        console.error('❌ Error al guardar asignaciones:', error);
+        // Fallback en caso de error
+        window.tempAssignments = assignments;
+    }
+
     displayResults();
     showNotification(`¡${assignments.length} asignaciones generadas exitosamente!`, 'success');
 }
@@ -426,35 +546,58 @@ function displayResults() {
     pairsList.innerHTML = `
         <div class="results-header">
             <h3>🎄 ¡Sorteo Completado! 🎄</h3>
-            <p>Técnica "Casera" - Archivos individuales seguros para cada participante:</p>
+            <p>🔐 Enlaces Únicos con Códigos de Acceso Generados</p>
             <div class="info-box">
-                <p><strong> Instrucciones de Privacidad:</strong></p>
+                <p><strong>🔑 Instrucciones de Seguridad:</strong></p>
                 <ul>
-                    <li>Cada persona debe hacer clic solo en SU enlace</li>
-                    <li>No mires el enlace de otras personas</li>
-                    <li>El organizador tampoco conoce las asignaciones</li>
-                    <li>¡Mantén la sorpresa hasta el intercambio!</li>
+                    <li>Cada participante tiene un enlace único y un código secreto</li>
+                    <li>Envía SOLO su enlace y código a cada persona</li>
+                    <li>Necesitarán el código para acceder a su asignación</li>
+                    <li>¡Nadie más podrá ver la asignación sin el código correcto!</li>
+                </ul>
+            </div>
+            <div class="persistence-info">
+                <p><strong>⏰ ACCESO PERMANENTE:</strong></p>
+                <ul>
+                    <li>✅ Los enlaces funcionarán durante <strong>1 año completo</strong></li>
+                    <li>✅ Funcionan independientemente de esta página</li>
+                    <li>✅ Puedes limpiar la lista sin afectar los accesos</li>
+                    <li>✅ Cada participante puede consultar cuando quiera</li>
                 </ul>
             </div>
         </div>
-        ${assignments.map((assignment, index) => {
-            const secretId = generateSecretId(assignment.giver.name, assignment.receiver.name);
-            return `
+        ${assignments.map((assignment, index) => `
             <div class="participant-result fade-in" style="animation-delay: ${index * 0.1}s">
                 <div class="participant-info">
-                    <div class="participant-name">${assignment.giver.name}</div>
+                    <div class="participant-name">👤 ${assignment.giver.name}</div>
                     <div class="participant-phone">${assignment.giver.flag} ${assignment.giver.phone}</div>
                 </div>
                 <div class="assignment-action">
-                    <button onclick="revealAssignment('${secretId}')" 
-                            class="reveal-btn">
-                        🎁 Ver Mi Amigo Secreto
-                    </button>
+                    <div class="access-info">
+                        <div class="access-code-box">
+                            <label><strong>🔑 Código de Acceso:</strong></label>
+                            <div class="code-display">${assignment.accessCode}</div>
+                        </div>
+                        <div class="link-box">
+                            <label><strong>🔗 Enlace Único:</strong></label>
+                            <input type="text" class="link-input" value="${assignment.uniqueLink}" readonly>
+                            <button onclick="copyAccessInfo('${assignment.uniqueLink}', '${assignment.accessCode}', '${assignment.giver.name}')" 
+                                    class="copy-btn">
+                                📋 Copiar Todo
+                            </button>
+                        </div>
+                    </div>
+                    <div class="action-buttons">
+                        <button onclick="sendWhatsAppWithCode('${assignment.giver.phone}', '${assignment.uniqueLink}', '${assignment.accessCode}', '${assignment.giver.name}')" 
+                                class="whatsapp-btn">
+                            📱 Enviar por WhatsApp
+                        </button>
+                    </div>
                 </div>
             </div>
-        `;}).join('')}
+        `).join('')}
         <div class="results-footer">
-            <p class="footer-note">🔐 <strong>Importante:</strong> Cada persona debe hacer clic solo en su propio enlace para mantener el secreto</p>
+            <p class="footer-note">🔐 <strong>Máxima Seguridad:</strong> Solo quien tenga el código correcto podrá ver su asignación</p>
         </div>
     `;
     
@@ -475,6 +618,49 @@ function hideResults() {
 function generateSecretId(giverName, receiverName) {
     const combined = giverName + receiverName + Date.now();
     return btoa(combined).replace(/[^a-zA-Z0-9]/g, '').substring(0, 12);
+}
+
+/**
+ * Genera un código único de acceso para cada participante
+ */
+function generateAccessCode(participantName) {
+    const timestamp = Date.now().toString();
+    const combined = participantName + timestamp + Math.random().toString(36);
+    const encoded = btoa(combined);
+    // Crear un código de 6 caracteres alfanumérico en mayúsculas
+    return encoded.replace(/[^a-zA-Z0-9]/g, '').substring(0, 6).toUpperCase();
+}
+
+/**
+ * Genera un enlace único para cada participante con su código de acceso
+ */
+function generateUniqueLink(assignment, accessCode) {
+    // Detectar si estamos en Netlify, localhost o producción
+    let baseUrl;
+    
+    if (window.location.hostname.includes('.netlify.app') || window.location.hostname.includes('.netlify.com')) {
+        // URL de Netlify
+        baseUrl = window.location.origin;
+    } else if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        // Desarrollo local
+        baseUrl = window.location.origin + window.location.pathname;
+    } else {
+        // Otro hosting o dominio personalizado
+        baseUrl = window.location.origin + window.location.pathname;
+    }
+    
+    // Limpiar la URL base para asegurar que termine correctamente
+    if (baseUrl.endsWith('/index.html')) {
+        baseUrl = baseUrl.replace('/index.html', '');
+    }
+    if (!baseUrl.endsWith('/')) {
+        baseUrl += '/';
+    }
+    
+    const secretId = assignment.secretId || generateSecretId(assignment.giver.name, assignment.receiver.name);
+    
+    // Para Netlify, usamos la raíz del sitio
+    return `${baseUrl}?participant=${encodeURIComponent(assignment.giver.name)}&secret=${secretId}&code=${accessCode}`;
 }
 
 /**
@@ -572,6 +758,65 @@ function copyToClipboard(giverName, receiverName) {
     }
     
     closeModal();
+}
+
+/**
+ * Copia el enlace único y código de acceso al portapapeles
+ */
+function copyAccessInfo(uniqueLink, accessCode, participantName) {
+    const message = `🎄 ¡Tu Acceso al Amigo Secreto Navideño! 🎁
+
+¡Hola ${participantName}!
+
+🔗 Tu enlace único: ${uniqueLink}
+
+🔑 Tu código de acceso: ${accessCode}
+
+📱 Instrucciones:
+1. Haz clic en el enlace
+2. Ingresa tu código de acceso
+3. ¡Descubre quién es tu amigo secreto!
+
+🎅 ¡Mantén tu código en secreto!
+¡Feliz Navidad! 🎄✨`;
+
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(message).then(() => {
+            showNotification(`¡Información de acceso copiada para ${participantName}!`, 'success');
+        }).catch(() => {
+            fallbackCopyTextToClipboard(message);
+        });
+    } else {
+        fallbackCopyTextToClipboard(message);
+    }
+}
+
+/**
+ * Envía información de acceso por WhatsApp
+ */
+function sendWhatsAppWithCode(phone, uniqueLink, accessCode, participantName) {
+    const message = `🎄 ¡Hola ${participantName}! 🎁
+
+¡Es hora del Amigo Secreto Navideño!
+
+🔗 Tu enlace único: ${uniqueLink}
+
+🔑 Tu código secreto: ${accessCode}
+
+📱 Instrucciones:
+1️⃣ Haz clic en el enlace
+2️⃣ Ingresa tu código cuando te lo pida
+3️⃣ ¡Descubre quién es tu amigo secreto!
+
+🤫 ¡Mantén tu código en secreto!
+🎅 ¡Ho Ho Ho! 🎄✨`;
+
+    const encodedMessage = encodeURIComponent(message);
+    const cleanPhone = phone.replace(/[^\d+]/g, '');
+    const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodedMessage}`;
+    
+    window.open(whatsappUrl, '_blank');
+    showNotification(`¡Abriendo WhatsApp para ${participantName}!`, 'success');
 }
 
 /**
@@ -983,6 +1228,75 @@ function showNotification(message, type = 'info') {
 // ===== FUNCIONES DE UTILIDAD =====
 
 /**
+ * Limpia asignaciones expiradas del localStorage
+ */
+function cleanExpiredAssignments() {
+    try {
+        if (typeof(Storage) !== "undefined" && localStorage) {
+            const now = Date.now();
+            const oneYear = 365 * 24 * 60 * 60 * 1000;
+            let cleaned = 0;
+            
+            // Revisar todas las claves del localStorage
+            for (let i = localStorage.length - 1; i >= 0; i--) {
+                const key = localStorage.key(i);
+                
+                if (key && key.startsWith('assignment_')) {
+                    try {
+                        const data = JSON.parse(localStorage.getItem(key));
+                        
+                        // Si la asignación es más antigua de 1 año, eliminarla
+                        if (data.timestamp && (now - data.timestamp) > oneYear) {
+                            localStorage.removeItem(key);
+                            cleaned++;
+                        }
+                    } catch (error) {
+                        // Si hay error al parsear, eliminar la clave corrupta
+                        localStorage.removeItem(key);
+                        cleaned++;
+                    }
+                }
+            }
+            
+            if (cleaned > 0) {
+                console.log(`🗑️ ${cleaned} asignaciones expiradas limpiadas del localStorage`);
+            }
+        }
+    } catch (error) {
+        console.error('❌ Error al limpiar asignaciones expiradas:', error);
+    }
+}
+
+/**
+ * Muestra información sobre asignaciones guardadas
+ */
+function showStorageInfo() {
+    try {
+        if (typeof(Storage) !== "undefined" && localStorage) {
+            let assignmentCount = 0;
+            let totalSize = 0;
+            
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && key.startsWith('assignment_')) {
+                    assignmentCount++;
+                    totalSize += localStorage.getItem(key).length;
+                }
+            }
+            
+            console.log('📊 Información del almacenamiento:');
+            console.log(`   Asignaciones guardadas: ${assignmentCount}`);
+            console.log(`   Tamaño aproximado: ${(totalSize / 1024).toFixed(2)} KB`);
+            
+            return { count: assignmentCount, size: totalSize };
+        }
+    } catch (error) {
+        console.error('❌ Error al obtener información del almacenamiento:', error);
+    }
+    return { count: 0, size: 0 };
+}
+
+/**
  * Valida si un nombre es válido
  */
 function isValidName(name) {
@@ -1070,25 +1384,210 @@ generatePairs = function() {
  */
 function checkForAssignment() {
     const urlParams = new URLSearchParams(window.location.search);
-    const assignmentData = urlParams.get('data');
+    const participant = urlParams.get('participant');
+    const secret = urlParams.get('secret');
+    const code = urlParams.get('code');
     
-    if (assignmentData) {
+    if (participant && secret && code) {
+        // Ocultar el formulario principal
+        document.querySelector('.container').style.display = 'none';
+        
+        // Mostrar modal para verificar código de acceso
+        showAccessCodeModal(participant, secret, code);
+    } else if (urlParams.get('data')) {
+        // Mantener compatibilidad con enlaces antiguos
+        const assignmentData = urlParams.get('data');
         try {
-            // Decodificar los datos
             const decoded = decodeURIComponent(assignmentData);
             const assignment = JSON.parse(atob(decoded));
-            
-            // Ocultar el formulario principal
             document.querySelector('.container').style.display = 'none';
-            
-            // Mostrar la asignación
             showPersonalAssignment(assignment);
-            
         } catch (error) {
             console.error('Error al procesar el enlace:', error);
             showError('Enlace inválido o corrupto');
         }
     }
+}
+
+/**
+ * Muestra el modal para verificar el código de acceso
+ */
+function showAccessCodeModal(participant, secret, expectedCode) {
+    const modal = document.createElement('div');
+    modal.className = 'access-modal';
+    modal.innerHTML = `
+        <div class="modal-backdrop" onclick="closeAccessModal()"></div>
+        <div class="modal-content access-modal-content">
+            <div class="modal-header">
+                <h2>🔐 Acceso Seguro al Amigo Secreto</h2>
+            </div>
+            <div class="modal-body">
+                <p><strong>¡Hola ${participant}!</strong></p>
+                <p>Para acceder a tu asignación de Amigo Secreto, ingresa tu código de acceso:</p>
+                <div class="code-input-section">
+                    <label for="accessCodeInput">🔑 Código de Acceso:</label>
+                    <input type="text" id="accessCodeInput" placeholder="Ingresa tu código" maxlength="6" 
+                           style="text-transform: uppercase; text-align: center; font-size: 1.2em; letter-spacing: 0.3em;">
+                    <div class="code-hint">Tu código tiene 6 caracteres</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button onclick="closeAccessModal()" class="close-btn">
+                    ❌ Cancelar
+                </button>
+                <button onclick="verifyAccessCode('${participant}', '${secret}', '${expectedCode}')" class="verify-btn">
+                    ✅ Verificar Código
+                </button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    modal.style.display = 'flex';
+    
+    // Focus en el input del código
+    setTimeout(() => {
+        document.getElementById('accessCodeInput').focus();
+    }, 100);
+    
+    // Permitir verificar con Enter
+    document.getElementById('accessCodeInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            verifyAccessCode(participant, secret, expectedCode);
+        }
+    });
+}
+
+/**
+ * Verifica el código de acceso ingresado
+ */
+function verifyAccessCode(participant, secret, expectedCode) {
+    const enteredCode = document.getElementById('accessCodeInput').value.trim().toUpperCase();
+    
+    if (!enteredCode) {
+        showNotification('Por favor ingresa tu código de acceso', 'warning');
+        return;
+    }
+    
+    if (enteredCode === expectedCode.toUpperCase()) {
+        // Código correcto, buscar la asignación real
+        closeAccessModal();
+        
+        // Buscar en las asignaciones almacenadas localmente
+        const assignment = findAssignmentBySecret(participant, secret);
+        
+        if (assignment) {
+            showPersonalAssignment(assignment);
+        } else {
+            // Si no hay asignaciones locales, mostrar mensaje genérico
+            showPersonalAssignment({
+                giver: { name: participant },
+                receiver: { name: '🎁 ¡Tu Amigo Secreto te está esperando!' },
+                message: 'Las asignaciones han sido generadas correctamente. Contacta al organizador si tienes problemas para ver tu asignación.'
+            });
+        }
+        
+    } else {
+        showNotification('❌ Código incorrecto. Verifica e intenta de nuevo.', 'error');
+        document.getElementById('accessCodeInput').value = '';
+        document.getElementById('accessCodeInput').focus();
+    }
+}
+
+/**
+ * Busca una asignación por participante y secreto
+ */
+function findAssignmentBySecret(participant, secret) {
+    // 1. Buscar en las asignaciones actuales en memoria
+    if (assignments && assignments.length > 0) {
+        const found = assignments.find(assignment => 
+            assignment.giver.name === participant && assignment.secretId === secret
+        );
+        if (found) return found;
+    }
+    
+    // 2. Buscar asignación individual permanente (método más confiable)
+    try {
+        const assignmentKey = `assignment_${secret}`;
+        const savedAssignment = localStorage.getItem(assignmentKey);
+        
+        if (savedAssignment) {
+            const assignment = JSON.parse(savedAssignment);
+            
+            // Verificar que no haya expirado
+            if (assignment.timestamp && assignment.timestamp > Date.now() - (365 * 24 * 60 * 60 * 1000)) {
+                // Verificar que corresponda al participante correcto
+                if (assignment.giver.name === participant) {
+                    console.log('✅ Asignación encontrada en almacenamiento permanente');
+                    return assignment;
+                }
+            } else {
+                // Asignación expirada, limpiarla
+                localStorage.removeItem(assignmentKey);
+                console.log('🗑️ Asignación expirada eliminada');
+            }
+        }
+    } catch (error) {
+        console.error('❌ Error al buscar asignación individual:', error);
+    }
+    
+    // 3. Buscar en localStorage general (compatibilidad con versión anterior)
+    try {
+        if (typeof(Storage) !== "undefined" && localStorage) {
+            const savedData = localStorage.getItem('secretSantaAssignments');
+            if (savedData) {
+                const parsedData = JSON.parse(savedData);
+                
+                // Verificar si es el nuevo formato con sessionId
+                if (parsedData.assignments && Array.isArray(parsedData.assignments)) {
+                    const found = parsedData.assignments.find(assignment => 
+                        assignment.giver.name === participant && assignment.secretId === secret
+                    );
+                    if (found) return found;
+                } else if (Array.isArray(parsedData)) {
+                    // Formato anterior (array directo)
+                    const found = parsedData.find(assignment => 
+                        assignment.giver.name === participant && assignment.secretId === secret
+                    );
+                    if (found) return found;
+                }
+            }
+        }
+        
+        // 4. Fallback: buscar en variable temporal
+        if (window.tempAssignments && window.tempAssignments.length > 0) {
+            const found = window.tempAssignments.find(assignment => 
+                assignment.giver.name === participant && assignment.secretId === secret
+            );
+            if (found) return found;
+        }
+        
+    } catch (error) {
+        console.error('❌ Error al recuperar asignaciones:', error);
+        
+        // Último fallback: buscar en variable temporal
+        if (window.tempAssignments && window.tempAssignments.length > 0) {
+            return window.tempAssignments.find(assignment => 
+                assignment.giver.name === participant && assignment.secretId === secret
+            );
+        }
+    }
+    
+    console.warn('⚠️ No se encontró asignación para:', participant, secret);
+    return null;
+}
+
+/**
+ * Cierra el modal de verificación de código
+ */
+function closeAccessModal() {
+    const modal = document.querySelector('.access-modal');
+    if (modal) {
+        document.body.removeChild(modal);
+    }
+    
+    // Mostrar la aplicación principal de nuevo
+    document.querySelector('.container').style.display = 'block';
 }
 
 /**

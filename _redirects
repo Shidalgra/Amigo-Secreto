@@ -1,0 +1,12 @@
+# Netlify redirects file para Amigo Secreto
+# Esto asegura que todos los enlaces únicos con parámetros funcionen correctamente
+
+# Redirect para enlaces únicos con parámetros - siempre mostrar index.html
+/*    /index.html   200
+
+# Asegurar que todos los archivos estáticos se sirvan correctamente
+/css/*    /css/:splat    200
+/js/*     /js/:splat     200
+
+# Redirect de la raíz al index
+/         /index.html    200

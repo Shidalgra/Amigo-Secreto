@@ -1,0 +1,43 @@
+# Netlify configuration file para Amigo Secreto
+
+[build]
+  # No build command needed - static site
+  publish = "."
+
+[build.environment]
+  # Variables de entorno para Netlify
+  NODE_VERSION = "18"
+
+[[headers]]
+  # Headers de seguridad para todos los archivos
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+[[headers]]
+  # Headers específicos para archivos JavaScript
+  for = "/js/*"
+  [headers.values]
+    Cache-Control = "public, max-age=604800"
+
+[[headers]]
+  # Headers específicos para archivos CSS
+  for = "/css/*"
+  [headers.values]
+    Cache-Control = "public, max-age=604800"
+
+[[redirects]]
+  # Redirect principal - asegurar que todos los enlaces con parámetros funcionen
+  from = "/*"
+  to = "/index.html"
+  status = 200
+  conditions = {Query = {participant = ":participant"}}
+
+[[redirects]]
+  # Redirect para demo page
+  from = "/demo"
+  to = "/demo.html"
+  status = 200

@@ -594,6 +594,39 @@ button:disabled:hover {
     left: -1.2rem;
 }
 
+.persistence-info {
+    background: rgba(40, 167, 69, 0.2);
+    border-radius: var(--border-radius);
+    padding: 1rem;
+    margin-top: 1rem;
+    text-align: left;
+    border: 2px solid var(--christmas-green);
+}
+
+.persistence-info p {
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: var(--christmas-green);
+}
+
+.persistence-info ul {
+    margin: 0;
+    padding-left: 1.2rem;
+    list-style-type: none;
+}
+
+.persistence-info li {
+    margin-bottom: 0.3rem;
+    position: relative;
+    color: var(--text-dark);
+}
+
+.persistence-info li:before {
+    content: "⏰";
+    position: absolute;
+    left: -1.2rem;
+}
+
 .participant-result {
     background: rgba(248, 249, 250, 0.96);
     height: 13rem;
@@ -1594,7 +1627,215 @@ button:disabled:hover {
     }
 }
 
-/* ===== ESTILOS PARA SWEETALERT2 NAVIDEÑO ===== */
+/* ===== ESTILOS PARA CÓDIGOS DE ACCESO ===== */
+
+.access-info {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.access-code-box {
+    background: rgba(255, 215, 0, 0.1);
+    border: 2px solid var(--christmas-gold);
+    border-radius: var(--border-radius);
+    padding: 1rem;
+    text-align: center;
+}
+
+.access-code-box label {
+    display: block;
+    color: var(--christmas-red);
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.code-display {
+    background: var(--christmas-red);
+    color: white;
+    font-size: 1.5rem;
+    font-weight: bold;
+    letter-spacing: 0.3rem;
+    padding: 0.75rem;
+    border-radius: var(--border-radius);
+    font-family: 'Share Tech Mono', monospace;
+    text-align: center;
+    border: 3px solid var(--christmas-gold);
+    box-shadow: 0 4px 15px rgba(220, 20, 60, 0.3);
+}
+
+.link-box {
+    background: rgba(34, 139, 34, 0.1);
+    border: 2px solid var(--christmas-green);
+    border-radius: var(--border-radius);
+    padding: 1rem;
+}
+
+.link-box label {
+    display: block;
+    color: var(--christmas-green);
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.link-input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 2px solid var(--christmas-green);
+    border-radius: var(--border-radius);
+    font-size: 0.9rem;
+    background: white;
+    margin-bottom: 1rem;
+    word-break: break-all;
+}
+
+.copy-btn {
+    background: linear-gradient(135deg, var(--christmas-gold), #b8860b);
+    color: var(--text-dark);
+    border: 2px solid var(--christmas-red);
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--border-radius);
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    width: 100%;
+}
+
+.copy-btn:hover {
+    background: linear-gradient(135deg, #b8860b, var(--christmas-gold));
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
+}
+
+.action-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-top: 1rem;
+}
+
+/* ===== MODAL DE VERIFICACIÓN DE CÓDIGO ===== */
+
+.access-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    animation: backdropBlurIn 0.3s ease;
+}
+
+.access-modal-content {
+    background: white;
+    border-radius: var(--border-radius);
+    max-width: 500px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    border: 3px solid var(--christmas-gold);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    animation: modalSlideIn 0.4s ease;
+}
+
+.code-input-section {
+    text-align: center;
+    margin: 1.5rem 0;
+}
+
+.code-input-section label {
+    display: block;
+    color: var(--christmas-green);
+    font-weight: 600;
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+}
+
+#accessCodeInput {
+    width: 100%;
+    max-width: 300px;
+    padding: 1rem;
+    border: 3px solid var(--christmas-green);
+    border-radius: var(--border-radius);
+    font-size: 1.2rem;
+    text-align: center;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    font-family: 'Share Tech Mono', monospace;
+    background: rgba(248, 249, 250, 0.95);
+    transition: var(--transition);
+}
+
+#accessCodeInput:focus {
+    outline: none;
+    border-color: var(--christmas-red);
+    box-shadow: 0 0 0 3px rgba(220, 20, 60, 0.2);
+    background: white;
+}
+
+.code-hint {
+    margin-top: 0.5rem;
+    color: #666;
+    font-size: 0.9rem;
+    font-style: italic;
+}
+
+.verify-btn {
+    background: linear-gradient(135deg, var(--christmas-green), var(--christmas-dark-green));
+    color: white;
+    border: 2px solid var(--christmas-gold);
+    padding: 1rem 2rem;
+    border-radius: var(--border-radius);
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.verify-btn:hover {
+    background: linear-gradient(135deg, var(--christmas-dark-green), var(--christmas-green));
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(34, 139, 34, 0.4);
+}
+
+/* ===== RESPONSIVE PARA CÓDIGOS DE ACCESO ===== */
+
+@media (max-width: 768px) {
+    .access-info {
+        gap: 1.5rem;
+    }
+    
+    .code-display {
+        font-size: 1.3rem;
+        letter-spacing: 0.2rem;
+        padding: 0.5rem;
+    }
+    
+    .link-input {
+        font-size: 0.8rem;
+        padding: 0.5rem;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .access-modal-content {
+        width: 95%;
+        margin: 1rem;
+    }
+    
+    #accessCodeInput {
+        font-size: 1.1rem;
+        padding: 0.75rem;
+    }
+}
 
 .swal-christmas {
     border-radius: 20px !important;
@@ -1617,6 +1858,111 @@ button:disabled:hover {
     font-size: 1rem !important;
     color: #555 !important;
     line-height: 1.6 !important;
+}
+
+/* ===== ESTILOS PARA PÁGINA DE DEMO ===== */
+
+.demo-section, .demo-links, .demo-benefits, .demo-actions {
+    margin-bottom: 2rem;
+}
+
+.demo-steps {
+    display: grid;
+    gap: 2rem;
+    margin-top: 1.5rem;
+}
+
+.step {
+    background: rgba(248, 249, 250, 0.8);
+    border-left: 5px solid var(--christmas-green);
+    padding: 1.5rem;
+    border-radius: var(--border-radius);
+    transition: var(--transition);
+}
+
+.step:hover {
+    background: rgba(255, 255, 255, 0.9);
+    transform: translateX(5px);
+}
+
+.step h3 {
+    color: var(--christmas-red);
+    margin-bottom: 1rem;
+    font-size: 1.2rem;
+}
+
+.step ul {
+    margin-left: 1.5rem;
+    color: var(--text-dark);
+}
+
+.step li {
+    margin-bottom: 0.5rem;
+    line-height: 1.5;
+}
+
+.example-participant {
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid var(--christmas-gold);
+    border-radius: var(--border-radius);
+    padding: 2rem;
+    margin-bottom: 2rem;
+    backdrop-filter: blur(5px);
+}
+
+.example-participant h3 {
+    color: var(--christmas-green);
+    margin-bottom: 1.5rem;
+    text-align: center;
+    font-size: 1.3rem;
+}
+
+.benefits-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.benefit {
+    background: rgba(248, 249, 250, 0.8);
+    border: 2px solid var(--christmas-gold);
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    text-align: center;
+    transition: var(--transition);
+}
+
+.benefit:hover {
+    background: rgba(255, 255, 255, 0.95);
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.benefit h3 {
+    color: var(--christmas-red);
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+}
+
+.benefit p {
+    color: var(--text-dark);
+    line-height: 1.5;
+}
+
+/* Responsive para demo */
+@media (max-width: 768px) {
+    .benefits-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .step {
+        padding: 1rem;
+    }
+    
+    .example-participant {
+        padding: 1.5rem;
+    }
 }
 
 /* Personalizar botones de SweetAlert2 */
