@@ -1225,7 +1225,205 @@ function showNotification(message, type = 'info') {
     });
 }
 
-// ===== FUNCIONES DE UTILIDAD =====
+/**
+ * Regenera completamente el sistema - Borra TODO y empezar de cero
+ */
+function regenerateSystem() {
+    console.log('🔄 Función regenerateSystem() ejecutada');
+    
+    // Verificar que SweetAlert2 esté disponible
+    if (typeof Swal === 'undefined') {
+        alert('⚠️ Se requiere confirmar esta acción crítica');
+        if (confirm('🚨 REGENERAR SISTEMA COMPLETO\n\n¿Estás SEGURO de que quieres:\n- Borrar TODOS los participantes\n- Eliminar TODAS las asignaciones\n- Limpiar TODOS los datos guardados\n- Empezar completamente de cero?\n\nEsta acción NO se puede deshacer.')) {
+            executeCompleteReset();
+        }
+        return;
+    }
+    
+    // Mostrar confirmación con SweetAlert2
+    Swal.fire({
+        title: '🚨 REGENERAR SISTEMA COMPLETO',
+        html: `
+            <div style="text-align: left; margin: 1rem 0;">
+                <p><strong>⚠️ ATENCIÓN: Esta acción es IRREVERSIBLE</strong></p>
+                <div style="background: rgba(220, 53, 69, 0.1); padding: 1rem; border-radius: 8px; margin: 1rem 0;">
+                    <p><strong>Se eliminará PERMANENTEMENTE:</strong></p>
+                    <ul style="margin: 0.5rem 0; padding-left: 1.5rem;">
+                        <li>❌ Todos los participantes de la lista</li>
+                        <li>❌ Todas las asignaciones generadas</li>
+                        <li>❌ Todos los enlaces únicos existentes</li>
+                        <li>❌ Todos los códigos de acceso</li>
+                        <li>❌ Datos guardados en el navegador</li>
+                    </ul>
+                </div>
+                <div style="background: rgba(40, 167, 69, 0.1); padding: 1rem; border-radius: 8px; margin: 1rem 0;">
+                    <p><strong>✅ Después de regenerar:</strong></p>
+                    <ul style="margin: 0.5rem 0; padding-left: 1.5rem;">
+                        <li>✨ Sistema completamente limpio</li>
+                        <li>🆕 Listo para nueva temporada</li>
+                        <li>🔄 Todos los enlaces anteriores dejarán de funcionar</li>
+                    </ul>
+                </div>
+                <p style="color: #dc3545; font-weight: bold; text-align: center; margin-top: 1rem;">
+                    ¿Estás SEGURO de continuar?
+                </p>
+            </div>
+        `,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: '🗑️ SÍ, REGENERAR TODO',
+        cancelButtonText: '❌ Cancelar',
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#6c757d',
+        reverseButtons: true,
+        focusCancel: true,
+        customClass: {
+            popup: 'regenerate-popup',
+            title: 'regenerate-title',
+            content: 'regenerate-content'
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Doble confirmación para mayor seguridad
+            Swal.fire({
+                title: '🔐 CONFIRMACIÓN FINAL',
+                text: 'Escribe "REGENERAR" para confirmar que entiendes que esta acción es irreversible:',
+                input: 'text',
+                inputPlaceholder: 'Escribe: REGENERAR',
+                showCancelButton: true,
+                confirmButtonText: '✅ Ejecutar Regeneración',
+                cancelButtonText: '❌ Cancelar',
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                inputValidator: (value) => {
+                    if (!value || value.toUpperCase() !== 'REGENERAR') {
+                        return 'Debes escribir exactamente "REGENERAR" para continuar';
+                    }
+                }
+            }).then((confirmResult) => {
+                if (confirmResult.isConfirmed) {
+                    executeCompleteReset();
+                }
+            });
+        }
+    });
+}
+
+/**
+ * Ejecuta el reseteo completo del sistema
+ */
+function executeCompleteReset() {
+    console.log('🚨 Ejecutando regeneración completa del sistema...');
+    
+    // Mostrar loading
+    if (typeof Swal !== 'undefined') {
+        Swal.fire({
+            title: '🔄 Regenerando Sistema...',
+            html: 'Eliminando todos los datos y reiniciando...',
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            showConfirmButton: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+    }
+    
+    setTimeout(() => {
+        try {
+            // 1. Limpiar variables globales
+            participants = [];
+            assignments = [];
+            
+            // 2. Limpiar COMPLETAMENTE el localStorage
+            if (typeof(Storage) !== "undefined" && localStorage) {
+                // Obtener todas las claves relacionadas con el sistema
+                const keysToRemove = [];
+                
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key && (
+                        key.startsWith('assignment_') ||
+                        key.startsWith('secretSanta') ||
+                        key.includes('amigo') ||
+                        key.includes('secreto')
+                    )) {
+                        keysToRemove.push(key);
+                    }
+                }
+                
+                // Eliminar todas las claves encontradas
+                keysToRemove.forEach(key => {
+                    localStorage.removeItem(key);
+                });
+                
+                console.log(`🗑️ ${keysToRemove.length} entradas eliminadas del localStorage`);
+            }
+            
+            // 3. Limpiar variables temporales
+            if (window.tempAssignments) {
+                delete window.tempAssignments;
+            }
+            
+            // 4. Resetear interfaz de usuario
+            updateUI();
+            hideResults();
+            
+            // 5. Limpiar inputs
+            if (nameInput) nameInput.value = '';
+            if (phoneInput) phoneInput.value = '';
+            if (nameInput) nameInput.focus();
+            
+            // 6. Mostrar confirmación de éxito
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    title: '✅ ¡Sistema Regenerado!',
+                    html: `
+                        <div style="text-align: center;">
+                            <p style="font-size: 1.2em; margin: 1rem 0;">🎉 <strong>Regeneración Completada</strong></p>
+                            <div style="background: rgba(40, 167, 69, 0.1); padding: 1rem; border-radius: 8px; margin: 1rem 0;">
+                                <p><strong>✨ Sistema completamente limpio:</strong></p>
+                                <ul style="text-align: left; margin: 0.5rem 0; padding-left: 1.5rem;">
+                                    <li>🗑️ Todos los datos eliminados</li>
+                                    <li>🔄 Enlaces anteriores desactivados</li>
+                                    <li>🆕 Listo para empezar de nuevo</li>
+                                    <li>✅ Memoria del navegador limpia</li>
+                                </ul>
+                            </div>
+                            <p style="color: #28a745; font-weight: bold;">¡Puedes empezar a agregar participantes!</p>
+                        </div>
+                    `,
+                    icon: 'success',
+                    confirmButtonText: '🎄 ¡Perfecto!',
+                    confirmButtonColor: '#28a745',
+                    timer: 5000
+                });
+            } else {
+                alert('✅ ¡Sistema regenerado completamente!\n\n🗑️ Todos los datos eliminados\n🆕 Listo para empezar de nuevo');
+            }
+            
+            console.log('✅ Regeneración del sistema completada exitosamente');
+            
+        } catch (error) {
+            console.error('❌ Error durante la regeneración:', error);
+            
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    title: '❌ Error en la Regeneración',
+                    text: 'Hubo un problema al regenerar el sistema. Recarga la página e intenta nuevamente.',
+                    icon: 'error',
+                    confirmButtonText: '🔄 Recargar Página',
+                    confirmButtonColor: '#dc3545'
+                }).then(() => {
+                    window.location.reload();
+                });
+            } else {
+                alert('❌ Error en la regeneración. Recarga la página e intenta nuevamente.');
+                window.location.reload();
+            }
+        }
+    }, 1000); // Delay para mostrar el loading
+}
 
 /**
  * Limpia asignaciones expiradas del localStorage
@@ -1275,25 +1473,96 @@ function showStorageInfo() {
         if (typeof(Storage) !== "undefined" && localStorage) {
             let assignmentCount = 0;
             let totalSize = 0;
+            let oldestDate = null;
+            let newestDate = null;
             
             for (let i = 0; i < localStorage.length; i++) {
                 const key = localStorage.key(i);
                 if (key && key.startsWith('assignment_')) {
                     assignmentCount++;
-                    totalSize += localStorage.getItem(key).length;
+                    const data = localStorage.getItem(key);
+                    totalSize += data.length;
+                    
+                    try {
+                        const parsed = JSON.parse(data);
+                        if (parsed.timestamp) {
+                            const date = new Date(parsed.timestamp);
+                            if (!oldestDate || date < oldestDate) oldestDate = date;
+                            if (!newestDate || date > newestDate) newestDate = date;
+                        }
+                    } catch (e) {
+                        // Ignorar errores de parsing
+                    }
                 }
             }
             
             console.log('📊 Información del almacenamiento:');
             console.log(`   Asignaciones guardadas: ${assignmentCount}`);
             console.log(`   Tamaño aproximado: ${(totalSize / 1024).toFixed(2)} KB`);
+            if (oldestDate) console.log(`   Más antigua: ${oldestDate.toLocaleDateString()}`);
+            if (newestDate) console.log(`   Más reciente: ${newestDate.toLocaleDateString()}`);
             
-            return { count: assignmentCount, size: totalSize };
+            return { 
+                count: assignmentCount, 
+                size: totalSize,
+                oldest: oldestDate,
+                newest: newestDate
+            };
         }
     } catch (error) {
         console.error('❌ Error al obtener información del almacenamiento:', error);
     }
-    return { count: 0, size: 0 };
+    return { count: 0, size: 0, oldest: null, newest: null };
+}
+
+/**
+ * Muestra estadísticas detalladas del sistema
+ */
+function showSystemStats() {
+    const stats = showStorageInfo();
+    
+    if (typeof Swal !== 'undefined') {
+        const formatDate = (date) => date ? date.toLocaleDateString('es-ES') : 'N/A';
+        
+        Swal.fire({
+            title: '📊 Estadísticas del Sistema',
+            html: `
+                <div style="text-align: left;">
+                    <h4>📈 Estado Actual:</h4>
+                    <ul>
+                        <li><strong>Participantes en lista:</strong> ${participants.length}</li>
+                        <li><strong>Asignaciones en memoria:</strong> ${assignments.length}</li>
+                    </ul>
+                    
+                    <h4>💾 Almacenamiento Permanente:</h4>
+                    <ul>
+                        <li><strong>Asignaciones guardadas:</strong> ${stats.count}</li>
+                        <li><strong>Espacio usado:</strong> ${(stats.size / 1024).toFixed(2)} KB</li>
+                        <li><strong>Más antigua:</strong> ${formatDate(stats.oldest)}</li>
+                        <li><strong>Más reciente:</strong> ${formatDate(stats.newest)}</li>
+                    </ul>
+                    
+                    ${stats.count > 0 ? 
+                        '<div style="background: rgba(255, 193, 7, 0.1); padding: 1rem; border-radius: 8px; margin-top: 1rem;"><p><strong>⚠️ Hay asignaciones activas</strong><br>Los enlaces únicos están funcionando para participantes.</p></div>' :
+                        '<div style="background: rgba(40, 167, 69, 0.1); padding: 1rem; border-radius: 8px; margin-top: 1rem;"><p><strong>✅ Sistema limpio</strong><br>No hay asignaciones permanentes guardadas.</p></div>'
+                    }
+                </div>
+            `,
+            icon: 'info',
+            confirmButtonText: '👍 Entendido',
+            showDenyButton: stats.count > 0,
+            denyButtonText: '🗑️ Regenerar Sistema',
+            denyButtonColor: '#dc3545'
+        }).then((result) => {
+            if (result.isDenied) {
+                regenerateSystem();
+            }
+        });
+    } else {
+        console.log('📊 Estadísticas del Sistema:');
+        console.log(`Participantes: ${participants.length}, Asignaciones: ${assignments.length}`);
+        console.log(`Almacenadas: ${stats.count}, Tamaño: ${(stats.size / 1024).toFixed(2)} KB`);
+    }
 }
 
 /**
