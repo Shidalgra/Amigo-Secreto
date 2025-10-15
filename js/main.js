@@ -8,6 +8,11 @@ let addBtn, clearBtn, generateBtn, resultsSection, pairsList;
 
 // ===== EVENT LISTENERS =====
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('🎄 DOM cargado, inicializando aplicación...');
+    
+    // Verificar SweetAlert2
+    console.log('Verificando SweetAlert2:', typeof Swal !== 'undefined' ? '✅ Disponible' : '❌ No disponible');
+    
     // Inicializar elementos DOM
     nameInput = document.getElementById('nameInput');
     phoneInput = document.getElementById('phoneInput');
@@ -76,7 +81,10 @@ function addParticipant() {
         return;
     }
     
-    const countryFlag = countrySelect.options[countrySelect.selectedIndex].text.substring(0, 2); // Extrae la bandera
+    // Extraer solo el emoji de la bandera (antes del primer espacio)
+    const optionText = countrySelect.options[countrySelect.selectedIndex].text;
+    const countryFlag = optionText.split(' ')[0]; // Esto extrae solo el emoji antes del primer espacio
+    const countryName = optionText.split(' ')[1]; // Nombre del país (opcional, para uso futuro)
     
     // Validaciones
     if (name === '') {
@@ -118,7 +126,8 @@ function addParticipant() {
     participants.push({
         name: formatName(name),
         phone: fullPhone,
-        flag: countryFlag
+        flag: countryFlag,
+        country: countryName || 'País desconocido' // Agregar nombre del país
     });
     
     nameInput.value = '';
@@ -133,33 +142,139 @@ function addParticipant() {
  * Elimina un participante de la lista
  */
 function removeParticipant(index) {
-    const removedName = participants[index];
-    participants.splice(index, 1);
-    updateUI();
-    showNotification(`${removedName} eliminado de la lista`, 'info');
+    const participant = participants[index];
+    const participantName = participant.name;
+    
+    // Mostrar confirmación con SweetAlert2
+    Swal.fire({
+        icon: 'question',
+        title: '❓ ¿Eliminar Participante?',
+        text: `¿Estás seguro de que quieres eliminar a "${participantName}" de la lista?`,
+        showCancelButton: true,
+        confirmButtonText: '🗑️ Sí, Eliminar',
+        cancelButtonText: '❌ Cancelar',
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#6c757d',
+        background: '#fff',
+        iconColor: '#17a2b8',
+        customClass: {
+            popup: 'swal-christmas',
+            title: 'swal-title',
+            content: 'swal-content'
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Eliminar el participante
+            participants.splice(index, 1);
+            updateUI();
+            
+            // Mostrar confirmación de éxito
+            Swal.fire({
+                icon: 'success',
+                title: '✅ ¡Participante Eliminado!',
+                text: `${participantName} ha sido eliminado de la lista correctamente.`,
+                confirmButtonText: '👍 ¡Perfecto!',
+                confirmButtonColor: '#28a745',
+                background: '#fff',
+                iconColor: '#28a745',
+                timer: 2000,
+                timerProgressBar: true,
+                customClass: {
+                    popup: 'swal-christmas',
+                    title: 'swal-title',
+                    content: 'swal-content'
+                }
+            });
+        }
+    });
 }
 
 /**
  * Limpia toda la lista de participantes
  */
 function clearParticipants() {
-    if (participants.length === 0) return;
+    console.log('clearParticipants llamada, participantes:', participants.length);
     
-    if (confirm('¿Estás seguro de que quieres eliminar todos los participantes?')) {
-        participants = [];
-        assignments = []; // Cambio: limpiar asignaciones
-        updateUI();
-        hideResults();
-        showNotification('Lista limpiada correctamente', 'info');
+    // Verificar que SweetAlert2 esté disponible
+    if (typeof Swal === 'undefined') {
+        alert('Error: SweetAlert2 no está cargado');
+        return;
     }
+    
+    // Si la lista está vacía, mostrar mensaje informativo
+    if (participants.length === 0) {
+        console.log('Lista ya vacía, mostrando SweetAlert');
+        Swal.fire({
+            title: '📝 Lista Vacía',
+            text: '¡La lista ya está vacía! No hay participantes para eliminar.',
+            icon: 'info',
+            confirmButtonText: '👍 Entendido'
+        });
+        return;
+    }
+    
+    // Si hay participantes, preguntar si quiere borrarlos
+    console.log('Mostrando confirmación para limpiar lista');
+    Swal.fire({
+        title: '🗑️ ¿Limpiar Lista?',
+        text: `¿Estás seguro de que quieres eliminar todos los ${participants.length} participantes?`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: '🗑️ Sí, Limpiar Todo',
+        cancelButtonText: '❌ Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Limpiar la lista
+            participants = [];
+            assignments = [];
+            updateUI();
+            hideResults();
+            
+            // Mostrar confirmación de éxito
+            Swal.fire({
+                title: '✅ ¡Lista Limpiada!',
+                text: 'Todos los participantes han sido eliminados correctamente.',
+                icon: 'success',
+                confirmButtonText: '👍 ¡Perfecto!',
+                timer: 2000
+            });
+        }
+    });
 }
 
 /**
  * Genera las asignaciones de amigo secreto
  */
 function generatePairs() {
-    if (participants.length < 2) {
-        showNotification('Necesitas al menos 2 participantes para generar asignaciones', 'error');
+    console.log('generatePairs llamada, participantes:', participants.length);
+    
+    // Verificar que SweetAlert2 esté disponible
+    if (typeof Swal === 'undefined') {
+        alert('Error: SweetAlert2 no está cargado');
+        return;
+    }
+    
+    // Validar que haya participantes en la lista
+    if (participants.length === 0) {
+        console.log('Lista vacía, mostrando SweetAlert');
+        Swal.fire({
+            title: '¡Lista vacía!',
+            text: 'Primero debes agregar personas a la lista para poder hacer el intercambio.',
+            icon: 'warning',
+            confirmButtonText: '¡Entendido!'
+        });
+        return;
+    }
+    
+    // Validar que haya al menos 2 participantes
+    if (participants.length === 1) {
+        console.log('Solo 1 participante, mostrando SweetAlert');
+        Swal.fire({
+            title: '¡Faltan participantes!',
+            text: 'Se necesitan mínimo 2 personas para poder hacer el intercambio de regalos.',
+            icon: 'info',
+            confirmButtonText: 'Agregar más personas'
+        });
         return;
     }
     
@@ -296,10 +411,10 @@ function updateParticipantsCount() {
  */
 function updateButtons() {
     const hasParticipants = participants.length > 0;
-    const canGenerate = participants.length >= 2; // Ya no necesitamos número par
+    // Permitir que el botón generateBtn siempre esté habilitado para mostrar validaciones
     
-    clearBtn.disabled = !hasParticipants;
-    generateBtn.disabled = !canGenerate;
+    clearBtn.disabled = false; // Siempre habilitado para mostrar mensaje cuando está vacío
+    generateBtn.disabled = false; // Siempre habilitado para mostrar validaciones
 }
 
 /**
@@ -713,6 +828,37 @@ Conseguir un regalo para alguien especial...
  * Envía todos los mensajes de WhatsApp
  */
 function sendAllWhatsApp() {
+    // Validar que haya participantes en la lista
+    if (participants.length === 0) {
+        Swal.fire({
+            title: '¡Lista vacía!',
+            text: 'Primero debes agregar personas a la lista para poder hacer el intercambio.',
+            icon: 'warning',
+            customClass: {
+                popup: 'swal-christmas',
+                confirmButton: 'swal-confirm-btn'
+            },
+            confirmButtonText: '¡Entendido!'
+        });
+        return;
+    }
+    
+    // Validar que haya al menos 2 participantes
+    if (participants.length === 1) {
+        Swal.fire({
+            title: '¡Faltan participantes!',
+            text: 'Se necesitan mínimo 2 personas para poder hacer el intercambio de regalos.',
+            icon: 'info',
+            customClass: {
+                popup: 'swal-christmas',
+                confirmButton: 'swal-confirm-btn'
+            },
+            confirmButtonText: 'Agregar más personas'
+        });
+        return;
+    }
+    
+    // Validar que se hayan generado las asignaciones
     if (assignments.length === 0) {
         showNotification('Primero debes generar las asignaciones', 'error');
         return;
