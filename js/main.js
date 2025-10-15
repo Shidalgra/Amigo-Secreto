@@ -381,22 +381,23 @@ function revealAssignment(secretId) {
     const modal = document.createElement('div');
     modal.className = 'secret-modal';
     modal.innerHTML = `
+        <div class="modal-backdrop" onclick="closeModal()"></div>
         <div class="modal-content">
             <div class="modal-header">
-                <h2>¡Tu Amigo Secreto!</h2>
+                <h2>🎁 ¡Tu Amigo Secreto! 🎄</h2>
             </div>
             <div class="modal-body">
                 <p><strong>¡Hola ${assignment.giver.name}!</strong></p>
                 <div class="secret-reveal">
                     <p>Tu amigo secreto es:</p>
-                    <h3 class="receiver-name">${assignment.receiver.name}</h3>
+                    <h3 class="receiver-name">🎯 ${assignment.receiver.name}</h3>
                 </div>
                 <div class="instructions">
-                    <h4> Instrucciones:</h4>
+                    <h4>🎅 Instrucciones:</h4>
                     <ul>
-                        <li> Compra un regalo para <strong>${assignment.receiver.name}</strong></li>
-                        <li> Mantén el secreto hasta el día del intercambio</li>
-                        <li> ¡Diviértete eligiendo el regalo perfecto!</li>
+                        <li>🛍️ Compra un regalo para <strong>${assignment.receiver.name}</strong></li>
+                        <li>🤫 Mantén el secreto hasta el día del intercambio</li>
+                        <li>🎁 ¡Diviértete eligiendo el regalo perfecto!</li>
                     </ul>
                 </div>
             </div>
@@ -409,7 +410,6 @@ function revealAssignment(secretId) {
                 </button>
             </div>
         </div>
-        <div class="modal-backdrop" onclick="closeModal()"></div>
     `;
     
     document.body.appendChild(modal);
