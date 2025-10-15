@@ -1,0 +1,680 @@
+/* ===== VARIABLES CSS ===== */
+:root {
+    --christmas-red: #dc143c;
+    --christmas-green: #228b22;
+    --christmas-gold: #ffd700;
+    --christmas-white: #ffffff;
+    --christmas-dark-green: #0f5132;
+    --christmas-dark-red: #8b0000;
+    --snow-white: #f8f9fa;
+    --text-dark: #2c3e50;
+    --shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    --border-radius: 12px;
+    --transition: all 0.3s ease;
+    --emoji-font: 'Segoe UI Emoji', 'Noto Color Emoji', 'Apple Color Emoji', 'Segoe UI Symbol', 'Android Emoji', 'EmojiSymbols', monospace;
+}
+
+/* ===== RESET Y BASE ===== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* ===== EMOJI SUPPORT ===== */
+.emoji-support {
+    font-family: 'Segoe UI Emoji', 'Noto Color Emoji', 'Apple Color Emoji', 'Segoe UI Symbol', 'Android Emoji', 'EmojiSymbols', monospace;
+    font-feature-settings: "liga" 1, "kern" 1;
+    text-rendering: optimizeLegibility;
+    -webkit-font-feature-settings: "liga" 1, "kern" 1;
+    -moz-font-feature-settings: "liga" 1, "kern" 1;
+}
+
+/* Force emoji rendering with specific styles */
+.flag-emoji {
+    font-family: 'Segoe UI Emoji', 'Noto Color Emoji', 'Apple Color Emoji', monospace !important;
+    font-size: 1.2em !important;
+    line-height: 1 !important;
+    display: inline-block !important;
+    vertical-align: middle !important;
+    margin-right: 0.5rem !important;
+    width: 1.5em !important;
+    text-align: center !important;
+    font-weight: normal !important;
+    font-style: normal !important;
+    text-decoration: none !important;
+    font-variant: normal !important;
+    text-transform: none !important;
+    -webkit-font-smoothing: antialiased !important;
+    -moz-osx-font-smoothing: grayscale !important;
+}
+
+/* Fallback for browsers without emoji support */
+.flag-fallback {
+    display: inline-block !important;
+    background: var(--christmas-green) !important;
+    color: white !important;
+    font-size: 0.7em !important;
+    padding: 0.2em 0.4em !important;
+    border-radius: 3px !important;
+    margin-right: 0.5rem !important;
+    font-weight: bold !important;
+    font-family: monospace !important;
+    min-width: 2em !important;
+    text-align: center !important;
+}
+
+/* Ensure proper emoji rendering */
+.select-option, .selected-flag {
+    font-variant-emoji: emoji;
+    font-synthesis: none;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+    font-family: 'Poppins', var(--emoji-font), sans-serif;
+    background: linear-gradient(
+        135deg, 
+        rgba(220, 20, 60, 0.15) 0%, 
+        rgba(34, 139, 34, 0.15) 50%,
+        rgba(220, 20, 60, 0.15) 100%
+    ),
+    url('https://static.vecteezy.com/system/resources/thumbnails/022/989/984/small_2x/merry-christmas-holiday-background-illustration-ai-generative-free-photo.jpg');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+    min-height: 100vh;
+    color: var(--text-dark);
+    overflow-x: hidden;
+    position: relative;
+}
+
+.country-select {
+    font-family: "Segoe UI Emoji", "Noto Color Emoji", "Apple Color Emoji", sans-serif;
+}
+
+/* ===== ANIMACIÓN DE NIEVE ===== */
+.snow-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.snowflake {
+    position: absolute;
+    top: -10px;
+    color: rgba(255, 255, 255, 0.9);
+    user-select: none;
+    pointer-events: none;
+    font-size: 1.2rem;
+    animation: snowfall linear infinite;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+.snowflake:nth-child(1) { left: 10%; animation-duration: 3s; animation-delay: 0s; }
+.snowflake:nth-child(2) { left: 20%; animation-duration: 4s; animation-delay: 1s; }
+.snowflake:nth-child(3) { left: 30%; animation-duration: 3.5s; animation-delay: 0.5s; }
+.snowflake:nth-child(4) { left: 70%; animation-duration: 5s; animation-delay: 1.5s; }
+.snowflake:nth-child(5) { left: 80%; animation-duration: 4.5s; animation-delay: 0.3s; }
+.snowflake:nth-child(6) { left: 90%; animation-duration: 3.8s; animation-delay: 2s; }
+
+@keyframes snowfall {
+    0% {
+        transform: translateY(-10px) rotate(0deg);
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.8;
+    }
+    100% {
+        transform: translateY(100vh) rotate(360deg);
+        opacity: 0;
+    }
+}
+
+/* ===== CONTENEDOR PRINCIPAL ===== */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    position: relative;
+    z-index: 2;
+}
+
+/* ===== HEADER ===== */
+.header {
+    text-align: center;
+    margin-bottom: 2rem;
+    background: rgba(248, 249, 250, 0.95);
+    backdrop-filter: blur(15px);
+    padding: 2rem;
+    border-radius: var(--border-radius);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+    border: 3px solid var(--christmas-gold);
+}
+
+.title {
+    font-family: 'Mountains of Christmas', cursive;
+    font-size: 3rem;
+    color: var(--christmas-red);
+    margin-bottom: 0.5rem;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.subtitle {
+    font-size: 1.2rem;
+    color: var(--christmas-green);
+    font-weight: 300;
+}
+
+/* ===== LAYOUT PRINCIPAL ===== */
+.main-content {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.add-participant, .participants-list {
+    max-width: 1000px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.results {
+    width: 100%;
+}
+
+/* ===== TARJETAS ===== */
+.card {
+    background: rgba(248, 249, 250, 0.94);
+    backdrop-filter: blur(12px);
+    border-radius: var(--border-radius);
+    padding: 2rem;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+    border: 2px solid var(--christmas-gold);
+    transition: var(--transition);
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+    background: rgba(255, 255, 255, 0.97);
+}
+
+.card h2 {
+    color: var(--christmas-green);
+    margin-bottom: 1.5rem;
+    font-size: 1.5rem;
+    text-align: center;
+    border-bottom: 2px solid var(--christmas-gold);
+    padding-bottom: 0.5rem;
+}
+
+/* ===== FORMULARIO ===== */
+.input-group {
+    display: grid;
+    grid-template-columns: 2fr 2fr auto;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    align-items: end;
+}
+
+.phone-group {
+    display: flex;
+    gap: 0.5rem;
+    align-items: end;
+}
+
+/* ===== CUSTOM SELECT STYLES ===== */
+
+#nameInput, #phoneInput {
+    padding: 1rem;
+    border: 2px solid var(--christmas-green);
+    border-radius: var(--border-radius);
+    font-size: 1rem;
+    transition: var(--transition);
+}
+
+#nameInput {
+    width: 100%;
+}
+
+#phoneInput {
+    flex: 1;
+}
+
+/* Estilos para el nuevo select nativo de país */
+.country-select {
+    padding: 0.75rem;
+    border: 2px solid var(--christmas-green);
+    border-radius: var(--border-radius);
+    font-size: 1rem;
+    background-color: white;
+    color: var(--text-color);
+    cursor: pointer;
+    transition: var(--transition);
+    min-width: 200px;
+    font-family: inherit;
+}
+
+.country-select:focus {
+    outline: none;
+    border-color: var(--christmas-red);
+    box-shadow: 0 0 0 3px rgba(220, 20, 60, 0.1);
+}
+
+.country-select option {
+    padding: 0.5rem;
+    font-size: 1rem;
+    background-color: white;
+    color: var(--text-color);
+}
+
+#nameInput:focus, #phoneInput:focus {
+    outline: none;
+    border-color: var(--christmas-red);
+    box-shadow: 0 0 0 3px rgba(220, 20, 60, 0.1);
+}
+
+#addBtn {
+    min-width: 120px;
+    white-space: nowrap;
+}
+
+.participants-count {
+    text-align: center;
+    color: var(--christmas-green);
+    font-weight: 600;
+    background: var(--snow-white);
+    padding: 0.5rem;
+    border-radius: var(--border-radius);
+    border: 1px solid var(--christmas-gold);
+}
+
+/* ===== BOTONES ===== */
+button {
+    padding: 1rem 1.5rem;
+    border: none;
+    border-radius: var(--border-radius);
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+button:active {
+    padding: 0.70rem 1.5rem;
+    border: none;
+    border-radius: var(--border-radius);
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.primary-btn, #addBtn {
+    background: linear-gradient(135deg, var(--christmas-red), var(--christmas-dark-red));
+    color: var(--christmas-white);
+    border: 2px solid var(--christmas-gold);
+}
+
+.primary-btn:hover, #addBtn:hover {
+    background: linear-gradient(135deg, var(--christmas-dark-red), var(--christmas-red));
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(220, 20, 60, 0.4);
+}
+
+.secondary-btn {
+    background: linear-gradient(135deg, var(--christmas-green), var(--christmas-dark-green));
+    color: var(--christmas-white);
+    border: 2px solid var(--christmas-gold);
+}
+
+.secondary-btn:hover {
+    background: linear-gradient(135deg, var(--christmas-dark-green), var(--christmas-green));
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(34, 139, 34, 0.4);
+}
+
+button:disabled {
+    background: #cccccc;
+    color: #666666;
+    cursor: not-allowed;
+    border-color: #cccccc;
+}
+
+button:disabled:hover {
+    transform: none;
+    box-shadow: none;
+}
+
+/* ===== LISTA DE PARTICIPANTES ===== */
+.list {
+    list-style: none;
+    max-height: 400px;
+    overflow-y: auto;
+    margin-bottom: 1.5rem;
+    padding: 0.5rem;
+}
+
+.list li {
+    background: var(--snow-white);
+    padding: 0.75rem;
+    margin-bottom: 0.5rem;
+    border-radius: var(--border-radius);
+    border-left: 4px solid var(--christmas-green);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: var(--transition);
+}
+
+.list li:hover {
+    background: #e8f5e8;
+    transform: translateX(5px);
+}
+
+.empty-state {
+    text-align: center;
+    color: #999999;
+    font-style: italic;
+    border-left: 4px solid #cccccc !important;
+}
+
+.remove-btn {
+    background: var(--christmas-red);
+    color: var(--christmas-white);
+    border: none;
+    padding: 0.25rem 0.5rem;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 0.8rem;
+    width: 25px;
+    height: 25px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.remove-btn:hover {
+    background: var(--christmas-dark-red);
+    transform: scale(1.1);
+}
+
+/* ===== ACCIONES ===== */
+.actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+/* ===== RESULTADOS ===== */
+.pairs-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.pair-card {
+    background: rgba(248, 249, 250, 0.96);
+    backdrop-filter: blur(12px);
+    border: 2px solid var(--christmas-gold);
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    text-align: center;
+    transition: var(--transition);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.pair-card:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+    background: rgba(255, 255, 255, 0.98);
+}
+
+.whatsapp-btn {
+    background: linear-gradient(135deg, #25d366, #128c7e);
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: var(--border-radius);
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    margin-top: 1rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+}
+
+.whatsapp-btn:hover {
+    background: linear-gradient(135deg, #128c7e, #25d366);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(37, 211, 102, 0.4);
+}
+
+.participant-phone {
+    font-size: 0.8rem;
+    color: #666;
+    margin-top: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.country-flag {
+    font-size: 1rem;
+    display: inline-block;
+}
+
+.pair-number {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--christmas-red);
+    margin-bottom: 1rem;
+}
+
+.pair-names {
+    font-size: 1.1rem;
+    color: var(--christmas-green);
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.assignment-text {
+    font-size: 0.9rem;
+    color: var(--christmas-gold);
+    font-weight: 600;
+    margin-top: 0.5rem;
+    text-align: center;
+}
+
+.pair-connector {
+    color: var(--christmas-red);
+    margin: 0 0.5rem;
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+/* ===== FOOTER ===== */
+.footer {
+    text-align: center;
+    background: rgba(248, 249, 250, 0.95);
+    backdrop-filter: blur(12px);
+    padding: 1.5rem;
+    border-radius: var(--border-radius);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+    border: 2px solid var(--christmas-gold);
+    margin-top: 2rem;
+}
+
+.footer p {
+    color: var(--christmas-green);
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+/* ===== SCROLLBAR PERSONALIZADA ===== */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--snow-white);
+    border-radius: var(--border-radius);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--christmas-green);
+    border-radius: var(--border-radius);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--christmas-dark-green);
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
+@media (max-width: 768px) {
+    .container {
+        padding: 10px;
+    }
+    
+    .title {
+        font-size: 2rem;
+    }
+    
+    .subtitle {
+        font-size: 1rem;
+    }
+    
+    .main-content {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .card {
+        padding: 1.5rem;
+    }
+    
+    .input-group {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .phone-group {
+        flex-direction: row;
+    }
+    
+    .country-select {
+        min-width: 90px;
+        font-family: 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', 'Poppins', sans-serif;
+    }
+    
+    .country-select option {
+        font-family: 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', 'Poppins', sans-serif;
+    }
+    
+    .actions {
+        flex-direction: column;
+    }
+    
+    .pairs-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .snowflake {
+        font-size: 1rem;
+    }
+    
+    .list {
+        max-height: 250px;
+    }
+}
+
+@media (max-width: 480px) {
+    .header {
+        padding: 1.5rem;
+    }
+    
+    .title {
+        font-size: 1.8rem;
+    }
+    
+    .card {
+        padding: 1rem;
+    }
+    
+    .card h2 {
+        font-size: 1.3rem;
+    }
+    
+    button {
+        padding: 0.6rem 1rem;
+        font-size: 0.9rem;
+    }
+}
+
+/* ===== ANIMACIONES ADICIONALES ===== */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in {
+    animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.slide-in {
+    animation: slideIn 0.3s ease-out;
+}
+
+
+
+
+
+
+
+
+
+
+
