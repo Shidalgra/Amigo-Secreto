@@ -571,27 +571,27 @@ function displayResults() {
                 <div class="participant-info">
                     <div class="participant-name">👤 ${assignment.giver.name}</div>
                     <div class="participant-phone">${assignment.giver.flag} ${assignment.giver.phone}</div>
-                </div>
-                <div class="assignment-action">
-                    <div class="access-info">
-                        <div class="access-code-box">
-                            <label><strong>🔑 Código de Acceso:</strong></label>
-                            <div class="code-display">${assignment.accessCode}</div>
+                    <div class="assignment-action">
+                        <div class="access-info">
+                            <div class="access-code-box">
+                                <label><strong>🔑 Código de Acceso:</strong></label>
+                                <div class="code-display">${assignment.accessCode}</div>
+                            </div>
+                            <div class="link-box">
+                                <label><strong>🔗 Enlace Único:</strong></label>
+                                <input type="text" class="link-input" value="${assignment.uniqueLink}" readonly>
+                                <button onclick="copyAccessInfo('${assignment.uniqueLink}', '${assignment.accessCode}', '${assignment.giver.name}')" 
+                                        class="copy-btn">
+                                    📋 Copiar Todo
+                                </button>
+                            </div>
                         </div>
-                        <div class="link-box">
-                            <label><strong>🔗 Enlace Único:</strong></label>
-                            <input type="text" class="link-input" value="${assignment.uniqueLink}" readonly>
-                            <button onclick="copyAccessInfo('${assignment.uniqueLink}', '${assignment.accessCode}', '${assignment.giver.name}')" 
-                                    class="copy-btn">
-                                📋 Copiar Todo
+                        <div class="action-buttons">
+                            <button onclick="sendWhatsAppWithCode('${assignment.giver.phone}', '${assignment.uniqueLink}', '${assignment.accessCode}', '${assignment.giver.name}')" 
+                                    class="whatsapp-btn">
+                                📱 Enviar por WhatsApp
                             </button>
                         </div>
-                    </div>
-                    <div class="action-buttons">
-                        <button onclick="sendWhatsAppWithCode('${assignment.giver.phone}', '${assignment.uniqueLink}', '${assignment.accessCode}', '${assignment.giver.name}')" 
-                                class="whatsapp-btn">
-                            📱 Enviar por WhatsApp
-                        </button>
                     </div>
                 </div>
             </div>
