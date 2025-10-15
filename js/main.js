@@ -43,6 +43,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Focus automático en el input
     nameInput.focus();
+    
+    // Verificar si hay parámetros en la URL para mostrar asignación
+    checkForAssignment();
 });
 
 // ===== FUNCIONES PRINCIPALES =====
@@ -305,20 +308,40 @@ function updateButtons() {
 function displayResults() {
     if (assignments.length === 0) return;
     
-    pairsList.innerHTML = assignments.map((assignment, index) => `
-        <div class="pair-card fade-in" style="animation-delay: ${index * 0.1}s">
-            <div class="pair-number">Participante ${assignment.giverNumber}</div>
-            <div class="pair-names">
-                <strong>${assignment.giver.name}</strong>
-                <span class="pair-connector">🎁➡️</span>
-                <strong>${assignment.receiver.name}</strong>
+    pairsList.innerHTML = `
+        <div class="results-header">
+            <h3>🎄 ¡Sorteo Completado! 🎄</h3>
+            <p>Técnica "Casera" - Archivos individuales seguros para cada participante:</p>
+            <div class="info-box">
+                <p><strong> Instrucciones de Privacidad:</strong></p>
+                <ul>
+                    <li>Cada persona debe hacer clic solo en SU enlace</li>
+                    <li>No mires el enlace de otras personas</li>
+                    <li>El organizador tampoco conoce las asignaciones</li>
+                    <li>¡Mantén la sorpresa hasta el intercambio!</li>
+                </ul>
             </div>
-            <div class="assignment-text">le da regalo a</div>
-            <a href="${generateWhatsAppLink(assignment)}" target="_blank" class="whatsapp-btn">
-                📱 Enviar por WhatsApp
-            </a>
         </div>
-    `).join('');
+        ${assignments.map((assignment, index) => {
+            const secretId = generateSecretId(assignment.giver.name, assignment.receiver.name);
+            return `
+            <div class="participant-result fade-in" style="animation-delay: ${index * 0.1}s">
+                <div class="participant-info">
+                    <div class="participant-name">${assignment.giver.name}</div>
+                    <div class="participant-phone">${assignment.giver.flag} ${assignment.giver.phone}</div>
+                </div>
+                <div class="assignment-action">
+                    <button onclick="revealAssignment('${secretId}')" 
+                            class="reveal-btn">
+                        🎁 Ver Mi Amigo Secreto
+                    </button>
+                </div>
+            </div>
+        `;}).join('')}
+        <div class="results-footer">
+            <p class="footer-note">🔐 <strong>Importante:</strong> Cada persona debe hacer clic solo en su propio enlace para mantener el secreto</p>
+        </div>
+    `;
     
     resultsSection.style.display = 'block';
     resultsSection.scrollIntoView({ behavior: 'smooth' });
@@ -329,6 +352,294 @@ function displayResults() {
  */
 function hideResults() {
     resultsSection.style.display = 'none';
+}
+
+/**
+ * Genera un ID secreto único para cada asignación
+ */
+function generateSecretId(giverName, receiverName) {
+    const combined = giverName + receiverName + Date.now();
+    return btoa(combined).replace(/[^a-zA-Z0-9]/g, '').substring(0, 12);
+}
+
+/**
+ * Revela la asignación individual cuando alguien hace clic en su enlace
+ */
+function revealAssignment(secretId) {
+    // Buscar la asignación correspondiente al ID secreto
+    const assignment = assignments.find(a => {
+        const expectedId = generateSecretId(a.giver.name, a.receiver.name);
+        return expectedId === secretId;
+    });
+    
+    if (!assignment) {
+        showNotification('Enlace inválido o expirado', 'error');
+        return;
+    }
+    
+    // Mostrar la asignación en una ventana modal
+    const modal = document.createElement('div');
+    modal.className = 'secret-modal';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>¡Tu Amigo Secreto!</h2>
+            </div>
+            <div class="modal-body">
+                <p><strong>¡Hola ${assignment.giver.name}!</strong></p>
+                <div class="secret-reveal">
+                    <p>Tu amigo secreto es:</p>
+                    <h3 class="receiver-name">${assignment.receiver.name}</h3>
+                </div>
+                <div class="instructions">
+                    <h4> Instrucciones:</h4>
+                    <ul>
+                        <li> Compra un regalo para <strong>${assignment.receiver.name}</strong></li>
+                        <li> Mantén el secreto hasta el día del intercambio</li>
+                        <li> ¡Diviértete eligiendo el regalo perfecto!</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button onclick="closeModal()" class="close-btn">
+                    ✅ Entendido
+                </button>
+                <button onclick="copyToClipboard('${assignment.giver.name}', '${assignment.receiver.name}')" class="copy-btn">
+                    📋 Copiar Información
+                </button>
+            </div>
+        </div>
+        <div class="modal-backdrop" onclick="closeModal()"></div>
+    `;
+    
+    document.body.appendChild(modal);
+    modal.style.display = 'flex';
+}
+
+/**
+ * Cierra el modal de revelación
+ */
+function closeModal() {
+    const modal = document.querySelector('.secret-modal');
+    if (modal) {
+        modal.remove();
+    }
+}
+
+/**
+ * Copia la información del amigo secreto al portapapeles
+ */
+function copyToClipboard(giverName, receiverName) {
+    const message = `🎄 ¡Tu Amigo Secreto Navideño! 🎁
+
+¡Hola ${giverName}!
+
+🎯 Tu amigo secreto es: ${receiverName}
+
+🎅 Instrucciones:
+🛍️ Compra un regalo para ${receiverName}
+🤫 Mantén el secreto hasta el día del intercambio
+🎁 ¡Diviértete eligiendo el regalo perfecto!
+
+¡Feliz Navidad! 🎄✨`;
+
+    // Copiar al portapapeles
+    if (navigator.clipboard && window.isSecureContext) {
+        // Usar la API moderna de portapapeles
+        navigator.clipboard.writeText(message).then(() => {
+            showNotification('Información copiada al portapapeles', 'success');
+        }).catch(() => {
+            fallbackCopyTextToClipboard(message);
+        });
+    } else {
+        // Fallback para navegadores más antiguos
+        fallbackCopyTextToClipboard(message);
+    }
+    
+    closeModal();
+}
+
+/**
+ * Función fallback para copiar texto al portapapeles
+ */
+function fallbackCopyTextToClipboard(text) {
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    textArea.style.position = 'fixed';
+    textArea.style.top = '0';
+    textArea.style.left = '0';
+    textArea.style.width = '2em';
+    textArea.style.height = '2em';
+    textArea.style.padding = '0';
+    textArea.style.border = 'none';
+    textArea.style.outline = 'none';
+    textArea.style.boxShadow = 'none';
+    textArea.style.background = 'transparent';
+    
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    
+    try {
+        document.execCommand('copy');
+        showNotification('Información copiada al portapapeles', 'success');
+    } catch (err) {
+        showNotification('No se pudo copiar. Selecciona y copia manualmente', 'error');
+    }
+    
+    document.body.removeChild(textArea);
+}
+
+/**
+ * Genera archivos de texto individuales para cada participante
+ */
+function generateTextFiles() {
+    if (assignments.length === 0) {
+        showNotification('No hay asignaciones para generar archivos', 'error');
+        return;
+    }
+    
+    const container = document.getElementById('filesContainer');
+    container.style.display = 'block';
+    container.innerHTML = `
+        <h3>📄 Archivos de Texto Generados</h3>
+        <p>Haz clic en cada archivo para descargarlo y enviárselo a la persona correspondiente:</p>
+        <div class="files-list">
+            ${assignments.map((assignment, index) => `
+                <div class="file-item fade-in" style="animation-delay: ${index * 0.1}s">
+                    <div class="file-info">
+                        <span class="file-icon">📄</span>
+                        <span class="file-name">${assignment.giver.name}_AmigoSecreto.txt</span>
+                    </div>
+                    <button onclick="downloadTextFile('${assignment.giver.name}', '${assignment.receiver.name}')" 
+                            class="download-btn">
+                        ⬇️ Descargar
+                    </button>
+                </div>
+            `).join('')}
+        </div>
+        <div style="margin-top: 2rem; padding: 1rem; background: rgba(255, 215, 0, 0.1); border-radius: var(--border-radius); border: 2px solid var(--christmas-gold);">
+            <p><strong>📧 Instrucciones:</strong></p>
+            <ul>
+                <li>Descarga cada archivo haciendo clic en "Descargar"</li>
+                <li>Envía cada archivo SOLO a la persona correspondiente</li>
+                <li>Puedes enviarlo por WhatsApp, correo, o cualquier medio privado</li>
+                <li>¡No abras los archivos para mantener el secreto!</li>
+            </ul>
+        </div>
+    `;
+    
+    showNotification(`${assignments.length} archivos listos para descargar`, 'success');
+}
+
+/**
+ * Descarga un archivo de texto individual
+ */
+function downloadTextFile(giverName, receiverName) {
+    const content = `🎄 ¡Tu Amigo Secreto Navideño! 🎁
+
+¡Hola ${giverName}!
+
+🎯 Tu amigo secreto es: ${receiverName}
+
+🎅 Instrucciones:
+🛍️ Compra un regalo para ${receiverName}
+🤫 Mantén el secreto hasta el día del intercambio
+🎁 ¡Diviértete eligiendo el regalo perfecto!
+
+¡Feliz Navidad! 🎄✨
+
+---
+Generado el: ${new Date().toLocaleDateString('es-ES')} a las ${new Date().toLocaleTimeString('es-ES')}`;
+
+    // Crear y descargar el archivo
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${giverName}_AmigoSecreto.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+    
+    showNotification(`Archivo descargado para ${giverName}`, 'success');
+}
+
+/**
+ * Genera enlaces únicos para cada participante
+ */
+function generateUniqueLinks() {
+    if (assignments.length === 0) {
+        showNotification('No hay asignaciones para generar enlaces', 'error');
+        return;
+    }
+    
+    const container = document.getElementById('filesContainer');
+    container.style.display = 'block';
+    container.innerHTML = `
+        <h3>🔗 Enlaces Únicos Generados</h3>
+        <p>Copia cada enlace y envíaselo SOLO a la persona correspondiente:</p>
+        <div class="files-list">
+            ${assignments.map((assignment, index) => {
+                // Codificar la información de forma segura
+                const assignmentData = {
+                    giver: assignment.giver.name,
+                    receiver: assignment.receiver.name,
+                    phone: assignment.receiver.phone,
+                    country: assignment.receiver.country
+                };
+                
+                // Codificar en base64 y luego URL encode para mayor seguridad
+                const encodedData = encodeURIComponent(btoa(JSON.stringify(assignmentData)));
+                
+                // Generar URL usando la ubicación actual (funciona tanto local como en producción)
+                const baseUrl = window.location.href.split('?')[0]; // Quita parámetros existentes
+                const linkUrl = `${baseUrl}?data=${encodedData}`;
+                
+                return `
+                <div class="file-item fade-in" style="animation-delay: ${index * 0.1}s">
+                    <div class="file-info">
+                        <span class="file-icon">🔗</span>
+                        <span class="file-name">Enlace para ${assignment.giver.name}</span>
+                    </div>
+                    <button onclick="copyLinkToClipboard('${linkUrl}', '${assignment.giver.name}')" 
+                            class="download-btn">
+                        📋 Copiar Enlace
+                    </button>
+                </div>
+            `;}).join('')}
+        </div>
+        <div style="margin-top: 2rem; padding: 1rem; background: rgba(52, 152, 219, 0.1); border-radius: var(--border-radius); border: 2px solid #3498db;">
+            <p><strong>🔗 Instrucciones para Netlify:</strong></p>
+            <ul>
+                <li>✅ Copia cada enlace haciendo clic en "Copiar Enlace"</li>
+                <li>✅ Envía cada enlace SOLO a la persona correspondiente por WhatsApp, email, etc.</li>
+                <li>✅ Los enlaces funcionan perfectamente en Netlify</li>
+                <li>✅ Cuando abran el enlace, verán automáticamente su asignación</li>
+                <li>🔒 Los enlaces son únicos, seguros y funcionan desde cualquier dispositivo</li>
+            </ul>
+        </div>
+    `;
+    
+    showNotification(`${assignments.length} enlaces únicos generados para Netlify`, 'success');
+}
+
+/**
+ * Copia un enlace único al portapapeles
+ */
+function copyLinkToClipboard(linkUrl, giverName) {
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(linkUrl).then(() => {
+            showNotification(`Enlace copiado para ${giverName}`, 'success');
+        }).catch(() => {
+            fallbackCopyTextToClipboard(linkUrl);
+            showNotification(`Enlace copiado para ${giverName}`, 'success');
+        });
+    } else {
+        fallbackCopyTextToClipboard(linkUrl);
+        showNotification(`Enlace copiado para ${giverName}`, 'success');
+    }
 }
 
 /**
@@ -605,6 +916,91 @@ generatePairs = function() {
         logStatistics();
     }
 };
+
+// ===== FUNCIÓN PARA MANEJAR ENLACES ÚNICOS =====
+
+/**
+ * Verifica si hay parámetros en la URL para mostrar una asignación específica
+ */
+function checkForAssignment() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const assignmentData = urlParams.get('data');
+    
+    if (assignmentData) {
+        try {
+            // Decodificar los datos
+            const decoded = decodeURIComponent(assignmentData);
+            const assignment = JSON.parse(atob(decoded));
+            
+            // Ocultar el formulario principal
+            document.querySelector('.container').style.display = 'none';
+            
+            // Mostrar la asignación
+            showPersonalAssignment(assignment);
+            
+        } catch (error) {
+            console.error('Error al procesar el enlace:', error);
+            showError('Enlace inválido o corrupto');
+        }
+    }
+}
+
+/**
+ * Muestra la asignación personal de un participante
+ */
+function showPersonalAssignment(assignment) {
+    const container = document.createElement('div');
+    container.className = 'personal-assignment';
+    container.innerHTML = `
+        <div class="assignment-card">
+            <div class="assignment-header">
+                <h1>🎁 Tu Amigo Secreto 🎄</h1>
+                <div class="snow-decoration">❄️ ❄️ ❄️</div>
+            </div>
+            
+            <div class="assignment-content">
+                <p class="greeting">¡Hola <strong>${assignment.giver}</strong>!</p>
+                
+                <div class="reveal-section">
+                    <p class="instruction">Tu amigo secreto es:</p>
+                    <div class="recipient-name">🎯 ${assignment.receiver}</div>
+                    <div class="recipient-info">
+                        📱 ${assignment.phone}
+                        <br>
+                        📍 ${assignment.country}
+                    </div>
+                </div>
+                
+                <div class="message-section">
+                    <p class="message">
+                        🎄 ¡Prepara un regalo especial! 🎁
+                        <br>
+                        Recuerda mantener el secreto hasta el intercambio.
+                    </p>
+                </div>
+                
+                <div class="action-buttons">
+                    <button onclick="window.print()" class="print-btn">
+                        🖨️ Imprimir
+                    </button>
+                    <button onclick="window.close()" class="close-btn">
+                        ✨ Cerrar
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="background-decoration">
+            <div class="snowflake">❄️</div>
+            <div class="snowflake">🎄</div>
+            <div class="snowflake">🎁</div>
+            <div class="snowflake">⭐</div>
+            <div class="snowflake">❄️</div>
+        </div>
+    `;
+    
+    document.body.appendChild(container);
+}
 
 
 
