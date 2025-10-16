@@ -18,18 +18,18 @@ let nameInput, phoneInput, countrySelect, participantsList, participantsCount;
 let addBtn, clearBtn, generateBtn, resultsSection, pairsList, completionMessage;
 
 // ===== EVENT LISTENERS =====
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     console.log('🎄 DOM cargado, inicializando aplicación...');
-    
+
     // Limpiar asignaciones expiradas al cargar
     cleanExpiredAssignments();
-    
+
     // Mostrar información del almacenamiento
     showStorageInfo();
-    
+
     // Verificar SweetAlert2
     console.log('Verificando SweetAlert2:', typeof Swal !== 'undefined' ? '✅ Disponible' : '❌ No disponible');
-    
+
     // Configuración global de SweetAlert2 para permitir scroll de fondo
     if (typeof Swal !== 'undefined') {
         // Configurar opciones por defecto
@@ -40,10 +40,10 @@ document.addEventListener('DOMContentLoaded', function() {
             scrollbarPadding: false,
             ...Swal.getDefaults()
         });
-        
+
         // Método alternativo: Sobrescribir el método fire original
         const originalFire = Swal.fire;
-        Swal.fire = function(options) {
+        Swal.fire = function (options) {
             if (typeof options === 'object') {
                 options = {
                     allowOutsideClick: true,
@@ -55,11 +55,11 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             return originalFire.call(this, options);
         };
-        
+
         // Listener para forzar scroll cuando se abre SweetAlert
-        const observer = new MutationObserver(function(mutations) {
-            mutations.forEach(function(mutation) {
-                mutation.addedNodes.forEach(function(node) {
+        const observer = new MutationObserver(function (mutations) {
+            mutations.forEach(function (mutation) {
+                mutation.addedNodes.forEach(function (node) {
                     if (node.nodeType === 1 && node.classList && node.classList.contains('swal2-container')) {
                         // Forzar que el body mantenga el scroll
                         document.body.style.overflow = 'auto';
@@ -69,10 +69,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
             });
         });
-        
+
         observer.observe(document.body, { childList: true, subtree: true });
     }
-    
+
     // Inicializar elementos DOM
     nameInput = document.getElementById('nameInput');
     phoneInput = document.getElementById('phoneInput');
@@ -85,31 +85,31 @@ document.addEventListener('DOMContentLoaded', function() {
     resultsSection = document.getElementById('resultsSection');
     pairsList = document.getElementById('pairsList');
     completionMessage = document.getElementById('completionMessage');
-    
+
     // Verificar que todos los elementos existan
     if (!nameInput || !phoneInput || !countrySelect) {
         console.error('Error: No se pudieron encontrar los elementos del formulario');
         return;
     }
-    
+
     updateUI();
-    
+
     // Enter key para agregar participante
-    nameInput.addEventListener('keypress', function(e) {
+    nameInput.addEventListener('keypress', function (e) {
         if (e.key === 'Enter') {
             phoneInput.focus();
         }
     });
-    
-    phoneInput.addEventListener('keypress', function(e) {
+
+    phoneInput.addEventListener('keypress', function (e) {
         if (e.key === 'Enter') {
             addParticipant();
         }
     });
-    
+
     // Focus automático en el input
     nameInput.focus();
-    
+
     // Verificar si hay parámetros en la URL para mostrar asignación
     checkForAssignment();
 });
@@ -121,80 +121,81 @@ document.addEventListener('DOMContentLoaded', function() {
  */
 function addParticipant() {
     console.log('🎄 Función addParticipant() ejecutada');
-    
+
     // Verificar que los elementos existan
     if (!nameInput || !phoneInput || !countrySelect) {
         console.error('Error: Elementos del formulario no encontrados');
         alert('Error: Elementos del formulario no encontrados. Recarga la página.');
         return;
     }
-    
+
     const name = nameInput.value.trim();
     const phone = phoneInput.value.trim();
     const countryCode = countrySelect.value;
-    
+
     console.log('Datos del formulario:', { name, phone, countryCode });
-    
+
     // Verificar que countrySelect tenga opciones
     if (!countrySelect.options || countrySelect.options.length === 0) {
         console.error('Error: countrySelect no tiene opciones');
         alert('Error: Selector de país no funciona correctamente');
         return;
     }
-    
+
     // Extraer solo el emoji de la bandera (antes del primer espacio)
     const optionText = countrySelect.options[countrySelect.selectedIndex].text;
     const countryFlag = optionText.split(' ')[0]; // Esto extrae solo el emoji antes del primer espacio
-    const countryName = optionText.split(' ')[1]; // Nombre del país (opcional, para uso futuro)
-    
+    const countryParts = optionText.split(' ');
+    const countryName = countryParts.length > 1 ? countryParts[1] : 'País'; // Nombre del país (opcional, para uso futuro)
+
     // Validaciones
     if (name === '') {
         showNotification('Por favor, ingresa un nombre válido', 'error');
         nameInput.focus();
         return;
     }
-    
+
     if (phone === '') {
         showNotification('Por favor, ingresa un número de WhatsApp', 'error');
         phoneInput.focus();
         return;
     }
-    
+
     if (name.length > 30) {
         showNotification('El nombre es muy largo (máximo 30 caracteres)', 'error');
         return;
     }
-    
+
     const fullPhone = countryCode + phone;
-    
+
     if (!isValidPhone(phone)) {
         showNotification('Formato de teléfono inválido. Solo números, ej: 3001234567', 'error');
         phoneInput.focus();
         return;
     }
-    
+
     if (participants.some(p => p.name.toLowerCase() === name.toLowerCase())) {
         showNotification('Este participante ya está en la lista', 'error');
         return;
     }
-    
+
     if (participants.some(p => p.phone === fullPhone)) {
         showNotification('Este número de teléfono ya está en la lista', 'error');
         return;
     }
-    
+
     // Agregar participante
     participants.push({
         name: formatName(name),
         phone: fullPhone,
         flag: countryFlag,
-        country: countryName || 'País desconocido' // Agregar nombre del país
+        country: countryName || 'País'
     });
-    
+
     nameInput.value = '';
     phoneInput.value = '';
     nameInput.focus();
-    
+
     updateUI();
     showNotification(`¡${name} agregado exitosamente!`, 'success');
 }
@@ -205,7 +206,7 @@ function addParticipant() {
 function removeParticipant(index) {
     const participant = participants[index];
     const participantName = participant.name;
-    
+
     // Mostrar confirmación con SweetAlert2
     Swal.fire({
         icon: 'question',
@@ -228,7 +229,7 @@ function removeParticipant(index) {
             // Eliminar el participante
             participants.splice(index, 1);
             updateUI();
-            
+
             // Mostrar confirmación de éxito
             Swal.fire({
                 icon: 'success',
@@ -255,13 +256,13 @@ function removeParticipant(index) {
  */
 function clearParticipants() {
     console.log('clearParticipants llamada, participantes:', participants.length);
-    
+
     // Verificar que SweetAlert2 esté disponible
     if (typeof Swal === 'undefined') {
         alert('Error: SweetAlert2 no está cargado');
         return;
     }
-    
+
     // Si la lista está vacía, mostrar mensaje informativo
     if (participants.length === 0) {
         console.log('Lista ya vacía, mostrando SweetAlert');
@@ -273,7 +274,7 @@ function clearParticipants() {
         });
         return;
     }
-    
+
     // Si hay participantes, preguntar si quiere borrarlos
     console.log('Mostrando confirmación para limpiar lista');
     Swal.fire({
@@ -299,7 +300,7 @@ function clearParticipants() {
             // Limpiar todo incluyendo asignaciones permanentes
             participants = [];
             assignments = [];
-            
+
             // Limpiar TODO el localStorage relacionado
             try {
                 // Limpiar asignaciones individuales
@@ -313,10 +314,10 @@ function clearParticipants() {
             } catch (error) {
                 console.error('Error al limpiar localStorage completo:', error);
             }
-            
+
             updateUI();
             hideResults();
-            
+
             Swal.fire({
                 title: '✅ ¡Todo Limpiado!',
                 text: 'Participantes y asignaciones eliminados. Los enlaces únicos ya no funcionarán.',
@@ -324,15 +325,15 @@ function clearParticipants() {
                 confirmButtonText: '👍 ¡Perfecto!',
                 timer: 3000
             });
-            
+
         } else if (result.isDenied) {
             // Solo limpiar la lista, mantener asignaciones
             participants = [];
             assignments = []; // Solo limpiar de memoria
-            
+
             updateUI();
             hideResults();
-            
+
             Swal.fire({
                 title: '✅ ¡Lista Limpiada!',
                 html: `
@@ -355,26 +356,26 @@ function clearParticipants() {
  */
 function generatePairs() {
     console.log('generatePairs llamada, participantes:', participants.length);
-    
+
     // Limpiar asignaciones previas antes de generar nuevas
     assignments = [];
     if (pairsList) {
         pairsList.innerHTML = '<div class="loading">🔄 Generando nuevas asignaciones...</div>';
     }
-    
+
     // Limpiar cualquier caché de códigos previos
-    if (typeof(Storage) !== "undefined" && localStorage) {
+    if (typeof (Storage) !== "undefined" && localStorage) {
         localStorage.removeItem('lastGeneratedCodes');
         localStorage.removeItem('codeCache');
         localStorage.removeItem('accessCodes');
     }
-    
+
     // Verificar que SweetAlert2 esté disponible
     if (typeof Swal === 'undefined') {
         alert('Error: SweetAlert2 no está cargado');
         return;
     }
-    
+
     // Validar que haya participantes en la lista
     if (participants.length === 0) {
         console.log('Lista vacía, mostrando SweetAlert');
@@ -386,7 +387,7 @@ function generatePairs() {
         });
         return;
     }
-    
+
     // Validar que haya al menos 2 participantes
     if (participants.length === 1) {
         console.log('Solo 1 participante, mostrando SweetAlert');
@@ -398,25 +399,25 @@ function generatePairs() {
         });
         return;
     }
-    
+
     // Crear las asignaciones usando el algoritmo de amigo secreto
     assignments = generateSecretSantaAssignments(participants);
-    
+
     // Generar códigos únicos de acceso para cada asignación
     const usedCodes = new Set(); // Para asegurar códigos únicos
     assignments = assignments.map(assignment => {
         let accessCode;
         let attempts = 0;
         const maxAttempts = 100;
-        
+
         // Generar código único (no repetido)
         do {
             accessCode = generateAccessCode(assignment.giver.name + '_' + attempts);
             attempts++;
         } while (usedCodes.has(accessCode) && attempts < maxAttempts);
-        
+
         usedCodes.add(accessCode);
-        
+
         const secretId = generateSecretId(assignment.giver.name, assignment.receiver.name);
         const assignmentWithCodes = {
             ...assignment,
@@ -436,7 +437,7 @@ function generatePairs() {
     // Guardar las asignaciones en localStorage para acceso posterior
     try {
         // Verificar que localStorage esté disponible (funciona en Netlify)
-        if (typeof(Storage) !== "undefined" && localStorage) {
+        if (typeof (Storage) !== "undefined" && localStorage) {
             // Crear un ID único para esta sesión de amigo secreto
             const sessionId = 'secretsanta_' + Date.now();
             const assignmentData = {
@@ -446,11 +447,11 @@ function generatePairs() {
                 participants: participants,
                 expiryDate: Date.now() + (365 * 24 * 60 * 60 * 1000) // 1 año de duración
             };
-            
+
             // Guardar datos con clave única
             localStorage.setItem('secretSantaAssignments', JSON.stringify(assignmentData));
             localStorage.setItem('secretSantaCurrentSession', sessionId);
-            
+
             // Guardar también cada asignación individual para acceso directo
             assignments.forEach(assignment => {
                 const key = `assignment_${assignment.secretId}`;
@@ -461,7 +462,7 @@ function generatePairs() {
                     permanent: true
                 }));
             });
-            
+
             console.log('✅ Asignaciones guardadas PERMANENTEMENTE para Netlify');
             console.log('📅 Duración: 1 año desde hoy');
             console.log('🔑 Session ID:', sessionId);
@@ -477,13 +478,13 @@ function generatePairs() {
     }
 
     displayResults();
-    
+
     // Debug: Mostrar información de códigos generados en consola solamente
     console.log('🔑 Códigos de acceso generados:');
     assignments.forEach(assignment => {
         console.log(`${assignment.giver.name}: ${assignment.accessCode} (${assignment.secretId})`);
     });
-    
+
     // Notificación simple sin SweetAlert
     showNotification(`¡${assignments.length} asignaciones generadas exitosamente!`, 'success');
 }
@@ -495,21 +496,21 @@ function generatePairs() {
 function generateSecretSantaAssignments(participantsList) {
     const maxAttempts = 100;
     let attempts = 0;
-    
+
     while (attempts < maxAttempts) {
         try {
             // Crear una copia de la lista
             let givers = [...participantsList];
             let receivers = [...participantsList];
             let newAssignments = [];
-            
+
             // Mezclar la lista de receptores
             shuffleArray(receivers);
-            
+
             // Intentar crear asignaciones válidas
             for (let i = 0; i < givers.length; i++) {
                 const giver = givers[i];
-                
+
                 // Buscar un receptor válido (que no sea el mismo)
                 let validReceiverIndex = -1;
                 for (let j = 0; j < receivers.length; j++) {
@@ -518,12 +519,12 @@ function generateSecretSantaAssignments(participantsList) {
                         break;
                     }
                 }
-                
+
                 // Si no encontramos un receptor válido, reintentar
                 if (validReceiverIndex === -1) {
                     throw new Error('No se pudo encontrar una asignación válida');
                 }
-                
+
                 // Hacer la asignación
                 const receiver = receivers[validReceiverIndex];
                 newAssignments.push({
@@ -531,14 +532,14 @@ function generateSecretSantaAssignments(participantsList) {
                     receiver: receiver,
                     giverNumber: i + 1
                 });
-                
+
                 // Remover el receptor de la lista disponible
                 receivers.splice(validReceiverIndex, 1);
             }
-            
+
             // Si llegamos aquí, las asignaciones son válidas
             return newAssignments;
-            
+
         } catch (error) {
             attempts++;
             if (attempts < maxAttempts) {
@@ -546,7 +547,7 @@ function generateSecretSantaAssignments(participantsList) {
             }
         }
     }
-    
+
     // Si no pudimos generar asignaciones válidas después de muchos intentos
     console.error('No se pudieron generar asignaciones válidas después de', maxAttempts, 'intentos');
     return [];
@@ -579,7 +580,7 @@ function updateParticipantsList() {
         participantsList.innerHTML = '<li class="empty-state">No hay participantes aún. ¡Agrega algunos nombres!</li>';
         return;
     }
-    
+
     participantsList.innerHTML = participants.map((participant, index) => `
         <li class="slide-in">
             <div>
@@ -610,7 +611,7 @@ function updateParticipantsCount() {
 function updateButtons() {
     const hasParticipants = participants.length > 0;
     // Permitir que el botón generateBtn siempre esté habilitado para mostrar validaciones
-    
+
     clearBtn.disabled = false; // Siempre habilitado para mostrar mensaje cuando está vacío
     generateBtn.disabled = false; // Siempre habilitado para mostrar validaciones
 }
@@ -620,10 +621,10 @@ function updateButtons() {
  */
 function displayResults() {
     if (assignments.length === 0) return;
-    
+
     // Mostrar mensaje de completación
     completionMessage.style.display = 'block';
-    
+
     // Mostrar solo las asignaciones sin el header repetido
     pairsList.innerHTML = `
         ${assignments.map((assignment, index) => `
@@ -657,9 +658,9 @@ function displayResults() {
             </div>
         `).join('')}
     `;
-    
+
     resultsSection.style.display = 'block';
-    
+
     // Hacer scroll hacia el mensaje de completación primero
     completionMessage.scrollIntoView({ behavior: 'smooth' });
 }
@@ -680,7 +681,7 @@ function generateSecretId(giverName, receiverName) {
     const random1 = Math.random().toString(36).substring(2, 15);
     const random2 = Math.random().toString(36).substring(2, 15);
     const random3 = (Math.random() * timestamp).toString(36);
-    
+
     // Crear hash más único
     const combined = random1 + giverName + timestamp + receiverName + random2 + random3;
     let hash = 0;
@@ -689,12 +690,12 @@ function generateSecretId(giverName, receiverName) {
         hash = ((hash << 5) - hash) + char;
         hash = hash & hash;
     }
-    
+
     const hashStr = Math.abs(hash).toString(36);
     const extraRandom = Math.random().toString(36).substring(2, 8);
-    
+
     let secretId = (hashStr + extraRandom).replace(/[^a-zA-Z0-9]/g, '');
-    
+
     // Tomar 12 caracteres de una posición aleatoria
     if (secretId.length >= 12) {
         const startPos = Math.floor(Math.random() * (secretId.length - 12));
@@ -707,7 +708,7 @@ function generateSecretId(giverName, receiverName) {
         }
         secretId = secretId.substring(0, 12);
     }
-    
+
     return secretId.substring(0, 12);
 }
 
@@ -721,10 +722,10 @@ function generateAccessCode(participantName) {
     const randomPart2 = Math.random().toString(36).substring(2, 12);
     const randomPart3 = (Math.random() * 9999999).toString(36);
     const extraEntropy = (Math.random() * timestamp.length).toString(36);
-    
+
     // Combinar de forma más aleatoria
     const combined = randomPart1 + timestamp + randomPart2 + participantName + randomPart3 + extraEntropy;
-    
+
     // Usar hash más complejo
     let hash = 0;
     for (let i = 0; i < combined.length; i++) {
@@ -732,16 +733,16 @@ function generateAccessCode(participantName) {
         hash = ((hash << 5) - hash) + char;
         hash = hash & hash; // Convertir a 32-bit integer
     }
-    
+
     // Convertir hash a string alfanumérico
     const hashStr = Math.abs(hash).toString(36).toUpperCase();
-    
+
     // Agregar más aleatoriedad
     const moreRandom = Math.random().toString(36).substring(2, 8).toUpperCase();
-    
+
     // Combinar y crear código final
     let code = (hashStr + moreRandom).replace(/[^A-Z0-9]/g, '');
-    
+
     // Asegurar que tenga exactamente 6 caracteres únicos
     if (code.length < 6) {
         // Agregar más caracteres aleatorios si es necesario
@@ -752,17 +753,17 @@ function generateAccessCode(participantName) {
             }
         }
     }
-    
+
     // Tomar 6 caracteres de una posición aleatoria
     const startPos = Math.floor(Math.random() * Math.max(1, code.length - 6));
     code = code.substring(startPos, startPos + 6);
-    
+
     // Si aún no tiene 6 caracteres, llenar con aleatorios
     while (code.length < 6) {
         const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
         code += chars.charAt(Math.floor(Math.random() * chars.length));
     }
-    
+
     console.log(`🔑 Código generado para ${participantName}: ${code} (timestamp: ${timestamp})`);
     return code;
 }
@@ -773,7 +774,7 @@ function generateAccessCode(participantName) {
 function generateUniqueLink(assignment, accessCode) {
     // Detectar si estamos en Netlify, localhost o producción
     let baseUrl;
-    
+
     if (window.location.hostname.includes('.netlify.app') || window.location.hostname.includes('.netlify.com')) {
         // URL de Netlify
         baseUrl = window.location.origin;
@@ -784,7 +785,7 @@ function generateUniqueLink(assignment, accessCode) {
         // Otro hosting o dominio personalizado
         baseUrl = window.location.origin + window.location.pathname;
     }
-    
+
     // Limpiar la URL base para asegurar que termine correctamente
     if (baseUrl.endsWith('/index.html')) {
         baseUrl = baseUrl.replace('/index.html', '');
@@ -792,9 +793,9 @@ function generateUniqueLink(assignment, accessCode) {
     if (!baseUrl.endsWith('/')) {
         baseUrl += '/';
     }
-    
+
     const secretId = assignment.secretId || generateSecretId(assignment.giver.name, assignment.receiver.name);
-    
+
     // Para Netlify, usamos la raíz del sitio
     return `${baseUrl}?participant=${encodeURIComponent(assignment.giver.name)}&secret=${secretId}&code=${accessCode}`;
 }
@@ -808,12 +809,12 @@ function revealAssignment(secretId) {
         const expectedId = generateSecretId(a.giver.name, a.receiver.name);
         return expectedId === secretId;
     });
-    
+
     if (!assignment) {
         showNotification('Enlace inválido o expirado', 'error');
         return;
     }
-    
+
     // Mostrar la asignación en una ventana modal
     const modal = document.createElement('div');
     modal.className = 'secret-modal';
@@ -848,7 +849,7 @@ function revealAssignment(secretId) {
             </div>
         </div>
     `;
-    
+
     document.body.appendChild(modal);
     modal.style.display = 'flex';
 }
@@ -892,7 +893,7 @@ function copyToClipboard(giverName, receiverName) {
         // Fallback para navegadores más antiguos
         fallbackCopyTextToClipboard(message);
     }
-    
+
     closeModal();
 }
 
@@ -950,7 +951,7 @@ function sendWhatsAppWithCode(phone, uniqueLink, accessCode, participantName) {
     const encodedMessage = encodeURIComponent(message);
     const cleanPhone = phone.replace(/[^\d+]/g, '');
     const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodedMessage}`;
-    
+
     window.open(whatsappUrl, '_blank');
     showNotification(`¡Abriendo WhatsApp para ${participantName}!`, 'success');
 }
@@ -971,18 +972,18 @@ function fallbackCopyTextToClipboard(text) {
     textArea.style.outline = 'none';
     textArea.style.boxShadow = 'none';
     textArea.style.background = 'transparent';
-    
+
     document.body.appendChild(textArea);
     textArea.focus();
     textArea.select();
-    
+
     try {
         document.execCommand('copy');
         showNotification('Información copiada al portapapeles', 'success');
     } catch (err) {
         showNotification('No se pudo copiar. Selecciona y copia manualmente', 'error');
     }
-    
+
     document.body.removeChild(textArea);
 }
 
@@ -994,7 +995,7 @@ function generateTextFiles() {
         showNotification('No hay asignaciones para generar archivos', 'error');
         return;
     }
-    
+
     const container = document.getElementById('filesContainer');
     container.style.display = 'block';
     container.innerHTML = `
@@ -1024,7 +1025,7 @@ function generateTextFiles() {
             </ul>
         </div>
     `;
-    
+
     showNotification(`${assignments.length} archivos listos para descargar`, 'success');
 }
 
@@ -1058,7 +1059,7 @@ Generado el: ${new Date().toLocaleDateString('es-ES')} a las ${new Date().toLoca
     a.click();
     document.body.removeChild(a);
     window.URL.revokeObjectURL(url);
-    
+
     showNotification(`Archivo descargado para ${giverName}`, 'success');
 }
 
@@ -1070,7 +1071,7 @@ function generateUniqueLinks() {
         showNotification('No hay asignaciones para generar enlaces', 'error');
         return;
     }
-    
+
     const container = document.getElementById('filesContainer');
     container.style.display = 'block';
     container.innerHTML = `
@@ -1078,22 +1079,22 @@ function generateUniqueLinks() {
         <p>Copia cada enlace y envíaselo SOLO a la persona correspondiente:</p>
         <div class="files-list">
             ${assignments.map((assignment, index) => {
-                // Codificar la información de forma segura
-                const assignmentData = {
-                    giver: assignment.giver.name,
-                    receiver: assignment.receiver.name,
-                    phone: assignment.receiver.phone,
-                    country: assignment.receiver.country
-                };
-                
-                // Codificar en base64 y luego URL encode para mayor seguridad
-                const encodedData = encodeURIComponent(btoa(JSON.stringify(assignmentData)));
-                
-                // Generar URL usando la ubicación actual (funciona tanto local como en producción)
-                const baseUrl = window.location.href.split('?')[0]; // Quita parámetros existentes
-                const linkUrl = `${baseUrl}?data=${encodedData}`;
-                
-                return `
+        // Codificar la información de forma segura
+        const assignmentData = {
+            giver: assignment.giver.name,
+            receiver: assignment.receiver.name,
+            phone: assignment.receiver.phone,
+            country: assignment.receiver.country
+        };
+
+        // Codificar en base64 y luego URL encode para mayor seguridad
+        const encodedData = encodeURIComponent(btoa(JSON.stringify(assignmentData)));
+
+        // Generar URL usando la ubicación actual (funciona tanto local como en producción)
+        const baseUrl = window.location.href.split('?')[0]; // Quita parámetros existentes
+        const linkUrl = `${baseUrl}?data=${encodedData}`;
+
+        return `
                 <div class="file-item fade-in" style="animation-delay: ${index * 0.1}s">
                     <div class="file-info">
                         <span class="file-icon">🔗</span>
@@ -1104,7 +1105,8 @@ function generateUniqueLinks() {
                         📋 Copiar Enlace
                     </button>
                 </div>
-            `;}).join('')}
+            `;
+    }).join('')}
         </div>
         <div style="margin-top: 2rem; padding: 1rem; background: rgba(52, 152, 219, 0.1); border-radius: var(--border-radius); border: 2px solid #3498db;">
             <p><strong>🔗 Instrucciones para Netlify:</strong></p>
@@ -1117,7 +1119,7 @@ function generateUniqueLinks() {
             </ul>
         </div>
     `;
-    
+
     showNotification(`${assignments.length} enlaces únicos generados para Netlify`, 'success');
 }
 
@@ -1146,28 +1148,28 @@ function downloadResults() {
         showNotification('No hay resultados para descargar', 'error');
         return;
     }
-    
+
     const currentDate = new Date().toLocaleDateString('es-ES');
     let content = `🎄 AMIGO SECRETO NAVIDEÑO 🎁\n`;
     content += `Fecha: ${currentDate}\n`;
     content += `Total de participantes: ${participants.length}\n`;
     content += `Total de asignaciones: ${assignments.length}\n\n`;
     content += `===== ASIGNACIONES DE AMIGO SECRETO =====\n\n`;
-    
+
     assignments.forEach((assignment) => {
         content += `${assignment.giverNumber}. ${assignment.giver.name} ➡️ le da regalo a ➡️ ${assignment.receiver.name}\n`;
     });
-    
+
     content += `\n===== LISTA COMPLETA DE PARTICIPANTES =====\n\n`;
     participants.forEach((participant, index) => {
         content += `${index + 1}. ${participant.name} - ${participant.flag} ${participant.phone}\n`;
     });
-    
+
     content += `\n===== INSTRUCCIONES =====\n\n`;
     content += `Cada participante debe darle un regalo a la persona asignada.\n`;
     content += `¡Mantén en secreto a quién le toca dar regalo!\n`;
     content += `\n¡Feliz Navidad y que disfruten el intercambio de regalos! 🎄`;
-    
+
     // Crear y descargar el archivo
     const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
     const url = window.URL.createObjectURL(blob);
@@ -1178,7 +1180,7 @@ function downloadResults() {
     a.click();
     document.body.removeChild(a);
     window.URL.revokeObjectURL(url);
-    
+
     showNotification('¡Resultados descargados exitosamente!', 'success');
 }
 
@@ -1201,7 +1203,7 @@ Conseguir un regalo para alguien especial...
     const encodedMessage = encodeURIComponent(message);
     // Limpiar el número de teléfono (quitar todo excepto números y +)
     const cleanPhone = assignment.giver.phone.replace(/[^\d+]/g, '');
-    
+
     return `https://wa.me/${cleanPhone}?text=${encodedMessage}`;
 }
 
@@ -1223,7 +1225,7 @@ function sendAllWhatsApp() {
         });
         return;
     }
-    
+
     // Validar que haya al menos 2 participantes
     if (participants.length === 1) {
         Swal.fire({
@@ -1238,28 +1240,28 @@ function sendAllWhatsApp() {
         });
         return;
     }
-    
+
     // Validar que se hayan generado las asignaciones
     if (assignments.length === 0) {
         showNotification('Primero debes generar las asignaciones', 'error');
         return;
     }
-    
+
     let sentCount = 0;
     const totalMessages = assignments.length;
-    
+
     assignments.forEach((assignment, index) => {
         setTimeout(() => {
             const link = generateWhatsAppLink(assignment);
             window.open(link, '_blank');
             sentCount++;
-            
+
             if (sentCount === totalMessages) {
                 showNotification(`¡${totalMessages} mensajes de WhatsApp enviados!`, 'success');
             }
         }, index * 1000); // Esperar 1 segundo entre cada mensaje
     });
-    
+
     showNotification(`Enviando ${totalMessages} mensajes de WhatsApp...`, 'info');
 }
 
@@ -1270,12 +1272,12 @@ function showNotification(message, type = 'info') {
     // Eliminar notificaciones existentes
     const existingNotifications = document.querySelectorAll('.notification');
     existingNotifications.forEach(n => n.remove());
-    
+
     // Crear nueva notificación
     const notification = document.createElement('div');
     notification.className = `notification notification-${type}`;
     notification.textContent = message;
-    
+
     // Estilos para la notificación
     notification.style.cssText = `
         position: fixed;
@@ -1290,7 +1292,7 @@ function showNotification(message, type = 'info') {
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
         animation: slideInRight 0.3s ease-out;
     `;
-    
+
     // Colores según el tipo
     switch (type) {
         case 'success':
@@ -1305,7 +1307,7 @@ function showNotification(message, type = 'info') {
         default:
             notification.style.background = 'linear-gradient(135deg, #95a5a6, #7f8c8d)';
     }
-    
+
     // Agregar animación CSS
     const style = document.createElement('style');
     style.textContent = `
@@ -1331,15 +1333,15 @@ function showNotification(message, type = 'info') {
             }
         }
     `;
-    
+
     if (!document.querySelector('#notification-styles')) {
         style.id = 'notification-styles';
         document.head.appendChild(style);
     }
-    
+
     // Agregar al DOM
     document.body.appendChild(notification);
-    
+
     // Auto-remover después de 3 segundos
     setTimeout(() => {
         notification.style.animation = 'slideOutRight 0.3s ease-out';
@@ -1349,7 +1351,7 @@ function showNotification(message, type = 'info') {
             }
         }, 300);
     }, 3000);
-    
+
     // Permitir cerrar haciendo click
     notification.addEventListener('click', () => {
         notification.style.animation = 'slideOutRight 0.3s ease-out';
@@ -1366,7 +1368,7 @@ function showNotification(message, type = 'info') {
  */
 function regenerateSystem() {
     console.log('🔄 Función regenerateSystem() ejecutada');
-    
+
     // Verificar que SweetAlert2 esté disponible
     if (typeof Swal === 'undefined') {
         alert('⚠️ Se requiere confirmar esta acción crítica');
@@ -1375,7 +1377,7 @@ function regenerateSystem() {
         }
         return;
     }
-    
+
     // Mostrar confirmación con SweetAlert2
     Swal.fire({
         title: '🚨 REGENERAR SISTEMA COMPLETO',
@@ -1445,17 +1447,17 @@ function regenerateSystem() {
  */
 function executeCompleteReset() {
     console.log('🚨 Ejecutando regeneración completa del sistema...');
-    
+
     try {
         // 1. Limpiar variables globales
         participants = [];
         assignments = [];
-        
+
         // 2. Limpiar COMPLETAMENTE el localStorage
-        if (typeof(Storage) !== "undefined" && localStorage) {
+        if (typeof (Storage) !== "undefined" && localStorage) {
             // Limpiar TODAS las claves relacionadas con el sistema
             const keysToRemove = [];
-            
+
             for (let i = 0; i < localStorage.length; i++) {
                 const key = localStorage.key(i);
                 if (key && (
@@ -1469,38 +1471,38 @@ function executeCompleteReset() {
                     keysToRemove.push(key);
                 }
             }
-            
+
             // Eliminar todas las claves encontradas
             keysToRemove.forEach(key => {
                 localStorage.removeItem(key);
             });
-            
+
             // También limpiar cualquier caché de códigos adicional
             localStorage.removeItem('lastGeneratedCodes');
             localStorage.removeItem('codeCache');
             localStorage.removeItem('accessCodes');
-            
+
             console.log(`🗑️ ${keysToRemove.length} entradas eliminadas del localStorage + caché de códigos`);
         }
-        
+
         // 3. Limpiar variables temporales
         if (window.tempAssignments) {
             delete window.tempAssignments;
         }
-        
+
         // 4. Resetear interfaz de usuario
         updateUI();
         hideResults();
-        
+
         // 5. Limpiar inputs
         if (nameInput) nameInput.value = '';
         if (phoneInput) phoneInput.value = '';
         if (nameInput) nameInput.focus();
-        
+
         // 6. Mostrar confirmación
         showNotification('✅ Sistema regenerado completamente. Todos los datos eliminados.', 'success');
         console.log('✅ Regeneración del sistema completada exitosamente');
-        
+
     } catch (error) {
         console.error('❌ Error durante la regeneración:', error);
         alert('❌ Error en la regeneración. Recarga la página e intenta nuevamente.');
@@ -1513,19 +1515,19 @@ function executeCompleteReset() {
  */
 function cleanExpiredAssignments() {
     try {
-        if (typeof(Storage) !== "undefined" && localStorage) {
+        if (typeof (Storage) !== "undefined" && localStorage) {
             const now = Date.now();
             const oneYear = 365 * 24 * 60 * 60 * 1000;
             let cleaned = 0;
-            
+
             // Revisar todas las claves del localStorage
             for (let i = localStorage.length - 1; i >= 0; i--) {
                 const key = localStorage.key(i);
-                
+
                 if (key && key.startsWith('assignment_')) {
                     try {
                         const data = JSON.parse(localStorage.getItem(key));
-                        
+
                         // Si la asignación es más antigua de 1 año, eliminarla
                         if (data.timestamp && (now - data.timestamp) > oneYear) {
                             localStorage.removeItem(key);
@@ -1538,7 +1540,7 @@ function cleanExpiredAssignments() {
                     }
                 }
             }
-            
+
             if (cleaned > 0) {
                 console.log(`🗑️ ${cleaned} asignaciones expiradas limpiadas del localStorage`);
             }
@@ -1553,19 +1555,19 @@ function cleanExpiredAssignments() {
  */
 function showStorageInfo() {
     try {
-        if (typeof(Storage) !== "undefined" && localStorage) {
+        if (typeof (Storage) !== "undefined" && localStorage) {
             let assignmentCount = 0;
             let totalSize = 0;
             let oldestDate = null;
             let newestDate = null;
-            
+
             for (let i = 0; i < localStorage.length; i++) {
                 const key = localStorage.key(i);
                 if (key && key.startsWith('assignment_')) {
                     assignmentCount++;
                     const data = localStorage.getItem(key);
                     totalSize += data.length;
-                    
+
                     try {
                         const parsed = JSON.parse(data);
                         if (parsed.timestamp) {
@@ -1578,15 +1580,15 @@ function showStorageInfo() {
                     }
                 }
             }
-            
+
             console.log('📊 Información del almacenamiento:');
             console.log(`   Asignaciones guardadas: ${assignmentCount}`);
             console.log(`   Tamaño aproximado: ${(totalSize / 1024).toFixed(2)} KB`);
             if (oldestDate) console.log(`   Más antigua: ${oldestDate.toLocaleDateString()}`);
             if (newestDate) console.log(`   Más reciente: ${newestDate.toLocaleDateString()}`);
-            
-            return { 
-                count: assignmentCount, 
+
+            return {
+                count: assignmentCount,
                 size: totalSize,
                 oldest: oldestDate,
                 newest: newestDate
@@ -1603,10 +1605,10 @@ function showStorageInfo() {
  */
 function showSystemStats() {
     const stats = showStorageInfo();
-    
+
     if (typeof Swal !== 'undefined') {
         const formatDate = (date) => date ? date.toLocaleDateString('es-ES') : 'N/A';
-        
+
         Swal.fire({
             title: '📊 Estadísticas del Sistema',
             html: `
@@ -1625,10 +1627,10 @@ function showSystemStats() {
                         <li><strong>Más reciente:</strong> ${formatDate(stats.newest)}</li>
                     </ul>
                     
-                    ${stats.count > 0 ? 
-                        '<div style="background: rgba(255, 193, 7, 0.1); padding: 1rem; border-radius: 8px; margin-top: 1rem;"><p><strong>⚠️ Hay asignaciones activas</strong><br>Los enlaces únicos están funcionando para participantes.</p></div>' :
-                        '<div style="background: rgba(40, 167, 69, 0.1); padding: 1rem; border-radius: 8px; margin-top: 1rem;"><p><strong>✅ Sistema limpio</strong><br>No hay asignaciones permanentes guardadas.</p></div>'
-                    }
+                    ${stats.count > 0 ?
+                    '<div style="background: rgba(255, 193, 7, 0.1); padding: 1rem; border-radius: 8px; margin-top: 1rem;"><p><strong>⚠️ Hay asignaciones activas</strong><br>Los enlaces únicos están funcionando para participantes.</p></div>' :
+                    '<div style="background: rgba(40, 167, 69, 0.1); padding: 1rem; border-radius: 8px; margin-top: 1rem;"><p><strong>✅ Sistema limpio</strong><br>No hay asignaciones permanentes guardadas.</p></div>'
+                }
                 </div>
             `,
             icon: 'info',
@@ -1652,10 +1654,10 @@ function showSystemStats() {
  * Valida si un nombre es válido
  */
 function isValidName(name) {
-    return name && 
-           name.trim().length > 0 && 
-           name.trim().length <= 30 && 
-           /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(name.trim());
+    return name &&
+        name.trim().length > 0 &&
+        name.trim().length <= 30 &&
+        /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(name.trim());
 }
 
 /**
@@ -1680,10 +1682,10 @@ function formatPhone(phone) {
  */
 function formatName(name) {
     return name.trim()
-              .toLowerCase()
-              .split(' ')
-              .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-              .join(' ');
+        .toLowerCase()
+        .split(' ')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
 }
 
 // ===== EASTER EGGS Y FUNCIONES ADICIONALES =====
@@ -1693,9 +1695,9 @@ function formatName(name) {
  */
 function addHolidayEffects() {
     const today = new Date();
-    const isChristmasTime = (today.getMonth() === 11 && today.getDate() >= 20) || 
-                           (today.getMonth() === 0 && today.getDate() <= 6);
-    
+    const isChristmasTime = (today.getMonth() === 11 && today.getDate() >= 20) ||
+        (today.getMonth() === 0 && today.getDate() <= 6);
+
     if (isChristmasTime) {
         document.body.classList.add('christmas-time');
         console.log('🎄 ¡Es temporada navideña! ¡Que disfrutes tu amigo secreto! 🎁');
@@ -1715,14 +1717,14 @@ function logStatistics() {
 }
 
 // ===== INICIALIZACIÓN =====
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     addHolidayEffects();
     console.log('🎄 Amigo Secreto Navideño cargado correctamente! 🎁');
 });
 
 // Registrar estadísticas cuando se generen asignaciones
 const originalGeneratePairs = generatePairs;
-generatePairs = function() {
+generatePairs = function () {
     originalGeneratePairs();
     if (assignments.length > 0) {
         logStatistics();
@@ -1739,11 +1741,11 @@ function checkForAssignment() {
     const participant = urlParams.get('participant');
     const secret = urlParams.get('secret');
     const code = urlParams.get('code');
-    
+
     if (participant && secret && code) {
         // Ocultar el formulario principal
         document.querySelector('.container').style.display = 'none';
-        
+
         // Mostrar modal para verificar código de acceso
         showAccessCodeModal(participant, secret, code);
     } else if (urlParams.get('data')) {
@@ -1774,7 +1776,7 @@ function showAccessCodeModal(participant, secret, expectedCode) {
                 <h2>🔐 Acceso Seguro al Amigo Secreto</h2>
             </div>
             <div class="modal-body">
-                <p><strong>¡Hola ${participant}!</strong></p>
+                <p><strong>¡Hola ${participant || 'Usuario'}!</strong></p>
                 <p>Para acceder a tu asignación de Amigo Secreto, ingresa tu código de acceso:</p>
                 <div class="code-input-section">
                     <label for="accessCodeInput">🔑 Código de Acceso:</label>
@@ -1784,26 +1786,31 @@ function showAccessCodeModal(participant, secret, expectedCode) {
                 </div>
             </div>
             <div class="modal-footer">
-                <button onclick="closeAccessModal()" class="close-btn">
-                    ❌ Cancelar
-                </button>
-                <button onclick="verifyAccessCode('${participant}', '${secret}', '${expectedCode}')" class="verify-btn">
-                    ✅ Verificar Código
-                </button>
+            <button id="verifyAccessBtn" class="verify-btn">
+            ✅ Verificar Código
+            </button>
+            <button onclick="closeAccessModal()" class="close-btn">
+                ❌ Cancelar
+            </button>
             </div>
         </div>
     `;
-    
+
     document.body.appendChild(modal);
     modal.style.display = 'flex';
-    
+
+    // Agregar event listener seguro para el botón
+    document.getElementById('verifyAccessBtn').addEventListener('click', function() {
+        verifyAccessCode(participant, secret, expectedCode);
+    });
+
     // Focus en el input del código
     setTimeout(() => {
         document.getElementById('accessCodeInput').focus();
     }, 100);
-    
+
     // Permitir verificar con Enter
-    document.getElementById('accessCodeInput').addEventListener('keypress', function(e) {
+    document.getElementById('accessCodeInput').addEventListener('keypress', function (e) {
         if (e.key === 'Enter') {
             verifyAccessCode(participant, secret, expectedCode);
         }
@@ -1814,20 +1821,27 @@ function showAccessCodeModal(participant, secret, expectedCode) {
  * Verifica el código de acceso ingresado
  */
 function verifyAccessCode(participant, secret, expectedCode) {
+    // Validar parámetros
+    if (!participant || !secret || !expectedCode) {
+        console.error('Parámetros inválidos:', { participant, secret, expectedCode });
+        showNotification('❌ Error en los parámetros de acceso. Intenta nuevamente.', 'error');
+        return;
+    }
+
     const enteredCode = document.getElementById('accessCodeInput').value.trim().toUpperCase();
-    
+
     if (!enteredCode) {
         showNotification('Por favor ingresa tu código de acceso', 'warning');
         return;
     }
-    
+
     if (enteredCode === expectedCode.toUpperCase()) {
         // Código correcto, buscar la asignación real
         closeAccessModal();
-        
+
         // Buscar en las asignaciones almacenadas localmente
         const assignment = findAssignmentBySecret(participant, secret);
-        
+
         if (assignment) {
             showPersonalAssignment(assignment);
         } else {
@@ -1838,7 +1852,7 @@ function verifyAccessCode(participant, secret, expectedCode) {
                 message: 'Las asignaciones han sido generadas correctamente. Contacta al organizador si tienes problemas para ver tu asignación.'
             });
         }
-        
+
     } else {
         showNotification('❌ Código incorrecto. Verifica e intenta de nuevo.', 'error');
         document.getElementById('accessCodeInput').value = '';
@@ -1852,20 +1866,20 @@ function verifyAccessCode(participant, secret, expectedCode) {
 function findAssignmentBySecret(participant, secret) {
     // 1. Buscar en las asignaciones actuales en memoria
     if (assignments && assignments.length > 0) {
-        const found = assignments.find(assignment => 
+        const found = assignments.find(assignment =>
             assignment.giver.name === participant && assignment.secretId === secret
         );
         if (found) return found;
     }
-    
+
     // 2. Buscar asignación individual permanente (método más confiable)
     try {
         const assignmentKey = `assignment_${secret}`;
         const savedAssignment = localStorage.getItem(assignmentKey);
-        
+
         if (savedAssignment) {
             const assignment = JSON.parse(savedAssignment);
-            
+
             // Verificar que no haya expirado
             if (assignment.timestamp && assignment.timestamp > Date.now() - (365 * 24 * 60 * 60 * 1000)) {
                 // Verificar que corresponda al participante correcto
@@ -1882,49 +1896,49 @@ function findAssignmentBySecret(participant, secret) {
     } catch (error) {
         console.error('❌ Error al buscar asignación individual:', error);
     }
-    
+
     // 3. Buscar en localStorage general (compatibilidad con versión anterior)
     try {
-        if (typeof(Storage) !== "undefined" && localStorage) {
+        if (typeof (Storage) !== "undefined" && localStorage) {
             const savedData = localStorage.getItem('secretSantaAssignments');
             if (savedData) {
                 const parsedData = JSON.parse(savedData);
-                
+
                 // Verificar si es el nuevo formato con sessionId
                 if (parsedData.assignments && Array.isArray(parsedData.assignments)) {
-                    const found = parsedData.assignments.find(assignment => 
+                    const found = parsedData.assignments.find(assignment =>
                         assignment.giver.name === participant && assignment.secretId === secret
                     );
                     if (found) return found;
                 } else if (Array.isArray(parsedData)) {
                     // Formato anterior (array directo)
-                    const found = parsedData.find(assignment => 
+                    const found = parsedData.find(assignment =>
                         assignment.giver.name === participant && assignment.secretId === secret
                     );
                     if (found) return found;
                 }
             }
         }
-        
+
         // 4. Fallback: buscar en variable temporal
         if (window.tempAssignments && window.tempAssignments.length > 0) {
-            const found = window.tempAssignments.find(assignment => 
+            const found = window.tempAssignments.find(assignment =>
                 assignment.giver.name === participant && assignment.secretId === secret
             );
             if (found) return found;
         }
-        
+
     } catch (error) {
         console.error('❌ Error al recuperar asignaciones:', error);
-        
+
         // Último fallback: buscar en variable temporal
         if (window.tempAssignments && window.tempAssignments.length > 0) {
-            return window.tempAssignments.find(assignment => 
+            return window.tempAssignments.find(assignment =>
                 assignment.giver.name === participant && assignment.secretId === secret
             );
         }
     }
-    
+
     console.warn('⚠️ No se encontró asignación para:', participant, secret);
     return null;
 }
@@ -1937,7 +1951,7 @@ function closeAccessModal() {
     if (modal) {
         document.body.removeChild(modal);
     }
-    
+
     // Mostrar la aplicación principal de nuevo
     document.querySelector('.container').style.display = 'block';
 }
@@ -1949,18 +1963,35 @@ function showPersonalAssignment(assignment) {
     // Extraer los nombres correctamente de los objetos
     const giverName = assignment.giver?.name || assignment.giver || 'Participante';
     const receiverName = assignment.receiver?.name || assignment.receiver || 'Asignación';
-    const receiverPhone = assignment.receiver?.phone || assignment.phone || 'No disponible';
-    const receiverCountry = assignment.receiver?.country || assignment.country || 'No especificado';
     
+    // Asegurar que phone y country sean strings, no objetos
+    let receiverPhone = 'No disponible';
+    let receiverCountry = 'No especificado';
+    
+    if (assignment.receiver?.phone) {
+        receiverPhone = typeof assignment.receiver.phone === 'string' ? assignment.receiver.phone : String(assignment.receiver.phone);
+    } else if (assignment.phone) {
+        receiverPhone = typeof assignment.phone === 'string' ? assignment.phone : String(assignment.phone);
+    }
+    
+    if (assignment.receiver?.country) {
+        receiverCountry = typeof assignment.receiver.country === 'string' ? assignment.receiver.country : String(assignment.receiver.country);
+    } else if (assignment.country) {
+        receiverCountry = typeof assignment.country === 'string' ? assignment.country : String(assignment.country);
+    }
+
     console.log('Datos de asignación:', {
+        assignment: assignment,
         giver: assignment.giver,
         receiver: assignment.receiver,
         giverName,
         receiverName,
         receiverPhone,
-        receiverCountry
+        receiverCountry,
+        phoneType: typeof receiverPhone,
+        countryType: typeof receiverCountry
     });
-    
+
     const container = document.createElement('div');
     container.className = 'personal-assignment';
     container.innerHTML = `
@@ -2010,7 +2041,7 @@ function showPersonalAssignment(assignment) {
             <div class="snowflake">❄️</div>
         </div>
     `;
-    
+
     document.body.appendChild(container);
 }
 
@@ -2032,7 +2063,7 @@ function testPersonalAssignment() {
         accessCode: 'ABC123',
         secretId: 'test123'
     };
-    
+
     console.log('🧪 Probando modal con datos de test:', testAssignment);
     showPersonalAssignment(testAssignment);
 }
@@ -2045,7 +2076,7 @@ function testCodeGeneration() {
         alert('SweetAlert2 no disponible');
         return;
     }
-    
+
     // Verificar que hay participantes
     if (participants.length === 0) {
         Swal.fire({
@@ -2056,36 +2087,36 @@ function testCodeGeneration() {
         });
         return;
     }
-    
+
     // Guardar códigos actuales si existen
     const currentCodes = assignments.map(a => ({
         name: a.giver.name,
         code: a.accessCode,
         timestamp: a.timestamp || 'N/A'
     }));
-    
+
     // Generar nuevos códigos
     console.log('🧪 TEST: Generando nuevos códigos...');
     const oldAssignments = [...assignments];
-    
+
     // Forzar regeneración
     assignments = [];
     assignments = generateSecretSantaAssignments(participants);
-    
+
     // Generar códigos únicos
     const usedCodes = new Set();
     assignments = assignments.map(assignment => {
         let accessCode;
         let attempts = 0;
         const maxAttempts = 100;
-        
+
         do {
             accessCode = generateAccessCode(assignment.giver.name + '_' + attempts);
             attempts++;
         } while (usedCodes.has(accessCode) && attempts < maxAttempts);
-        
+
         usedCodes.add(accessCode);
-        
+
         return {
             ...assignment,
             accessCode: accessCode,
@@ -2093,22 +2124,22 @@ function testCodeGeneration() {
             timestamp: Date.now()
         };
     });
-    
+
     // Comparar códigos
     const newCodes = assignments.map(a => ({
         name: a.giver.name,
         code: a.accessCode,
         timestamp: a.timestamp
     }));
-    
+
     let changedCount = 0;
     let comparisonHTML = '<div style="font-family: monospace; font-size: 0.85em;">';
-    
+
     newCodes.forEach((newCode, index) => {
         const oldCode = currentCodes[index];
         const hasChanged = !oldCode || oldCode.code !== newCode.code;
         if (hasChanged) changedCount++;
-        
+
         comparisonHTML += `
             <div style="margin: 0.5rem 0; padding: 0.5rem; background: ${hasChanged ? 'rgba(40, 167, 69, 0.1)' : 'rgba(255, 193, 7, 0.1)'}; border-radius: 4px;">
                 <strong>${newCode.name}:</strong><br>
@@ -2118,12 +2149,12 @@ function testCodeGeneration() {
             </div>
         `;
     });
-    
+
     comparisonHTML += '</div>';
-    
+
     // Actualizar interfaz
     displayResults();
-    
+
     // Mostrar resultados
     Swal.fire({
         title: '🧪 Test de Generación de Códigos',
@@ -2147,7 +2178,7 @@ function testCodeGeneration() {
         confirmButtonColor: '#17a2b8',
         width: '800px'
     });
-    
+
     console.log('🧪 TEST COMPLETADO - Códigos generados:', newCodes);
 }
 
@@ -2158,29 +2189,29 @@ function testCodeRandomness() {
     console.log('🎲 Probando aleatoriedad de códigos de acceso:');
     const testName = 'Usuario Test';
     const codes = [];
-    
+
     // Generar 10 códigos para el mismo usuario
     for (let i = 0; i < 10; i++) {
         const code = generateAccessCode(testName);
         codes.push(code);
         console.log(`Código ${i + 1}: ${code}`);
     }
-    
+
     // Verificar si hay duplicados
     const uniqueCodes = new Set(codes);
     const hasDuplicates = uniqueCodes.size !== codes.length;
-    
+
     console.log(`📊 Resultados:`);
     console.log(`- Códigos generados: ${codes.length}`);
     console.log(`- Códigos únicos: ${uniqueCodes.size}`);
     console.log(`- ¿Hay duplicados?: ${hasDuplicates ? '❌ SÍ' : '✅ NO'}`);
-    
+
     if (hasDuplicates) {
         console.warn('⚠️ Se encontraron códigos duplicados!');
     } else {
         console.log('✅ Todos los códigos son únicos');
     }
-    
+
     return !hasDuplicates;
 }
 
@@ -2189,21 +2220,21 @@ function testCodeRandomness() {
  */
 function testNetlifyCompatibility() {
     console.log('🧪 Probando compatibilidad con Netlify...');
-    
-    const isNetlify = window.location.hostname.includes('.netlify.app') || 
-                     window.location.hostname.includes('.netlify.com');
-    const isLocalhost = window.location.hostname === 'localhost' || 
-                       window.location.hostname === '127.0.0.1';
-    
+
+    const isNetlify = window.location.hostname.includes('.netlify.app') ||
+        window.location.hostname.includes('.netlify.com');
+    const isLocalhost = window.location.hostname === 'localhost' ||
+        window.location.hostname === '127.0.0.1';
+
     const results = {
         environment: isNetlify ? 'Netlify' : isLocalhost ? 'Local' : 'Otro',
         hostname: window.location.hostname,
         origin: window.location.origin,
-        localStorage: typeof(Storage) !== "undefined",
+        localStorage: typeof (Storage) !== "undefined",
         baseUrl: '',
         sampleLink: ''
     };
-    
+
     // Probar generación de enlace
     if (assignments.length > 0) {
         const sampleAssignment = assignments[0];
@@ -2217,7 +2248,7 @@ function testNetlifyCompatibility() {
         };
         results.sampleLink = generateUniqueLink(testAssignment, 'TEST01');
     }
-    
+
     // Mostrar resultados en SweetAlert
     Swal.fire({
         icon: 'info',
@@ -2236,7 +2267,7 @@ function testNetlifyCompatibility() {
         confirmButtonText: '✅ Entendido',
         width: '600px'
     });
-    
+
     console.log('📊 Resultados de compatibilidad:', results);
 }
 
