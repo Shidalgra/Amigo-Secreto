@@ -54,40 +54,41 @@ body {
 
 /* Force emoji rendering with specific styles */
 .flag-emoji {
-    font-family: 'Segoe UI Emoji', 'Noto Color Emoji', 'Apple Color Emoji', monospace ;
-    font-size: 1.2em ;
-    line-height: 1 ;
-    display: inline-block ;
-    vertical-align: middle ;
-    margin-right: 0.5rem ;
-    width: 1.5em ;
-    text-align: center ;
-    font-weight: normal ;
-    font-style: normal ;
-    text-decoration: none ;
-    font-variant: normal ;
-    text-transform: none ;
-    -webkit-font-smoothing: antialiased ;
-    -moz-osx-font-smoothing: grayscale ;
+    font-family: 'Segoe UI Emoji', 'Noto Color Emoji', 'Apple Color Emoji', monospace;
+    font-size: 1.2em;
+    line-height: 1;
+    display: inline-block;
+    vertical-align: middle;
+    margin-right: 0.5rem;
+    width: 1.5em;
+    text-align: center;
+    font-weight: normal;
+    font-style: normal;
+    text-decoration: none;
+    font-variant: normal;
+    text-transform: none;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 /* Fallback for browsers without emoji support */
 .flag-fallback {
-    display: inline-block ;
-    background: var(--christmas-green) ;
-    color: white ;
-    font-size: 0.7em ;
-    padding: 0.2em 0.4em ;
-    border-radius: 3px ;
-    margin-right: 0.5rem ;
-    font-weight: bold ;
-    font-family: monospace ;
-    min-width: 2em ;
-    text-align: center ;
+    display: inline-block;
+    background: var(--christmas-green);
+    color: white;
+    font-size: 0.7em;
+    padding: 0.2em 0.4em;
+    border-radius: 3px;
+    margin-right: 0.5rem;
+    font-weight: bold;
+    font-family: monospace;
+    min-width: 2em;
+    text-align: center;
 }
 
 /* Ensure proper emoji rendering */
-.select-option, .selected-flag {
+.select-option,
+.selected-flag {
     font-variant-emoji: emoji;
     font-synthesis: none;
     -webkit-font-smoothing: antialiased;
@@ -96,13 +97,11 @@ body {
 
 body {
     font-family: 'Poppins', var(--emoji-font), sans-serif;
-    background: linear-gradient(
-        135deg, 
-        rgba(220, 20, 60, 0.15) 0%, 
-        rgba(34, 139, 34, 0.15) 50%,
-        rgba(220, 20, 60, 0.15) 100%
-    ),
-    url('https://static.vecteezy.com/system/resources/thumbnails/022/989/984/small_2x/merry-christmas-holiday-background-illustration-ai-generative-free-photo.jpg');
+    background: linear-gradient(135deg,
+            rgba(220, 20, 60, 0.15) 0%,
+            rgba(34, 139, 34, 0.15) 50%,
+            rgba(220, 20, 60, 0.15) 100%),
+        url('https://static.vecteezy.com/system/resources/thumbnails/022/989/984/small_2x/merry-christmas-holiday-background-illustration-ai-generative-free-photo.jpg');
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
@@ -139,21 +138,52 @@ body {
     text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
 }
 
-.snowflake:nth-child(1) { left: 10%; animation-duration: 3s; animation-delay: 0s; }
-.snowflake:nth-child(2) { left: 20%; animation-duration: 4s; animation-delay: 1s; }
-.snowflake:nth-child(3) { left: 30%; animation-duration: 3.5s; animation-delay: 0.5s; }
-.snowflake:nth-child(4) { left: 70%; animation-duration: 5s; animation-delay: 1.5s; }
-.snowflake:nth-child(5) { left: 80%; animation-duration: 4.5s; animation-delay: 0.3s; }
-.snowflake:nth-child(6) { left: 90%; animation-duration: 3.8s; animation-delay: 2s; }
+.snowflake:nth-child(1) {
+    left: 10%;
+    animation-duration: 3s;
+    animation-delay: 0s;
+}
+
+.snowflake:nth-child(2) {
+    left: 20%;
+    animation-duration: 4s;
+    animation-delay: 1s;
+}
+
+.snowflake:nth-child(3) {
+    left: 30%;
+    animation-duration: 3.5s;
+    animation-delay: 0.5s;
+}
+
+.snowflake:nth-child(4) {
+    left: 70%;
+    animation-duration: 5s;
+    animation-delay: 1.5s;
+}
+
+.snowflake:nth-child(5) {
+    left: 80%;
+    animation-duration: 4.5s;
+    animation-delay: 0.3s;
+}
+
+.snowflake:nth-child(6) {
+    left: 90%;
+    animation-duration: 3.8s;
+    animation-delay: 2s;
+}
 
 @keyframes snowfall {
     0% {
         transform: translateY(-10px) rotate(0deg);
         opacity: 1;
     }
+
     50% {
         opacity: 0.8;
     }
+
     100% {
         transform: translateY(100vh) rotate(360deg);
         opacity: 0;
@@ -169,7 +199,8 @@ body {
     z-index: 2;
     transform: scale(0.75);
     transform-origin: top center;
-    width: 133.33%; /* Compensar la reducción: 100% / 0.75 = 133.33% */
+    width: 133.33%;
+    /* Compensar la reducción: 100% / 0.75 = 133.33% */
 }
 
 
@@ -200,8 +231,10 @@ body {
 /* Escala ajustada para pantallas muy grandes */
 @media (min-width: 1500px) {
     .container {
-        transform: scale(0.8); /* Ligeramente más grande en pantallas grandes */
-        width: 125%; /* Compensar: 100% / 0.8 = 125% */
+        transform: scale(0.8);
+        /* Ligeramente más grande en pantallas grandes */
+        width: 125%;
+        /* Compensar: 100% / 0.8 = 125% */
     }
 }
 
@@ -239,7 +272,8 @@ body {
     margin-bottom: 2rem;
 }
 
-.add-participant, .participants-list {
+.add-participant,
+.participants-list {
     max-width: 1000px;
     margin: 0 auto;
     width: 100%;
@@ -315,7 +349,8 @@ body {
 
 /* ===== CUSTOM SELECT STYLES ===== */
 
-#nameInput, #phoneInput {
+#nameInput,
+#phoneInput {
     padding: 1rem;
     border: 2px solid var(--christmas-green);
     border-radius: var(--border-radius);
@@ -359,7 +394,8 @@ body {
     color: var(--text-color);
 }
 
-#nameInput:focus, #phoneInput:focus {
+#nameInput:focus,
+#phoneInput:focus {
     outline: none;
     border-color: var(--christmas-red);
     box-shadow: 0 0 0 3px rgba(220, 20, 60, 0.1);
@@ -409,13 +445,15 @@ button:active {
     gap: 0.5rem;
 }
 
-.primary-btn, #addBtn {
+.primary-btn,
+#addBtn {
     background: linear-gradient(135deg, var(--christmas-red), var(--christmas-dark-red));
     color: var(--christmas-white);
     border: 2px solid var(--christmas-gold);
 }
 
-.primary-btn:hover, #addBtn:hover {
+.primary-btn:hover,
+#addBtn:hover {
     background: linear-gradient(135deg, var(--christmas-dark-red), var(--christmas-red));
     transform: translateY(-2px);
     box-shadow: 0 4px 15px rgba(220, 20, 60, 0.4);
@@ -475,27 +513,38 @@ button:disabled:hover {
     text-align: center;
     color: #999999;
     font-style: italic;
-    border-left: 4px solid #cccccc ;
+    border-left: 4px solid #cccccc;
 }
 
 .remove-btn {
-    background: var(--christmas-red);
-    color: var(--christmas-white);
-    border: none;
-    padding: 0.25rem 0.5rem;
-    border-radius: 50%;
-    cursor: pointer;
-    font-size: 0.8rem;
-    width: 25px;
-    height: 25px;
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #6c757d, #495057);
+    color: white;
+    font-size: 0.9rem;
+    font-weight: bold;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+    transition: all 0.2s ease;
+    margin-left: 6px;
 }
 
 .remove-btn:hover {
-    background: var(--christmas-dark-red);
+    background: linear-gradient(135deg, #868e96, #343a40);
     transform: scale(1.1);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+}
+
+.remove-btn:active {
+    transform: scale(0.95);
+    box-shadow:
+        inset 0 2px 4px rgba(0, 0, 0, 0.4),
+        0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 /* ===== ACCIONES ===== */
@@ -995,31 +1044,32 @@ button:disabled:hover {
 }
 
 /* Estados activos para todos los botones de test */
-.test-assignment-btn:active, 
-.test-btn:active, 
+.test-assignment-btn:active,
+.test-btn:active,
 .netlify-test-btn:active {
     transform: translateY(0);
     padding: 0.4rem 1rem;
     opacity: 0.8;
 }
 
-.stats-btn:active, .regenerate-btn:active {
+.stats-btn:active,
+.regenerate-btn:active {
     transform: translateY(0);
     padding: 0.4rem 1rem;
 }
 
 /* Estilos para el modal de regeneración */
 .regenerate-popup {
-    max-width: 600px ;
+    max-width: 600px;
 }
 
 .regenerate-title {
-    color: #dc3545 ;
-    font-size: 1.3rem ;
+    color: #dc3545;
+    font-size: 1.3rem;
 }
 
 .regenerate-content {
-    font-size: 0.95rem ;
+    font-size: 0.95rem;
 }
 
 /* ===== SCROLLBAR PERSONALIZADA ===== */
@@ -1075,6 +1125,7 @@ button:disabled:hover {
         -webkit-backdrop-filter: blur(0px) saturate(100%) brightness(1);
         background: rgba(0, 0, 0, 0);
     }
+
     to {
         backdrop-filter: blur(15px) saturate(150%) brightness(0.8);
         -webkit-backdrop-filter: blur(15px) saturate(150%) brightness(0.8);
@@ -1093,7 +1144,7 @@ button:disabled:hover {
     position: relative;
     background: linear-gradient(135deg, #ffffff, #f8f9fa);
     border-radius: var(--border-radius);
-    box-shadow: 
+    box-shadow:
         0 20px 60px rgba(0, 0, 0, 0.4),
         0 0 40px rgba(255, 215, 0, 0.3),
         inset 0 1px 0 rgba(255, 255, 255, 0.8);
@@ -1117,6 +1168,7 @@ button:disabled:hover {
         opacity: 0;
         transform: translate3d(0, -30px, 0) scale(0.95);
     }
+
     to {
         opacity: 1;
         transform: translate3d(0, 0, 0) scale(1);
@@ -1357,8 +1409,13 @@ button:disabled:hover {
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
 }
 
 @keyframes slideIn {
@@ -1366,6 +1423,7 @@ button:disabled:hover {
         transform: translateY(-50px);
         opacity: 0;
     }
+
     to {
         transform: translateY(0);
         opacity: 1;
@@ -1373,135 +1431,145 @@ button:disabled:hover {
 }
 
 @keyframes pulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.05); }
+
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.05);
+    }
 }
 
 /* ===== RESPONSIVE DESIGN ===== */
 @media (max-width: 768px) {
     .container {
         padding: 10px;
-        transform: scale(0.85); /* Escala ligeramente mayor en móviles */
-        width: 117.65%; /* Compensar: 100% / 0.85 = 117.65% */
+        transform: scale(0.85);
+        /* Escala ligeramente mayor en móviles */
+        width: 117.65%;
+        /* Compensar: 100% / 0.85 = 117.65% */
     }
-    
+
     .title {
         font-size: 2rem;
     }
-    
+
     .subtitle {
         font-size: 1rem;
     }
-    
+
     .main-content {
         grid-template-columns: 1fr;
         gap: 1rem;
     }
-    
+
     .card {
         padding: 1.5rem;
     }
-    
+
     .input-group {
         grid-template-columns: 1fr;
         gap: 1rem;
     }
-    
+
     .phone-group {
         flex-direction: row;
     }
-    
+
     .country-select {
         min-width: 90px;
         font-family: 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', 'Poppins', sans-serif;
     }
-    
+
     .country-select option {
         font-family: 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', 'Poppins', sans-serif;
     }
-    
+
     .actions {
         flex-direction: column;
     }
-    
+
     .pairs-container {
         grid-template-columns: 1fr;
     }
-    
+
     .snowflake {
         font-size: 1rem;
     }
-    
+
     .list {
         max-height: 250px;
     }
-    
+
     /* Modal responsive */
     .modal-content {
         width: 95%;
         margin: 1rem;
     }
-    
+
     .modal-body {
         padding: 1.5rem;
     }
-    
+
     .modal-footer {
         flex-direction: column;
         align-items: center;
     }
-    
-    .reveal-btn, .close-btn {
+
+    .reveal-btn,
+    .close-btn {
         width: 100%;
         margin: 0.25rem 0;
     }
-    
+
     /* Completion message responsive */
     .completion-message {
         margin-bottom: 1rem;
         padding: 0 0.5rem;
     }
-    
+
     .completion-message .results-header h3 {
         font-size: 1.5rem;
     }
-    
+
     .completion-message .results-header p {
         font-size: 1rem;
     }
-    
+
     .completion-message .info-box,
     .completion-message .persistence-info {
         padding: 0.8rem;
         margin-top: 0.8rem;
     }
-    
+
     /* Copyright responsive */
     .admin-controls {
         flex-direction: column;
         gap: 0.5rem;
     }
-    
+
     .copyright-info {
         margin-top: 1rem;
         padding-top: 1rem;
         gap: 0.8rem;
     }
-    
+
     .developer-credit .developer-name {
         font-size: 1rem;
     }
-    
+
     .developer-credit .developer-contact {
         font-size: 0.85rem;
     }
-    
+
     /* Social links responsive */
     .social-links {
         gap: 0.5rem;
         flex-direction: column;
     }
-    
+
     .whatsapp-link,
     .facebook-link {
         padding: 0.5rem 1rem;
@@ -1509,12 +1577,12 @@ button:disabled:hover {
         border-radius: 20px;
         min-width: 120px;
     }
-    
+
     .whatsapp-link i,
     .facebook-link i {
         font-size: 1rem;
     }
-    
+
     .social-text {
         font-size: 0.75rem;
     }
@@ -1522,59 +1590,61 @@ button:disabled:hover {
 
 @media (max-width: 480px) {
     .container {
-        transform: scale(0.9); /* Escala aún mayor para pantallas muy pequeñas */
-        width: 111.11%; /* Compensar: 100% / 0.9 = 111.11% */
+        transform: scale(0.9);
+        /* Escala aún mayor para pantallas muy pequeñas */
+        width: 111.11%;
+        /* Compensar: 100% / 0.9 = 111.11% */
         padding: 15px;
     }
-    
+
     .header {
         padding: 1.5rem;
     }
-    
+
     .title {
         font-size: 1.8rem;
     }
-    
+
     .card {
         padding: 1rem;
     }
-    
+
     .card h2 {
         font-size: 1.3rem;
     }
-    
+
     button {
         padding: 0.6rem 1rem;
         font-size: 0.9rem;
     }
-    
+
     /* Copyright extra responsive */
     .copyright-info {
         margin-top: 0.8rem;
         padding-top: 0.8rem;
     }
-    
+
     .developer-credit p {
         font-size: 0.85rem;
     }
-    
+
     .developer-credit .developer-name {
         font-size: 0.95rem;
     }
-    
+
     .developer-credit .developer-contact {
         font-size: 0.8rem;
     }
-    
+
     .copyright-text p {
         font-size: 0.75rem;
     }
-    
+
     /* Social links extra responsive */
     .social-links {
         gap: 0.3rem;
     }
-    
+
     .whatsapp-link,
     .facebook-link {
         padding: 0.4rem 0.8rem;
@@ -1582,12 +1652,12 @@ button:disabled:hover {
         gap: 0.3rem;
         min-width: 100px;
     }
-    
+
     .whatsapp-link i,
     .facebook-link i {
         font-size: 0.9rem;
     }
-    
+
     .social-text {
         font-size: 0.7rem;
     }
@@ -1599,6 +1669,7 @@ button:disabled:hover {
         opacity: 0;
         transform: translateY(20px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -1614,6 +1685,7 @@ button:disabled:hover {
         opacity: 0;
         transform: translateX(-20px);
     }
+
     to {
         opacity: 1;
         transform: translateX(0);
@@ -1649,7 +1721,7 @@ button:disabled:hover {
     left: 0;
     right: 0;
     bottom: 0;
-    background: 
+    background:
         linear-gradient(135deg, rgba(15, 76, 117, 0.95), rgba(46, 139, 87, 0.95), rgba(139, 0, 0, 0.95)),
         linear-gradient(45deg, #0f4c75, #2e8b57, #8b0000);
     /* Solo el fondo tiene backdrop-filter */
@@ -1661,7 +1733,7 @@ button:disabled:hover {
 /* Fallback para navegadores sin soporte backdrop-filter */
 @supports not (backdrop-filter: blur(15px)) {
     .personal-assignment::before {
-        background: 
+        background:
             linear-gradient(135deg, rgba(15, 76, 117, 0.98), rgba(46, 139, 87, 0.98), rgba(139, 0, 0, 0.98)),
             linear-gradient(45deg, #0f4c75, #2e8b57, #8b0000);
     }
@@ -1671,19 +1743,20 @@ button:disabled:hover {
     from {
         opacity: 0;
     }
+
     to {
         opacity: 1;
     }
 }
 
 .assignment-card {
-    background: 
+    background:
         linear-gradient(145deg, #ffffff, #f8f9fa);
     border-radius: 20px;
     padding: 2rem;
     max-width: 500px;
     width: 90%;
-    box-shadow: 
+    box-shadow:
         0 25px 50px rgba(0, 0, 0, 0.4),
         0 0 60px rgba(255, 215, 0, 0.3),
         inset 0 1px 0 rgba(255, 255, 255, 0.8),
@@ -1691,7 +1764,8 @@ button:disabled:hover {
     border: 4px solid #ffd700;
     position: relative;
     overflow: hidden;
-    z-index: 10; /* Asegurar que esté por encima del fondo borroso */
+    z-index: 10;
+    /* Asegurar que esté por encima del fondo borroso */
     /* Mejorar nitidez y legibilidad - SIN backdrop-filter para que sea nítida */
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -1709,6 +1783,7 @@ button:disabled:hover {
         opacity: 0;
         transform: translate3d(0, 50px, 0) scale(0.9);
     }
+
     to {
         opacity: 1;
         transform: translate3d(0, 0, 0) scale(1);
@@ -1722,26 +1797,28 @@ button:disabled:hover {
     left: -50%;
     width: 200%;
     height: 200%;
-    background: linear-gradient(45deg, 
-        transparent, 
-        rgba(255, 215, 0, 0.15), 
-        rgba(255, 255, 255, 0.1),
-        rgba(255, 215, 0, 0.15),
-        transparent);
+    background: linear-gradient(45deg,
+            transparent,
+            rgba(255, 215, 0, 0.15),
+            rgba(255, 255, 255, 0.1),
+            rgba(255, 215, 0, 0.15),
+            transparent);
     animation: shimmer 4s infinite;
     pointer-events: none;
     z-index: 1;
 }
 
 @keyframes shimmer {
-    0% { 
+    0% {
         transform: translateX(-100%) translateY(-100%) rotate(45deg);
         opacity: 0;
     }
-    50% { 
+
+    50% {
         opacity: 1;
     }
-    100% { 
+
+    100% {
         transform: translateX(100%) translateY(100%) rotate(45deg);
         opacity: 0;
     }
@@ -1758,7 +1835,7 @@ button:disabled:hover {
     color: #0f4c75;
     font-size: 2rem;
     margin: 0;
-    text-shadow: 
+    text-shadow:
         1px 1px 2px rgba(0, 0, 0, 0.1),
         0 0 10px rgba(255, 255, 255, 0.8);
     font-family: 'Share Tech Mono', monospace, sans-serif;
@@ -1879,7 +1956,8 @@ button:disabled:hover {
     margin-top: 2rem;
 }
 
-.print-btn, .close-btn {
+.print-btn,
+.close-btn {
     padding: 0.8rem 1.6rem;
     border: none;
     border-radius: 25px;
@@ -1927,7 +2005,8 @@ button:disabled:hover {
     width: 100%;
     height: 100%;
     pointer-events: none;
-    z-index: 5; /* Por encima del fondo borroso pero debajo de la tarjeta */
+    z-index: 5;
+    /* Por encima del fondo borroso pero debajo de la tarjeta */
     opacity: 0.6;
 }
 
@@ -1975,6 +2054,7 @@ button:disabled:hover {
         transform: translateY(-100vh) rotate(0deg);
         opacity: 1;
     }
+
     100% {
         transform: translateY(100vh) rotate(360deg);
         opacity: 0;
@@ -1991,40 +2071,41 @@ button:disabled:hover {
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
     }
-    
+
     .assignment-header h1 {
         font-size: 1.6rem;
         letter-spacing: 0.3px;
     }
-    
+
     .recipient-name {
         font-size: 1.8rem;
         padding: 0.6rem;
         letter-spacing: 0.5px;
     }
-    
+
     .greeting {
         font-size: 1.1rem;
     }
-    
+
     .instruction {
         font-size: 1rem;
     }
-    
+
     .recipient-info {
         font-size: 1rem;
     }
-    
+
     .message {
         font-size: 1rem;
     }
-    
+
     .action-buttons {
         flex-direction: column;
         gap: 0.8rem;
     }
-    
-    .print-btn, .close-btn {
+
+    .print-btn,
+    .close-btn {
         width: 100%;
         font-size: 0.9rem;
         padding: 0.7rem 1.2rem;
@@ -2037,21 +2118,21 @@ button:disabled:hover {
         margin: 0.5rem;
         border-width: 2px;
     }
-    
+
     .assignment-header h1 {
         font-size: 1.4rem;
     }
-    
+
     .recipient-name {
         font-size: 1.6rem;
         padding: 0.5rem;
     }
-    
+
     .reveal-section {
         padding: 1rem;
         margin: 1rem 0;
     }
-    
+
     .message-section {
         padding: 1rem;
         margin: 1rem 0;
@@ -2251,10 +2332,13 @@ button:disabled:hover {
 }
 
 @keyframes globalBadgePulse {
-    0%, 100% {
+
+    0%,
+    100% {
         transform: scale(1);
         box-shadow: 0 2px 10px rgba(15, 81, 50, 0.3);
     }
+
     50% {
         transform: scale(1.02);
         box-shadow: 0 4px 15px rgba(15, 81, 50, 0.5);
@@ -2312,28 +2396,28 @@ button:disabled:hover {
     .access-info {
         gap: 1.5rem;
     }
-    
+
     .code-display {
         font-size: 1.3rem;
         letter-spacing: 0.2rem;
         padding: 0.5rem;
     }
-    
+
     .link-input {
         font-size: 0.8rem;
         padding: 0.5rem;
     }
-    
+
     .action-buttons {
         flex-direction: column;
         gap: 1rem;
     }
-    
+
     .access-modal-content {
         width: 95%;
         margin: 1rem;
     }
-    
+
     #accessCodeInput {
         font-size: 1.1rem;
         padding: 0.75rem;
@@ -2341,31 +2425,34 @@ button:disabled:hover {
 }
 
 .swal-christmas {
-    border-radius: 20px ;
-    border: 3px solid var(--christmas-gold) ;
-    box-shadow: 
+    border-radius: 20px;
+    border: 3px solid var(--christmas-gold);
+    box-shadow:
         0 20px 40px rgba(0, 0, 0, 0.3),
-        0 0 30px rgba(255, 215, 0, 0.2) ;
-    font-family: 'Share Tech Mono', monospace, sans-serif ;
+        0 0 30px rgba(255, 215, 0, 0.2);
+    font-family: 'Share Tech Mono', monospace, sans-serif;
 }
 
 .swal-title {
-    font-family: 'Share Tech Mono', monospace, sans-serif ;
-    font-weight: 700 ;
-    color: var(--text-dark) ;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1) ;
+    font-family: 'Share Tech Mono', monospace, sans-serif;
+    font-weight: 700;
+    color: var(--text-dark);
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .swal-content {
-    font-family: 'Share Tech Mono', monospace, sans-serif ;
-    font-size: 1rem ;
-    color: #555 ;
-    line-height: 1.6 ;
+    font-family: 'Share Tech Mono', monospace, sans-serif;
+    font-size: 1rem;
+    color: #555;
+    line-height: 1.6;
 }
 
 /* ===== ESTILOS PARA PÁGINA DE DEMO ===== */
 
-.demo-section, .demo-links, .demo-benefits, .demo-actions {
+.demo-section,
+.demo-links,
+.demo-benefits,
+.demo-actions {
     margin-bottom: 2rem;
 }
 
@@ -2458,11 +2545,11 @@ button:disabled:hover {
     .benefits-grid {
         grid-template-columns: 1fr;
     }
-    
+
     .step {
         padding: 1rem;
     }
-    
+
     .example-participant {
         padding: 1.5rem;
     }
@@ -2473,17 +2560,17 @@ button:disabled:hover {
 /* === SWEETALERT CONTAINER === */
 .swal2-container {
     display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
+    align-items: center !important;  /* centra verticalmente */
+    justify-content: center !important;  /* centra horizontalmente */
     padding: 0.75rem !important;
     background-color: rgba(0, 0, 0, 0.4) !important;
     z-index: 1060 !important;
     position: fixed !important;
     top: 0 !important;
     left: 0 !important;
-    width: 100% !important;
-    height: 100% !important;
-    overflow-y: auto !important; /* Permitir scroll vertical */
+    width: 100vw !important;
+    height: 100vh !important;
+    overflow: hidden !important; /* evita scroll general */
 }
 
 /* Forzar que el body mantenga scroll cuando SweetAlert esté activo */
@@ -2498,116 +2585,169 @@ html.swal2-shown {
 
 /* === SWEETALERT REDUCIDO 10% === */
 .swal2-popup {
-    font-size: 0.9rem ; /* 10% más pequeño que el tamaño base */
-    padding: 1.35rem ; /* 1.5rem reducido 10% */
-    max-width: 450px ; /* 500px reducido 10% */
-    min-width: 315px ; /* 350px reducido 10% */
-    position: fixed ;
-    top: 50% ;
-    left: 50% ;
-    transform: translate(-50%, -50%) ;
-    margin: 0 ;
-    z-index: 10000 ;
+    font-size: 0.9rem;
+    padding: 1.35rem;
+    max-width: 450px;
+    min-width: 315px;
+    /* ❌ Elimina estas líneas que rompen el centrado real */
+    /* position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%); */
+    margin: 0 auto !important;
+    z-index: 10000;
+    border-radius: 12px;
 }
 
 .swal2-title {
-    font-size: 1.35rem ; /* 1.5rem reducido 10% */
-    margin-bottom: 0.9rem ; /* 1rem reducido 10% */
+    font-size: 1rem;
+    /* 1.5rem reducido 10% */
+    margin-bottom: 0rem;
+    /* 1rem reducido 10% */
 }
 
 .swal2-html-container {
-    font-size: 0.9rem ; /* 1rem reducido 10% */
-    line-height: 1.44 ; /* 1.6 reducido 10% */
-    margin: 0.9rem 0 ; /* 1rem reducido 10% */
+    font-size: 0.6rem;
+    /* 1rem reducido 10% */
+    line-height: 1.44;
+    /* 1.6 reducido 10% */
+    margin: -0rem 0;
+    /* 1rem reducido 10% */
 }
 
 .swal2-icon {
-    width: 72px ; /* 80px reducido 10% */
-    height: 72px ; /* 80px reducido 10% */
-    margin: 1.8rem auto 0.9rem ; /* reducido 10% */
+    width: 72px;
+    /* 80px reducido 10% */
+    height: 72px;
+    /* 80px reducido 10% */
+    margin: 1.8rem auto 0.9rem;
+    /* reducido 10% */
 }
 
 .swal2-input {
-    font-size: 0.9rem ;
-    padding: 0.675rem ; /* 0.75rem reducido 10% */
-    margin: 0.9rem auto ; /* 1rem reducido 10% */
+    font-size: 0.9rem;
+    padding: 0.675rem;
+    /* 0.75rem reducido 10% */
+    margin: 0.9rem auto;
+    /* 1rem reducido 10% */
 }
 
 .swal2-confirm {
-    background: linear-gradient(135deg, var(--christmas-red), var(--christmas-dark-red)) ;
-    border: none ;
-    border-radius: 22.5px ; /* 25px reducido 10% */
-    padding: 0.675rem 1.35rem ; /* 0.75rem 1.5rem reducido 10% */
-    font-family: 'Share Tech Mono', monospace, sans-serif ;
-    font-weight: 600 ;
-    font-size: 0.85rem ; /* Reducido 10% */
-    text-transform: uppercase ;
-    letter-spacing: 0.9px ; /* 1px reducido 10% */
-    box-shadow: 0 3.6px 13.5px rgba(220, 20, 60, 0.3) ; /* reducido 10% */
-    transition: all 0.3s ease ;
+    width: 12rem;
+    height: 2.2rem;
+    background: linear-gradient(135deg, var(--christmas-red), var(--christmas-dark-red));
+    margin: 1rem;
+    border: none;
+    border-radius: 10px;
+    padding: 0.675rem 1.35rem;
+    font-family: 'Share Tech Mono', monospace, sans-serif;
+    font-weight: 600;
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.9px;
+    color: white;
+    box-shadow: 0 3.6px 13.5px rgba(220, 20, 60, 0.3);
+    transition: all 0.15s ease;
+    cursor: pointer;
 }
 
 .swal2-confirm:hover {
-    transform: translateY(-1.8px) ; /* -2px reducido 10% */
-    box-shadow: 0 5.4px 18px rgba(220, 20, 60, 0.4) ; /* reducido 10% */
+    transform: translateY(-1.5px);
+    box-shadow: 0 5.4px 18px rgba(220, 20, 60, 0.4);
+}
+
+/* Efecto presionado (hundido) */
+.swal2-confirm:active {
+    transform: translateY(2px);
+    font-size: 0.6rem;
+    box-shadow:
+        inset 0 2px 4px rgba(0, 0, 0, 0.3),
+        /* sombra interna para el efecto presionado */
+        0 1px 2px rgba(220, 20, 60, 0.4);
+    /* ligera sombra externa */
+    background: linear-gradient(135deg, var(--christmas-dark-red), var(--christmas-red));
+    /* invertimos para simular presión */
 }
 
 .swal2-cancel {
-    background: linear-gradient(135deg, #6c757d, #495057) ;
-    border: none ;
-    border-radius: 22.5px ; /* 25px reducido 10% */
-    padding: 0.675rem 1.35rem ; /* 0.75rem 1.5rem reducido 10% */
-    font-family: 'Share Tech Mono', monospace, sans-serif ;
-    font-weight: 600 ;
-    font-size: 0.85rem ; /* Reducido 10% */
-    text-transform: uppercase ;
-    letter-spacing: 0.9px ; /* 1px reducido 10% */
-    box-shadow: 0 3.6px 13.5px rgba(108, 117, 125, 0.3) ; /* reducido 10% */
-    transition: all 0.3s ease ;
+    width: 8rem;
+    height: 2.2rem;
+    background: linear-gradient(135deg, #6c757d, #495057);
+    margin: 1rem;
+    border: none;
+    border-radius: 10px;
+    padding: 0.675rem 1.35rem;
+    font-family: 'Share Tech Mono', monospace, sans-serif;
+    font-weight: 600;
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.9px;
+    color: white;
+    box-shadow: 0 3.6px 13.5px rgba(108, 117, 125, 0.3);
+    transition: all 0.15s ease;
+    cursor: pointer;
 }
 
 .swal2-cancel:hover {
-    transform: translateY(-1.8px) ; /* -2px reducido 10% */
-    box-shadow: 0 5.4px 18px rgba(108, 117, 125, 0.4) ; /* reducido 10% */
+    transform: translateY(-1.5px);
+    box-shadow: 0 5.4px 18px rgba(108, 117, 125, 0.4);
+}
+
+/* Efecto presionado */
+.swal2-cancel:active {
+    transform: translateY(2px);
+    font-size: 0.6rem;
+    box-shadow:
+        inset 0 2px 4px rgba(0, 0, 0, 0.3),   /* sombra interna */
+        0 1px 2px rgba(108, 117, 125, 0.4);  /* ligera sombra externa */
+    background: linear-gradient(135deg, #495057, #6c757d); /* gradiente invertido */
+    filter: brightness(0.9); /* un toque más oscuro al presionar */
 }
 
 /* Estilos para botón de éxito */
 .swal2-popup.swal2-show .swal2-confirm[style*="background-color: rgb(40, 167, 69)"] {
-    background: linear-gradient(135deg, var(--christmas-green), var(--christmas-dark-green)) ;
-    box-shadow: 0 3.6px 13.5px rgba(34, 139, 34, 0.3) ; /* reducido 10% */
+    background: linear-gradient(135deg, var(--christmas-green), var(--christmas-dark-green));
+    box-shadow: 0 3.6px 13.5px rgba(34, 139, 34, 0.3);
+    /* reducido 10% */
 }
 
 .swal2-popup.swal2-show .swal2-confirm[style*="background-color: rgb(40, 167, 69)"]:hover {
-    box-shadow: 0 5.4px 18px rgba(34, 139, 34, 0.4) ; /* reducido 10% */
+    box-shadow: 0 5.4px 18px rgba(34, 139, 34, 0.4);
+    /* reducido 10% */
 }
 
 /* Timer progress bar navideño - reducido */
 .swal2-timer-progress-bar {
-    background: linear-gradient(90deg, var(--christmas-gold), var(--christmas-red)) ;
-    height: 3.6px ; /* 4px reducido 10% */
+    background: linear-gradient(90deg, var(--christmas-gold), var(--christmas-red));
+    height: 3.6px;
+    /* 4px reducido 10% */
 }
 
 /* Personalizar iconos - reducidos */
 .swal2-icon.swal2-success [class^="swal2-success-line"] {
-    background-color: var(--christmas-green) ;
-    height: 4.5px ; /* 5px reducido 10% */
+    background-color: var(--christmas-green);
+    height: 4.5px;
+    /* 5px reducido 10% */
 }
 
 .swal2-icon.swal2-success .swal2-success-ring {
-    border-color: var(--christmas-green) ;
-    border-width: 3.6px ; /* 4px reducido 10% */
+    border-color: var(--christmas-green);
+    border-width: 3.6px;
+    /* 4px reducido 10% */
 }
 
 .swal2-icon.swal2-warning {
-    border-color: var(--christmas-gold) ;
-    color: var(--christmas-gold) ;
-    font-size: 2.7rem ; /* 3rem reducido 10% */
+    border-color: var(--christmas-gold);
+    color: var(--christmas-gold);
+    font-size: 1rem;
+    /* 3rem reducido 10% */
 }
 
 .swal2-icon.swal2-question {
-    border-color: #17a2b8 ;
-    color: #17a2b8 ;
-    font-size: 2.7rem ; /* 3rem reducido 10% */
+    border-color: #17a2b8;
+    color: #17a2b8;
+    font-size: 1rem;
+    /* 3rem reducido 10% */
 }
 
 /* === RESPONSIVE SWEETALERT === */
@@ -2618,33 +2758,23 @@ html.swal2-shown {
         margin: 0 !important;
         padding: 1.2rem !important;
     }
-    
+
     .swal2-container {
         padding: 0.5rem !important;
     }
-    
+
     .swal2-title {
         font-size: 1.2rem !important;
     }
-    
+
     .swal2-html-container {
         font-size: 0.85rem !important;
         line-height: 1.4 !important;
     }
-    
-    .swal2-confirm, .swal2-cancel {
+
+    .swal2-confirm,
+    .swal2-cancel {
         padding: 0.6rem 1.2rem !important;
         font-size: 0.8rem !important;
     }
 }
-
-
-
-
-
-
-
-
-
-
-

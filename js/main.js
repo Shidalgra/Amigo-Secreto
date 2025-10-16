@@ -431,7 +431,7 @@ function clearParticipants() {
         icon: 'question',
         showCancelButton: true,
         showDenyButton: true,
-        confirmButtonText: '🗑️ Limpiar Todo (Incluyendo Asignaciones)',
+        confirmButtonText: '🗑️ Limpiar Asignaciones',
         denyButtonText: '📝 Solo Limpiar Lista (Mantener Asignaciones)',
         cancelButtonText: '❌ Cancelar',
         confirmButtonColor: '#dc3545',
