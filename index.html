@@ -4,23 +4,26 @@
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0, minimum-scale=1.0, viewport-fit=cover">
-    
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0, minimum-scale=1.0, viewport-fit=cover">
+
     <!-- Meta tags para SEO y redes sociales -->
-    <meta name="description" content="Aplicación web para organizar intercambios de Amigo Secreto Navideño con máxima privacidad. Genera archivos y enlaces únicos para cada participante.">
+    <meta name="description"
+        content="Aplicación web para organizar intercambios de Amigo Secreto Navideño con máxima privacidad. Genera archivos y enlaces únicos para cada participante.">
     <meta name="keywords" content="amigo secreto, intercambio regalos, navidad, organizador">
     <meta name="author" content="Amigo Secreto Navideño">
-    
+
     <!-- Open Graph para redes sociales -->
     <meta property="og:title" content="Amigo Secreto Navideño">
     <meta property="og:description" content="Organiza tu intercambio de regalos navideño con total privacidad">
     <meta property="og:type" content="website">
-    
+
     <!-- Favicon -->
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎄</text></svg>">
-    
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎄</text></svg>">
+
     <title>Amigo Secreto Navideño - Intercambio de Regalos</title>
-    
+
     <link rel="stylesheet" href="css/style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -28,13 +31,13 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
         integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
         crossorigin="anonymous" referrerpolicy="no-referrer" />
-    
+
     <!-- Librerías para generar PDFs -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    
+
     <!-- SweetAlert2 para alertas bonitas -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    
+
     <link
         href="https://fonts.googleapis.com/css2?family=Mountains+of+Christmas&family=Poppins:wght@300;400;600&display=swap"
         rel="stylesheet">
@@ -128,10 +131,44 @@
                 </div>
             </section>
 
+            <!-- Mensaje de sorteo completado -->
+            <section class="completion-message grid-template-columns" id="completionMessage" style="display: none;">
+                <div class="card">
+                    <div class="results-header">
+                        <h3>🎄 ¡Sorteo Completado! 🎄</h3>
+                        <p>🔐 Enlaces Únicos con Códigos de Acceso Generados</p>
+                        <div class="info-container">
+                            <div class="info-box">
+                                <p><strong>🔑 Instrucciones de Seguridad:</strong></p>
+                                <ul>
+                                    <li>Cada participante tiene un enlace único y un código secreto</li>
+                                    <li>Envía SOLO su enlace y código a cada persona</li>
+                                    <li>Necesitarán el código para acceder a su asignación</li>
+                                    <li>¡Nadie más podrá ver la asignación sin el código correcto!</li>
+                                </ul>
+                            </div>
+                            <div class="persistence-info">
+                                <p><strong>⏰ ACCESO PERMANENTE:</strong></p>
+                                <ul>
+                                    <li>✅ Los enlaces funcionarán durante <strong>1 año completo</strong></li>
+                                    <li>✅ Funcionan independientemente de esta página</li>
+                                    <li>✅ Puedes limpiar la lista sin afectar los accesos</li>
+                                    <li>✅ Cada participante puede consultar cuando quiera</li>
+                                </ul>
+                            </div>
+                            <div class="results-footer">
+                                <p class="footer-note">🔐 <strong>Máxima Seguridad:</strong> Solo quien tenga el código
+                                    correcto podrá ver su asignación</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             <!-- Resultados de las asignaciones -->
             <section class="results" id="resultsSection" style="display: none;">
                 <div class="card">
-                    <h2>🎁 Asignaciones Generadas</h2>
+                    <h2>📋 Enlaces y Códigos de Acceso</h2>
                     <div id="pairsList" class="pairs-container">
                         <!-- Las asignaciones se generarán aquí -->
                     </div>
@@ -150,26 +187,18 @@
         <footer class="footer">
             <p>🎄 ¡Que tengas una Feliz Navidad y un Próspero Año Nuevo! 🎄</p>
             <div class="admin-controls">
-                <button onclick="testPersonalAssignment()" class="test-assignment-btn" title="Probar modal de asignación personal">
-                    🎯 Test Modal
-                </button>
-                <button onclick="testCodeRandomness()" class="test-btn" title="Probar aleatoriedad de códigos">
-                    🎲 Test Códigos
-                </button>
-                <button onclick="testNetlifyCompatibility()" class="test-btn" title="Probar compatibilidad con Netlify">
-                    🧪 Test Netlify
-                </button>
                 <button onclick="showSystemStats()" class="stats-btn" title="Ver estadísticas del sistema">
                     📊 Estadísticas
                 </button>
-                <button onclick="regenerateSystem()" class="regenerate-btn" title="Regenerar sistema completo - Solo para administradores">
+                <button onclick="regenerateSystem()" class="regenerate-btn"
+                    title="Regenerar sistema completo - Solo para administradores">
                     🔄 Regenerar Sistema
                 </button>
             </div>
         </footer>
     </div>
 
-    <script src="js/main.js"></script>    
+    <script src="js/main.js"></script>
 </body>
 
 </html>

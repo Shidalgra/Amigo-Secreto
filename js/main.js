@@ -15,7 +15,7 @@ console.log('🌐 Entorno detectado:', {
 
 // ===== ELEMENTOS DEL DOM =====
 let nameInput, phoneInput, countrySelect, participantsList, participantsCount;
-let addBtn, clearBtn, generateBtn, resultsSection, pairsList;
+let addBtn, clearBtn, generateBtn, resultsSection, pairsList, completionMessage;
 
 // ===== EVENT LISTENERS =====
 document.addEventListener('DOMContentLoaded', function() {
@@ -30,6 +30,49 @@ document.addEventListener('DOMContentLoaded', function() {
     // Verificar SweetAlert2
     console.log('Verificando SweetAlert2:', typeof Swal !== 'undefined' ? '✅ Disponible' : '❌ No disponible');
     
+    // Configuración global de SweetAlert2 para permitir scroll de fondo
+    if (typeof Swal !== 'undefined') {
+        // Configurar opciones por defecto
+        Swal.getDefaults = () => ({
+            allowOutsideClick: true,
+            allowEscapeKey: true,
+            heightAuto: false,
+            scrollbarPadding: false,
+            ...Swal.getDefaults()
+        });
+        
+        // Método alternativo: Sobrescribir el método fire original
+        const originalFire = Swal.fire;
+        Swal.fire = function(options) {
+            if (typeof options === 'object') {
+                options = {
+                    allowOutsideClick: true,
+                    allowEscapeKey: true,
+                    heightAuto: false,
+                    scrollbarPadding: false,
+                    ...options
+                };
+            }
+            return originalFire.call(this, options);
+        };
+        
+        // Listener para forzar scroll cuando se abre SweetAlert
+        const observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                mutation.addedNodes.forEach(function(node) {
+                    if (node.nodeType === 1 && node.classList && node.classList.contains('swal2-container')) {
+                        // Forzar que el body mantenga el scroll
+                        document.body.style.overflow = 'auto';
+                        document.documentElement.style.overflow = 'auto';
+                        document.body.style.paddingRight = '0';
+                    }
+                });
+            });
+        });
+        
+        observer.observe(document.body, { childList: true, subtree: true });
+    }
+    
     // Inicializar elementos DOM
     nameInput = document.getElementById('nameInput');
     phoneInput = document.getElementById('phoneInput');
@@ -41,6 +84,7 @@ document.addEventListener('DOMContentLoaded', function() {
     generateBtn = document.getElementById('generateBtn');
     resultsSection = document.getElementById('resultsSection');
     pairsList = document.getElementById('pairsList');
+    completionMessage = document.getElementById('completionMessage');
     
     // Verificar que todos los elementos existan
     if (!nameInput || !phoneInput || !countrySelect) {
@@ -312,6 +356,19 @@ function clearParticipants() {
 function generatePairs() {
     console.log('generatePairs llamada, participantes:', participants.length);
     
+    // Limpiar asignaciones previas antes de generar nuevas
+    assignments = [];
+    if (pairsList) {
+        pairsList.innerHTML = '<div class="loading">🔄 Generando nuevas asignaciones...</div>';
+    }
+    
+    // Limpiar cualquier caché de códigos previos
+    if (typeof(Storage) !== "undefined" && localStorage) {
+        localStorage.removeItem('lastGeneratedCodes');
+        localStorage.removeItem('codeCache');
+        localStorage.removeItem('accessCodes');
+    }
+    
     // Verificar que SweetAlert2 esté disponible
     if (typeof Swal === 'undefined') {
         alert('Error: SweetAlert2 no está cargado');
@@ -420,13 +477,15 @@ function generatePairs() {
     }
 
     displayResults();
-    showNotification(`¡${assignments.length} asignaciones generadas exitosamente!`, 'success');
     
-    // Debug: Mostrar información de códigos generados
+    // Debug: Mostrar información de códigos generados en consola solamente
     console.log('🔑 Códigos de acceso generados:');
     assignments.forEach(assignment => {
         console.log(`${assignment.giver.name}: ${assignment.accessCode} (${assignment.secretId})`);
     });
+    
+    // Notificación simple sin SweetAlert
+    showNotification(`¡${assignments.length} asignaciones generadas exitosamente!`, 'success');
 }
 
 /**
@@ -562,29 +621,11 @@ function updateButtons() {
 function displayResults() {
     if (assignments.length === 0) return;
     
+    // Mostrar mensaje de completación
+    completionMessage.style.display = 'block';
+    
+    // Mostrar solo las asignaciones sin el header repetido
     pairsList.innerHTML = `
-        <div class="results-header">
-            <h3>🎄 ¡Sorteo Completado! 🎄</h3>
-            <p>🔐 Enlaces Únicos con Códigos de Acceso Generados</p>
-            <div class="info-box">
-                <p><strong>🔑 Instrucciones de Seguridad:</strong></p>
-                <ul>
-                    <li>Cada participante tiene un enlace único y un código secreto</li>
-                    <li>Envía SOLO su enlace y código a cada persona</li>
-                    <li>Necesitarán el código para acceder a su asignación</li>
-                    <li>¡Nadie más podrá ver la asignación sin el código correcto!</li>
-                </ul>
-            </div>
-            <div class="persistence-info">
-                <p><strong>⏰ ACCESO PERMANENTE:</strong></p>
-                <ul>
-                    <li>✅ Los enlaces funcionarán durante <strong>1 año completo</strong></li>
-                    <li>✅ Funcionan independientemente de esta página</li>
-                    <li>✅ Puedes limpiar la lista sin afectar los accesos</li>
-                    <li>✅ Cada participante puede consultar cuando quiera</li>
-                </ul>
-            </div>
-        </div>
         ${assignments.map((assignment, index) => `
             <div class="participant-result fade-in" style="animation-delay: ${index * 0.1}s">
                 <div class="participant-info">
@@ -615,13 +656,12 @@ function displayResults() {
                 </div>
             </div>
         `).join('')}
-        <div class="results-footer">
-            <p class="footer-note">🔐 <strong>Máxima Seguridad:</strong> Solo quien tenga el código correcto podrá ver su asignación</p>
-        </div>
     `;
     
     resultsSection.style.display = 'block';
-    resultsSection.scrollIntoView({ behavior: 'smooth' });
+    
+    // Hacer scroll hacia el mensaje de completación primero
+    completionMessage.scrollIntoView({ behavior: 'smooth' });
 }
 
 /**
@@ -629,25 +669,43 @@ function displayResults() {
  */
 function hideResults() {
     resultsSection.style.display = 'none';
+    completionMessage.style.display = 'none';
 }
 
 /**
  * Genera un ID secreto único para cada asignación
  */
 function generateSecretId(giverName, receiverName) {
-    const timestamp = Date.now();
-    const random1 = Math.random().toString(36).substring(2, 8);
-    const random2 = Math.random().toString(36).substring(2, 8);
-    const combined = giverName + receiverName + timestamp + random1 + random2;
-    const encoded = btoa(combined).replace(/[^a-zA-Z0-9]/g, '');
+    const timestamp = Date.now() + performance.now();
+    const random1 = Math.random().toString(36).substring(2, 15);
+    const random2 = Math.random().toString(36).substring(2, 15);
+    const random3 = (Math.random() * timestamp).toString(36);
     
-    // Crear un ID de 12 caracteres
-    let secretId = encoded.substring(0, 12);
+    // Crear hash más único
+    const combined = random1 + giverName + timestamp + receiverName + random2 + random3;
+    let hash = 0;
+    for (let i = 0; i < combined.length; i++) {
+        const char = combined.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash;
+    }
     
-    // Si es muy corto, agregar más aleatoriedad
-    while (secretId.length < 12) {
-        const extraRandom = Math.random().toString(36).substring(2, 8);
-        secretId += extraRandom.replace(/[^a-zA-Z0-9]/g, '');
+    const hashStr = Math.abs(hash).toString(36);
+    const extraRandom = Math.random().toString(36).substring(2, 8);
+    
+    let secretId = (hashStr + extraRandom).replace(/[^a-zA-Z0-9]/g, '');
+    
+    // Tomar 12 caracteres de una posición aleatoria
+    if (secretId.length >= 12) {
+        const startPos = Math.floor(Math.random() * (secretId.length - 12));
+        secretId = secretId.substring(startPos, startPos + 12);
+    } else {
+        // Si es muy corto, agregar más aleatoriedad
+        while (secretId.length < 12) {
+            const extraRandom = Math.random().toString(36).substring(2, 8);
+            secretId += extraRandom.replace(/[^a-zA-Z0-9]/g, '');
+        }
+        secretId = secretId.substring(0, 12);
     }
     
     return secretId.substring(0, 12);
@@ -657,29 +715,55 @@ function generateSecretId(giverName, receiverName) {
  * Genera un código único de acceso para cada participante
  */
 function generateAccessCode(participantName) {
-    // Crear múltiples fuentes de aleatoriedad
-    const timestamp = Date.now().toString();
-    const randomPart1 = Math.random().toString(36).substring(2, 8);
-    const randomPart2 = Math.random().toString(36).substring(2, 8);
-    const randomPart3 = (Math.random() * 1000000).toString(36);
+    // Crear múltiples fuentes de aleatoriedad con timestamp de microsegundos
+    const timestamp = Date.now().toString() + performance.now().toString().replace('.', '');
+    const randomPart1 = Math.random().toString(36).substring(2, 12);
+    const randomPart2 = Math.random().toString(36).substring(2, 12);
+    const randomPart3 = (Math.random() * 9999999).toString(36);
+    const extraEntropy = (Math.random() * timestamp.length).toString(36);
     
-    // Combinar todas las fuentes de aleatoriedad
-    const combined = participantName + timestamp + randomPart1 + randomPart2 + randomPart3;
-    const encoded = btoa(combined);
+    // Combinar de forma más aleatoria
+    const combined = randomPart1 + timestamp + randomPart2 + participantName + randomPart3 + extraEntropy;
     
-    // Crear un código de 6 caracteres alfanumérico en mayúsculas
-    let code = encoded.replace(/[^a-zA-Z0-9]/g, '').substring(0, 6).toUpperCase();
-    
-    // Si el código es muy corto, agregar más caracteres aleatorios
-    while (code.length < 6) {
-        const extraRandom = Math.random().toString(36).substring(2, 8).toUpperCase();
-        code += extraRandom.replace(/[^a-zA-Z0-9]/g, '');
+    // Usar hash más complejo
+    let hash = 0;
+    for (let i = 0; i < combined.length; i++) {
+        const char = combined.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash; // Convertir a 32-bit integer
     }
     
-    // Asegurar que tenga exactamente 6 caracteres
-    code = code.substring(0, 6);
+    // Convertir hash a string alfanumérico
+    const hashStr = Math.abs(hash).toString(36).toUpperCase();
     
-    console.log(`🔑 Código generado para ${participantName}: ${code}`);
+    // Agregar más aleatoriedad
+    const moreRandom = Math.random().toString(36).substring(2, 8).toUpperCase();
+    
+    // Combinar y crear código final
+    let code = (hashStr + moreRandom).replace(/[^A-Z0-9]/g, '');
+    
+    // Asegurar que tenga exactamente 6 caracteres únicos
+    if (code.length < 6) {
+        // Agregar más caracteres aleatorios si es necesario
+        while (code.length < 6) {
+            const extra = Math.random().toString(36).substring(2, 3).toUpperCase();
+            if (/[A-Z0-9]/.test(extra)) {
+                code += extra;
+            }
+        }
+    }
+    
+    // Tomar 6 caracteres de una posición aleatoria
+    const startPos = Math.floor(Math.random() * Math.max(1, code.length - 6));
+    code = code.substring(startPos, startPos + 6);
+    
+    // Si aún no tiene 6 caracteres, llenar con aleatorios
+    while (code.length < 6) {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    
+    console.log(`🔑 Código generado para ${participantName}: ${code} (timestamp: ${timestamp})`);
     return code;
 }
 
@@ -1328,12 +1412,7 @@ function regenerateSystem() {
         confirmButtonColor: '#dc3545',
         cancelButtonColor: '#6c757d',
         reverseButtons: true,
-        focusCancel: true,
-        customClass: {
-            popup: 'regenerate-popup',
-            title: 'regenerate-title',
-            content: 'regenerate-content'
-        }
+        focusCancel: true
     }).then((result) => {
         if (result.isConfirmed) {
             // Doble confirmación para mayor seguridad
@@ -1367,114 +1446,66 @@ function regenerateSystem() {
 function executeCompleteReset() {
     console.log('🚨 Ejecutando regeneración completa del sistema...');
     
-    // Mostrar loading
-    if (typeof Swal !== 'undefined') {
-        Swal.fire({
-            title: '🔄 Regenerando Sistema...',
-            html: 'Eliminando todos los datos y reiniciando...',
-            allowOutsideClick: false,
-            allowEscapeKey: false,
-            showConfirmButton: false,
-            didOpen: () => {
-                Swal.showLoading();
-            }
-        });
-    }
-    
-    setTimeout(() => {
-        try {
-            // 1. Limpiar variables globales
-            participants = [];
-            assignments = [];
+    try {
+        // 1. Limpiar variables globales
+        participants = [];
+        assignments = [];
+        
+        // 2. Limpiar COMPLETAMENTE el localStorage
+        if (typeof(Storage) !== "undefined" && localStorage) {
+            // Limpiar TODAS las claves relacionadas con el sistema
+            const keysToRemove = [];
             
-            // 2. Limpiar COMPLETAMENTE el localStorage
-            if (typeof(Storage) !== "undefined" && localStorage) {
-                // Obtener todas las claves relacionadas con el sistema
-                const keysToRemove = [];
-                
-                for (let i = 0; i < localStorage.length; i++) {
-                    const key = localStorage.key(i);
-                    if (key && (
-                        key.startsWith('assignment_') ||
-                        key.startsWith('secretSanta') ||
-                        key.includes('amigo') ||
-                        key.includes('secreto')
-                    )) {
-                        keysToRemove.push(key);
-                    }
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && (
+                    key.startsWith('assignment_') ||
+                    key.startsWith('secretSanta') ||
+                    key.includes('amigo') ||
+                    key.includes('secreto') ||
+                    key.includes('Code') ||
+                    key.includes('Access')
+                )) {
+                    keysToRemove.push(key);
                 }
-                
-                // Eliminar todas las claves encontradas
-                keysToRemove.forEach(key => {
-                    localStorage.removeItem(key);
-                });
-                
-                console.log(`🗑️ ${keysToRemove.length} entradas eliminadas del localStorage`);
             }
             
-            // 3. Limpiar variables temporales
-            if (window.tempAssignments) {
-                delete window.tempAssignments;
-            }
+            // Eliminar todas las claves encontradas
+            keysToRemove.forEach(key => {
+                localStorage.removeItem(key);
+            });
             
-            // 4. Resetear interfaz de usuario
-            updateUI();
-            hideResults();
+            // También limpiar cualquier caché de códigos adicional
+            localStorage.removeItem('lastGeneratedCodes');
+            localStorage.removeItem('codeCache');
+            localStorage.removeItem('accessCodes');
             
-            // 5. Limpiar inputs
-            if (nameInput) nameInput.value = '';
-            if (phoneInput) phoneInput.value = '';
-            if (nameInput) nameInput.focus();
-            
-            // 6. Mostrar confirmación de éxito
-            if (typeof Swal !== 'undefined') {
-                Swal.fire({
-                    title: '✅ ¡Sistema Regenerado!',
-                    html: `
-                        <div style="text-align: center;">
-                            <p style="font-size: 1.2em; margin: 1rem 0;">🎉 <strong>Regeneración Completada</strong></p>
-                            <div style="background: rgba(40, 167, 69, 0.1); padding: 1rem; border-radius: 8px; margin: 1rem 0;">
-                                <p><strong>✨ Sistema completamente limpio:</strong></p>
-                                <ul style="text-align: left; margin: 0.5rem 0; padding-left: 1.5rem;">
-                                    <li>🗑️ Todos los datos eliminados</li>
-                                    <li>🔄 Enlaces anteriores desactivados</li>
-                                    <li>🆕 Listo para empezar de nuevo</li>
-                                    <li>✅ Memoria del navegador limpia</li>
-                                </ul>
-                            </div>
-                            <p style="color: #28a745; font-weight: bold;">¡Puedes empezar a agregar participantes!</p>
-                        </div>
-                    `,
-                    icon: 'success',
-                    confirmButtonText: '🎄 ¡Perfecto!',
-                    confirmButtonColor: '#28a745',
-                    timer: 5000
-                });
-            } else {
-                alert('✅ ¡Sistema regenerado completamente!\n\n🗑️ Todos los datos eliminados\n🆕 Listo para empezar de nuevo');
-            }
-            
-            console.log('✅ Regeneración del sistema completada exitosamente');
-            
-        } catch (error) {
-            console.error('❌ Error durante la regeneración:', error);
-            
-            if (typeof Swal !== 'undefined') {
-                Swal.fire({
-                    title: '❌ Error en la Regeneración',
-                    text: 'Hubo un problema al regenerar el sistema. Recarga la página e intenta nuevamente.',
-                    icon: 'error',
-                    confirmButtonText: '🔄 Recargar Página',
-                    confirmButtonColor: '#dc3545'
-                }).then(() => {
-                    window.location.reload();
-                });
-            } else {
-                alert('❌ Error en la regeneración. Recarga la página e intenta nuevamente.');
-                window.location.reload();
-            }
+            console.log(`🗑️ ${keysToRemove.length} entradas eliminadas del localStorage + caché de códigos`);
         }
-    }, 1000); // Delay para mostrar el loading
+        
+        // 3. Limpiar variables temporales
+        if (window.tempAssignments) {
+            delete window.tempAssignments;
+        }
+        
+        // 4. Resetear interfaz de usuario
+        updateUI();
+        hideResults();
+        
+        // 5. Limpiar inputs
+        if (nameInput) nameInput.value = '';
+        if (phoneInput) phoneInput.value = '';
+        if (nameInput) nameInput.focus();
+        
+        // 6. Mostrar confirmación
+        showNotification('✅ Sistema regenerado completamente. Todos los datos eliminados.', 'success');
+        console.log('✅ Regeneración del sistema completada exitosamente');
+        
+    } catch (error) {
+        console.error('❌ Error durante la regeneración:', error);
+        alert('❌ Error en la regeneración. Recarga la página e intenta nuevamente.');
+        window.location.reload();
+    }
 }
 
 /**
@@ -2007,6 +2038,120 @@ function testPersonalAssignment() {
 }
 
 /**
+ * Función de prueba para verificar que los códigos cambian
+ */
+function testCodeGeneration() {
+    if (!Swal) {
+        alert('SweetAlert2 no disponible');
+        return;
+    }
+    
+    // Verificar que hay participantes
+    if (participants.length === 0) {
+        Swal.fire({
+            title: '❌ No hay participantes',
+            text: 'Primero agrega algunos participantes para probar la generación de códigos.',
+            icon: 'warning',
+            confirmButtonText: 'Entendido'
+        });
+        return;
+    }
+    
+    // Guardar códigos actuales si existen
+    const currentCodes = assignments.map(a => ({
+        name: a.giver.name,
+        code: a.accessCode,
+        timestamp: a.timestamp || 'N/A'
+    }));
+    
+    // Generar nuevos códigos
+    console.log('🧪 TEST: Generando nuevos códigos...');
+    const oldAssignments = [...assignments];
+    
+    // Forzar regeneración
+    assignments = [];
+    assignments = generateSecretSantaAssignments(participants);
+    
+    // Generar códigos únicos
+    const usedCodes = new Set();
+    assignments = assignments.map(assignment => {
+        let accessCode;
+        let attempts = 0;
+        const maxAttempts = 100;
+        
+        do {
+            accessCode = generateAccessCode(assignment.giver.name + '_' + attempts);
+            attempts++;
+        } while (usedCodes.has(accessCode) && attempts < maxAttempts);
+        
+        usedCodes.add(accessCode);
+        
+        return {
+            ...assignment,
+            accessCode: accessCode,
+            secretId: generateSecretId(assignment.giver.name, assignment.receiver.name),
+            timestamp: Date.now()
+        };
+    });
+    
+    // Comparar códigos
+    const newCodes = assignments.map(a => ({
+        name: a.giver.name,
+        code: a.accessCode,
+        timestamp: a.timestamp
+    }));
+    
+    let changedCount = 0;
+    let comparisonHTML = '<div style="font-family: monospace; font-size: 0.85em;">';
+    
+    newCodes.forEach((newCode, index) => {
+        const oldCode = currentCodes[index];
+        const hasChanged = !oldCode || oldCode.code !== newCode.code;
+        if (hasChanged) changedCount++;
+        
+        comparisonHTML += `
+            <div style="margin: 0.5rem 0; padding: 0.5rem; background: ${hasChanged ? 'rgba(40, 167, 69, 0.1)' : 'rgba(255, 193, 7, 0.1)'}; border-radius: 4px;">
+                <strong>${newCode.name}:</strong><br>
+                ${oldCode ? `Anterior: <span style="color: #dc3545;">${oldCode.code}</span><br>` : ''}
+                Nuevo: <span style="color: #28a745;">${newCode.code}</span>
+                ${hasChanged ? ' ✅' : ' ⚠️ (igual)'}
+            </div>
+        `;
+    });
+    
+    comparisonHTML += '</div>';
+    
+    // Actualizar interfaz
+    displayResults();
+    
+    // Mostrar resultados
+    Swal.fire({
+        title: '🧪 Test de Generación de Códigos',
+        html: `
+            <div style="text-align: left;">
+                <p><strong>📊 Resultados del Test:</strong></p>
+                <div style="margin: 1rem 0; padding: 1rem; background: rgba(23, 162, 184, 0.1); border-radius: 8px;">
+                    <p><strong>Total de participantes:</strong> ${participants.length}</p>
+                    <p><strong>Códigos que cambiaron:</strong> ${changedCount}/${newCodes.length}</p>
+                    <p><strong>Timestamp:</strong> ${new Date().toLocaleString()}</p>
+                </div>
+                <p><strong>🔍 Comparación detallada:</strong></p>
+                ${comparisonHTML}
+                <div style="margin-top: 1rem; padding: 1rem; background: rgba(40, 167, 69, 0.1); border-radius: 8px;">
+                    <p><strong>✅ Conclusión:</strong> ${changedCount === newCodes.length ? 'Todos los códigos son nuevos' : `${changedCount} códigos cambiaron de ${newCodes.length} total`}</p>
+                </div>
+            </div>
+        `,
+        icon: changedCount === newCodes.length ? 'success' : 'warning',
+        confirmButtonText: '📋 Cerrar Test',
+        confirmButtonColor: '#17a2b8',
+        width: '800px'
+    });
+    
+    console.log('🧪 TEST COMPLETADO - Códigos generados:', newCodes);
+}
+
+/**
  * Función de test para verificar la aleatoriedad de códigos
  */
 function testCodeRandomness() {
@@ -2037,6 +2182,62 @@ function testCodeRandomness() {
     }
     
     return !hasDuplicates;
+}
+
+/**
+ * Función de test para verificar compatibilidad con Netlify
+ */
+function testNetlifyCompatibility() {
+    console.log('🧪 Probando compatibilidad con Netlify...');
+    
+    const isNetlify = window.location.hostname.includes('.netlify.app') || 
+                     window.location.hostname.includes('.netlify.com');
+    const isLocalhost = window.location.hostname === 'localhost' || 
+                       window.location.hostname === '127.0.0.1';
+    
+    const results = {
+        environment: isNetlify ? 'Netlify' : isLocalhost ? 'Local' : 'Otro',
+        hostname: window.location.hostname,
+        origin: window.location.origin,
+        localStorage: typeof(Storage) !== "undefined",
+        baseUrl: '',
+        sampleLink: ''
+    };
+    
+    // Probar generación de enlace
+    if (assignments.length > 0) {
+        const sampleAssignment = assignments[0];
+        results.sampleLink = generateUniqueLink(sampleAssignment, sampleAssignment.accessCode);
+    } else {
+        // Crear una asignación de prueba
+        const testAssignment = {
+            giver: { name: 'Usuario Test' },
+            receiver: { name: 'Receptor Test' },
+            secretId: 'test123'
+        };
+        results.sampleLink = generateUniqueLink(testAssignment, 'TEST01');
+    }
+    
+    // Mostrar resultados en SweetAlert
+    Swal.fire({
+        icon: 'info',
+        title: '🧪 Test de Compatibilidad Netlify',
+        html: `
+            <div style="text-align: left; margin: 1rem 0;">
+                <p><strong>🌐 Entorno:</strong> ${results.environment}</p>
+                <p><strong>🏠 Hostname:</strong> ${results.hostname}</p>
+                <p><strong>🔗 Origin:</strong> ${results.origin}</p>
+                <p><strong>💾 localStorage:</strong> ${results.localStorage ? '✅ Disponible' : '❌ No disponible'}</p>
+                <p><strong>🔗 Enlace de ejemplo:</strong><br>
+                   <textarea readonly style="width: 100%; height: 60px; font-size: 0.8rem; margin-top: 0.5rem;">${results.sampleLink}</textarea>
+                </p>
+            </div>
+        `,
+        confirmButtonText: '✅ Entendido',
+        width: '600px'
+    });
+    
+    console.log('📊 Resultados de compatibilidad:', results);
 }
 
 

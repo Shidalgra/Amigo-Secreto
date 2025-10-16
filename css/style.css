@@ -23,6 +23,7 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
+    scrollbar-width: none;
 }
 
 /* Configuración global para nitidez */
@@ -53,36 +54,36 @@ body {
 
 /* Force emoji rendering with specific styles */
 .flag-emoji {
-    font-family: 'Segoe UI Emoji', 'Noto Color Emoji', 'Apple Color Emoji', monospace !important;
-    font-size: 1.2em !important;
-    line-height: 1 !important;
-    display: inline-block !important;
-    vertical-align: middle !important;
-    margin-right: 0.5rem !important;
-    width: 1.5em !important;
-    text-align: center !important;
-    font-weight: normal !important;
-    font-style: normal !important;
-    text-decoration: none !important;
-    font-variant: normal !important;
-    text-transform: none !important;
-    -webkit-font-smoothing: antialiased !important;
-    -moz-osx-font-smoothing: grayscale !important;
+    font-family: 'Segoe UI Emoji', 'Noto Color Emoji', 'Apple Color Emoji', monospace ;
+    font-size: 1.2em ;
+    line-height: 1 ;
+    display: inline-block ;
+    vertical-align: middle ;
+    margin-right: 0.5rem ;
+    width: 1.5em ;
+    text-align: center ;
+    font-weight: normal ;
+    font-style: normal ;
+    text-decoration: none ;
+    font-variant: normal ;
+    text-transform: none ;
+    -webkit-font-smoothing: antialiased ;
+    -moz-osx-font-smoothing: grayscale ;
 }
 
 /* Fallback for browsers without emoji support */
 .flag-fallback {
-    display: inline-block !important;
-    background: var(--christmas-green) !important;
-    color: white !important;
-    font-size: 0.7em !important;
-    padding: 0.2em 0.4em !important;
-    border-radius: 3px !important;
-    margin-right: 0.5rem !important;
-    font-weight: bold !important;
-    font-family: monospace !important;
-    min-width: 2em !important;
-    text-align: center !important;
+    display: inline-block ;
+    background: var(--christmas-green) ;
+    color: white ;
+    font-size: 0.7em ;
+    padding: 0.2em 0.4em ;
+    border-radius: 3px ;
+    margin-right: 0.5rem ;
+    font-weight: bold ;
+    font-family: monospace ;
+    min-width: 2em ;
+    text-align: center ;
 }
 
 /* Ensure proper emoji rendering */
@@ -166,6 +167,17 @@ body {
     padding: 20px;
     position: relative;
     z-index: 2;
+    transform: scale(0.75);
+    transform-origin: top center;
+    width: 133.33%; /* Compensar la reducción: 100% / 0.75 = 133.33% */
+}
+
+/* Escala ajustada para pantallas muy grandes */
+@media (min-width: 1400px) {
+    .container {
+        transform: scale(0.8); /* Ligeramente más grande en pantallas grandes */
+        width: 125%; /* Compensar: 100% / 0.8 = 125% */
+    }
 }
 
 /* ===== HEADER ===== */
@@ -217,10 +229,33 @@ body {
     background: rgba(248, 249, 250, 0.94);
     backdrop-filter: blur(12px);
     border-radius: var(--border-radius);
-    padding: 2rem;
+    padding: 1rem;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
     border: 2px solid var(--christmas-gold);
     transition: var(--transition);
+}
+
+/* ===== SECCIÓN DE MENSAJE DE COMPLETACIÓN ===== */
+.completion-message {
+    width: 100%;
+    max-width: 645px;
+    margin: 0 auto 2rem auto;
+    padding: 0 0rem;
+}
+
+.completion-message .card {
+    background: rgba(248, 249, 250, 0.96);
+    border: 2px solid var(--christmas-green);
+}
+
+.completion-message .results-header {
+    text-align: center;
+    margin-bottom: 0;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, var(--christmas-red), var(--christmas-green));
+    color: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
 }
 
 .card:hover {
@@ -415,7 +450,7 @@ button:disabled:hover {
     text-align: center;
     color: #999999;
     font-style: italic;
-    border-left: 4px solid #cccccc !important;
+    border-left: 4px solid #cccccc ;
 }
 
 .remove-btn {
@@ -595,7 +630,7 @@ button:disabled:hover {
 }
 
 .persistence-info {
-    background: rgba(40, 167, 69, 0.2);
+    background: rgba(255, 255, 255, 0.2);
     border-radius: var(--border-radius);
     padding: 1rem;
     margin-top: 1rem;
@@ -606,7 +641,7 @@ button:disabled:hover {
 .persistence-info p {
     margin-bottom: 0.5rem;
     font-weight: 600;
-    color: var(--christmas-green);
+    color: var(--christmas-white);
 }
 
 .persistence-info ul {
@@ -618,7 +653,7 @@ button:disabled:hover {
 .persistence-info li {
     margin-bottom: 0.3rem;
     position: relative;
-    color: var(--text-dark);
+    color: var(--christmas-white);
 }
 
 .persistence-info li:before {
@@ -629,7 +664,7 @@ button:disabled:hover {
 
 .participant-result {
     background: rgba(248, 249, 250, 0.96);
-    height: 34rem;
+    height: 30rem;
     backdrop-filter: blur(12px);
     border: 2px solid var(--christmas-gold);
     border-radius: var(--border-radius);
@@ -674,9 +709,9 @@ button:disabled:hover {
 
 .results-footer {
     text-align: center;
-    margin-top: 2rem;
+    margin-top: 1rem;
     padding: 1.5rem;
-    background: rgba(34, 139, 34, 0.1);
+    background: rgba(255, 255, 255, 0.2);
     border-radius: var(--border-radius);
     border: 2px solid var(--christmas-green);
 }
@@ -684,7 +719,7 @@ button:disabled:hover {
 .footer-note {
     margin: 0;
     font-size: 1rem;
-    color: var(--christmas-green);
+    color: var(--christmas-white);
     font-weight: 500;
 }
 
@@ -757,6 +792,82 @@ button:disabled:hover {
     opacity: 1;
 }
 
+/* Estilos para botones de test */
+.test-assignment-btn {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    color: white;
+    border: 2px solid #ffffff;
+    padding: 0.5rem 1rem;
+    border-radius: var(--border-radius);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    opacity: 0.7;
+    min-width: auto;
+    box-shadow: 0 2px 8px rgba(40, 167, 69, 0.2);
+}
+
+.test-assignment-btn:hover {
+    background: linear-gradient(135deg, #20c997, #28a745);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4);
+    opacity: 1;
+}
+
+.test-btn {
+    background: linear-gradient(135deg, #6f42c1, #8957d4);
+    color: white;
+    border: 2px solid #ffffff;
+    padding: 0.5rem 1rem;
+    border-radius: var(--border-radius);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    opacity: 0.7;
+    min-width: auto;
+    box-shadow: 0 2px 8px rgba(111, 66, 193, 0.2);
+}
+
+.test-btn:hover {
+    background: linear-gradient(135deg, #8957d4, #6f42c1);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(111, 66, 193, 0.4);
+    opacity: 1;
+}
+
+.netlify-test-btn {
+    background: linear-gradient(135deg, #fd7e14, #e65100);
+    color: white;
+    border: 2px solid #ffffff;
+    padding: 0.5rem 1rem;
+    border-radius: var(--border-radius);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    opacity: 0.7;
+    min-width: auto;
+    box-shadow: 0 2px 8px rgba(253, 126, 20, 0.2);
+}
+
+.netlify-test-btn:hover {
+    background: linear-gradient(135deg, #e65100, #fd7e14);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(253, 126, 20, 0.4);
+    opacity: 1;
+}
+
+/* Estados activos para todos los botones de test */
+.test-assignment-btn:active, 
+.test-btn:active, 
+.netlify-test-btn:active {
+    transform: translateY(0);
+    padding: 0.4rem 1rem;
+    opacity: 0.8;
+}
+
 .stats-btn:active, .regenerate-btn:active {
     transform: translateY(0);
     padding: 0.4rem 1rem;
@@ -764,16 +875,16 @@ button:disabled:hover {
 
 /* Estilos para el modal de regeneración */
 .regenerate-popup {
-    max-width: 600px !important;
+    max-width: 600px ;
 }
 
 .regenerate-title {
-    color: #dc3545 !important;
-    font-size: 1.3rem !important;
+    color: #dc3545 ;
+    font-size: 1.3rem ;
 }
 
 .regenerate-content {
-    font-size: 0.95rem !important;
+    font-size: 0.95rem ;
 }
 
 /* ===== SCROLLBAR PERSONALIZADA ===== */
@@ -1135,6 +1246,8 @@ button:disabled:hover {
 @media (max-width: 768px) {
     .container {
         padding: 10px;
+        transform: scale(0.85); /* Escala ligeramente mayor en móviles */
+        width: 117.65%; /* Compensar: 100% / 0.85 = 117.65% */
     }
     
     .title {
@@ -1207,9 +1320,35 @@ button:disabled:hover {
         width: 100%;
         margin: 0.25rem 0;
     }
+    
+    /* Completion message responsive */
+    .completion-message {
+        margin-bottom: 1rem;
+        padding: 0 0.5rem;
+    }
+    
+    .completion-message .results-header h3 {
+        font-size: 1.5rem;
+    }
+    
+    .completion-message .results-header p {
+        font-size: 1rem;
+    }
+    
+    .completion-message .info-box,
+    .completion-message .persistence-info {
+        padding: 0.8rem;
+        margin-top: 0.8rem;
+    }
 }
 
 @media (max-width: 480px) {
+    .container {
+        transform: scale(0.9); /* Escala aún mayor para pantallas muy pequeñas */
+        width: 111.11%; /* Compensar: 100% / 0.9 = 111.11% */
+        padding: 15px;
+    }
+    
     .header {
         padding: 1.5rem;
     }
@@ -1782,7 +1921,7 @@ button:disabled:hover {
     display: flex;
     gap: 1rem;
     justify-content: center;
-    margin-top: 1rem;
+    margin-top: -2rem;
 }
 
 /* ===== MODAL DE VERIFICACIÓN DE CÓDIGO ===== */
@@ -1908,26 +2047,26 @@ button:disabled:hover {
 }
 
 .swal-christmas {
-    border-radius: 20px !important;
-    border: 3px solid var(--christmas-gold) !important;
+    border-radius: 20px ;
+    border: 3px solid var(--christmas-gold) ;
     box-shadow: 
         0 20px 40px rgba(0, 0, 0, 0.3),
-        0 0 30px rgba(255, 215, 0, 0.2) !important;
-    font-family: 'Share Tech Mono', monospace, sans-serif !important;
+        0 0 30px rgba(255, 215, 0, 0.2) ;
+    font-family: 'Share Tech Mono', monospace, sans-serif ;
 }
 
 .swal-title {
-    font-family: 'Share Tech Mono', monospace, sans-serif !important;
-    font-weight: 700 !important;
-    color: var(--text-dark) !important;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1) !important;
+    font-family: 'Share Tech Mono', monospace, sans-serif ;
+    font-weight: 700 ;
+    color: var(--text-dark) ;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1) ;
 }
 
 .swal-content {
-    font-family: 'Share Tech Mono', monospace, sans-serif !important;
-    font-size: 1rem !important;
-    color: #555 !important;
-    line-height: 1.6 !important;
+    font-family: 'Share Tech Mono', monospace, sans-serif ;
+    font-size: 1rem ;
+    color: #555 ;
+    line-height: 1.6 ;
 }
 
 /* ===== ESTILOS PARA PÁGINA DE DEMO ===== */
@@ -2036,74 +2175,173 @@ button:disabled:hover {
 }
 
 /* Personalizar botones de SweetAlert2 */
+
+/* === SWEETALERT CONTAINER === */
+.swal2-container {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0.75rem !important;
+    background-color: rgba(0, 0, 0, 0.4) !important;
+    z-index: 1060 !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    overflow-y: auto !important; /* Permitir scroll vertical */
+}
+
+/* Forzar que el body mantenga scroll cuando SweetAlert esté activo */
+body.swal2-shown {
+    overflow: auto !important;
+    padding-right: 0 !important;
+}
+
+html.swal2-shown {
+    overflow: auto !important;
+}
+
+/* === SWEETALERT REDUCIDO 10% === */
+.swal2-popup {
+    font-size: 0.9rem ; /* 10% más pequeño que el tamaño base */
+    padding: 1.35rem ; /* 1.5rem reducido 10% */
+    max-width: 450px ; /* 500px reducido 10% */
+    min-width: 315px ; /* 350px reducido 10% */
+    position: fixed ;
+    top: 50% ;
+    left: 50% ;
+    transform: translate(-50%, -50%) ;
+    margin: 0 ;
+    z-index: 10000 ;
+}
+
+.swal2-title {
+    font-size: 1.35rem ; /* 1.5rem reducido 10% */
+    margin-bottom: 0.9rem ; /* 1rem reducido 10% */
+}
+
+.swal2-html-container {
+    font-size: 0.9rem ; /* 1rem reducido 10% */
+    line-height: 1.44 ; /* 1.6 reducido 10% */
+    margin: 0.9rem 0 ; /* 1rem reducido 10% */
+}
+
+.swal2-icon {
+    width: 72px ; /* 80px reducido 10% */
+    height: 72px ; /* 80px reducido 10% */
+    margin: 1.8rem auto 0.9rem ; /* reducido 10% */
+}
+
+.swal2-input {
+    font-size: 0.9rem ;
+    padding: 0.675rem ; /* 0.75rem reducido 10% */
+    margin: 0.9rem auto ; /* 1rem reducido 10% */
+}
+
 .swal2-confirm {
-    background: linear-gradient(135deg, var(--christmas-red), var(--christmas-dark-red)) !important;
-    border: none !important;
-    border-radius: 25px !important;
-    padding: 0.75rem 1.5rem !important;
-    font-family: 'Share Tech Mono', monospace, sans-serif !important;
-    font-weight: 600 !important;
-    text-transform: uppercase !important;
-    letter-spacing: 1px !important;
-    box-shadow: 0 4px 15px rgba(220, 20, 60, 0.3) !important;
-    transition: all 0.3s ease !important;
+    background: linear-gradient(135deg, var(--christmas-red), var(--christmas-dark-red)) ;
+    border: none ;
+    border-radius: 22.5px ; /* 25px reducido 10% */
+    padding: 0.675rem 1.35rem ; /* 0.75rem 1.5rem reducido 10% */
+    font-family: 'Share Tech Mono', monospace, sans-serif ;
+    font-weight: 600 ;
+    font-size: 0.85rem ; /* Reducido 10% */
+    text-transform: uppercase ;
+    letter-spacing: 0.9px ; /* 1px reducido 10% */
+    box-shadow: 0 3.6px 13.5px rgba(220, 20, 60, 0.3) ; /* reducido 10% */
+    transition: all 0.3s ease ;
 }
 
 .swal2-confirm:hover {
-    transform: translateY(-2px) !important;
-    box-shadow: 0 6px 20px rgba(220, 20, 60, 0.4) !important;
+    transform: translateY(-1.8px) ; /* -2px reducido 10% */
+    box-shadow: 0 5.4px 18px rgba(220, 20, 60, 0.4) ; /* reducido 10% */
 }
 
 .swal2-cancel {
-    background: linear-gradient(135deg, #6c757d, #495057) !important;
-    border: none !important;
-    border-radius: 25px !important;
-    padding: 0.75rem 1.5rem !important;
-    font-family: 'Share Tech Mono', monospace, sans-serif !important;
-    font-weight: 600 !important;
-    text-transform: uppercase !important;
-    letter-spacing: 1px !important;
-    box-shadow: 0 4px 15px rgba(108, 117, 125, 0.3) !important;
-    transition: all 0.3s ease !important;
+    background: linear-gradient(135deg, #6c757d, #495057) ;
+    border: none ;
+    border-radius: 22.5px ; /* 25px reducido 10% */
+    padding: 0.675rem 1.35rem ; /* 0.75rem 1.5rem reducido 10% */
+    font-family: 'Share Tech Mono', monospace, sans-serif ;
+    font-weight: 600 ;
+    font-size: 0.85rem ; /* Reducido 10% */
+    text-transform: uppercase ;
+    letter-spacing: 0.9px ; /* 1px reducido 10% */
+    box-shadow: 0 3.6px 13.5px rgba(108, 117, 125, 0.3) ; /* reducido 10% */
+    transition: all 0.3s ease ;
 }
 
 .swal2-cancel:hover {
-    transform: translateY(-2px) !important;
-    box-shadow: 0 6px 20px rgba(108, 117, 125, 0.4) !important;
+    transform: translateY(-1.8px) ; /* -2px reducido 10% */
+    box-shadow: 0 5.4px 18px rgba(108, 117, 125, 0.4) ; /* reducido 10% */
 }
 
 /* Estilos para botón de éxito */
 .swal2-popup.swal2-show .swal2-confirm[style*="background-color: rgb(40, 167, 69)"] {
-    background: linear-gradient(135deg, var(--christmas-green), var(--christmas-dark-green)) !important;
-    box-shadow: 0 4px 15px rgba(34, 139, 34, 0.3) !important;
+    background: linear-gradient(135deg, var(--christmas-green), var(--christmas-dark-green)) ;
+    box-shadow: 0 3.6px 13.5px rgba(34, 139, 34, 0.3) ; /* reducido 10% */
 }
 
 .swal2-popup.swal2-show .swal2-confirm[style*="background-color: rgb(40, 167, 69)"]:hover {
-    box-shadow: 0 6px 20px rgba(34, 139, 34, 0.4) !important;
+    box-shadow: 0 5.4px 18px rgba(34, 139, 34, 0.4) ; /* reducido 10% */
 }
 
-/* Timer progress bar navideño */
+/* Timer progress bar navideño - reducido */
 .swal2-timer-progress-bar {
-    background: linear-gradient(90deg, var(--christmas-gold), var(--christmas-red)) !important;
+    background: linear-gradient(90deg, var(--christmas-gold), var(--christmas-red)) ;
+    height: 3.6px ; /* 4px reducido 10% */
 }
 
-/* Personalizar iconos */
+/* Personalizar iconos - reducidos */
 .swal2-icon.swal2-success [class^="swal2-success-line"] {
-    background-color: var(--christmas-green) !important;
+    background-color: var(--christmas-green) ;
+    height: 4.5px ; /* 5px reducido 10% */
 }
 
 .swal2-icon.swal2-success .swal2-success-ring {
-    border-color: var(--christmas-green) !important;
+    border-color: var(--christmas-green) ;
+    border-width: 3.6px ; /* 4px reducido 10% */
 }
 
 .swal2-icon.swal2-warning {
-    border-color: var(--christmas-gold) !important;
-    color: var(--christmas-gold) !important;
+    border-color: var(--christmas-gold) ;
+    color: var(--christmas-gold) ;
+    font-size: 2.7rem ; /* 3rem reducido 10% */
 }
 
 .swal2-icon.swal2-question {
-    border-color: #17a2b8 !important;
-    color: #17a2b8 !important;
+    border-color: #17a2b8 ;
+    color: #17a2b8 ;
+    font-size: 2.7rem ; /* 3rem reducido 10% */
+}
+
+/* === RESPONSIVE SWEETALERT === */
+@media (max-width: 768px) {
+    .swal2-popup {
+        max-width: 90% !important;
+        min-width: 280px !important;
+        margin: 0 !important;
+        padding: 1.2rem !important;
+    }
+    
+    .swal2-container {
+        padding: 0.5rem !important;
+    }
+    
+    .swal2-title {
+        font-size: 1.2rem !important;
+    }
+    
+    .swal2-html-container {
+        font-size: 0.85rem !important;
+        line-height: 1.4 !important;
+    }
+    
+    .swal2-confirm, .swal2-cancel {
+        padding: 0.6rem 1.2rem !important;
+        font-size: 0.8rem !important;
+    }
 }
 
 
