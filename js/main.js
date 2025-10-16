@@ -1742,6 +1742,11 @@ function checkForAssignment() {
     const secret = urlParams.get('secret');
     const code = urlParams.get('code');
 
+    // Detectar si es móvil y agregar logging
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    console.log('Dispositivo detectado:', isMobile ? 'MÓVIL' : 'DESKTOP');
+    console.log('Parámetros URL:', { participant, secret, code });
+
     if (participant && secret && code) {
         // Ocultar el formulario principal
         document.querySelector('.container').style.display = 'none';
@@ -1845,12 +1850,13 @@ function verifyAccessCode(participant, secret, expectedCode) {
         if (assignment) {
             showPersonalAssignment(assignment);
         } else {
-            // Si no hay asignaciones locales, mostrar mensaje genérico
-            showPersonalAssignment({
+            // Si no hay asignaciones locales, crear fallback normalizado
+            const fallbackAssignment = normalizeAssignmentForMobile({
                 giver: { name: participant },
                 receiver: { name: '🎁 ¡Tu Amigo Secreto te está esperando!' },
                 message: 'Las asignaciones han sido generadas correctamente. Contacta al organizador si tienes problemas para ver tu asignación.'
             });
+            showPersonalAssignment(fallbackAssignment);
         }
 
     } else {
@@ -1878,14 +1884,20 @@ function findAssignmentBySecret(participant, secret) {
         const savedAssignment = localStorage.getItem(assignmentKey);
 
         if (savedAssignment) {
+            console.log('Raw localStorage data:', savedAssignment);
             const assignment = JSON.parse(savedAssignment);
+            console.log('Parsed assignment:', assignment);
 
             // Verificar que no haya expirado
             if (assignment.timestamp && assignment.timestamp > Date.now() - (365 * 24 * 60 * 60 * 1000)) {
                 // Verificar que corresponda al participante correcto
-                if (assignment.giver.name === participant) {
+                const assignmentGiverName = assignment.giver?.name || assignment.giver || '';
+                console.log('Comparando participantes:', { participant, assignmentGiverName, assignment });
+                
+                if (assignmentGiverName === participant) {
                     console.log('✅ Asignación encontrada en almacenamiento permanente');
-                    return assignment;
+                    // Normalizar el objeto para móviles
+                    return normalizeAssignmentForMobile(assignment);
                 }
             } else {
                 // Asignación expirada, limpiarla
@@ -1944,6 +1956,43 @@ function findAssignmentBySecret(participant, secret) {
 }
 
 /**
+ * Normaliza la asignación para dispositivos móviles
+ * Convierte todos los valores a strings para evitar [object Object]
+ */
+function normalizeAssignmentForMobile(assignment) {
+    try {
+        return {
+            giver: {
+                name: String(assignment.giver?.name || assignment.giver || 'Participante'),
+                phone: String(assignment.giver?.phone || assignment.giver?.telefono || ''),
+                flag: String(assignment.giver?.flag || assignment.giver?.bandera || '🌎'),
+                country: String(assignment.giver?.country || assignment.giver?.pais || 'País')
+            },
+            receiver: {
+                name: String(assignment.receiver?.name || assignment.receiver || 'Asignación'),
+                phone: String(assignment.receiver?.phone || assignment.receiver?.telefono || 'No disponible'),
+                flag: String(assignment.receiver?.flag || assignment.receiver?.bandera || '🌎'),
+                country: String(assignment.receiver?.country || assignment.receiver?.pais || 'País')
+            },
+            secretId: String(assignment.secretId || ''),
+            accessCode: String(assignment.accessCode || ''),
+            uniqueLink: String(assignment.uniqueLink || ''),
+            timestamp: assignment.timestamp || Date.now()
+        };
+    } catch (error) {
+        console.error('Error al normalizar asignación:', error);
+        return {
+            giver: { name: 'Participante', phone: '', flag: '🌎', country: 'País' },
+            receiver: { name: 'Asignación', phone: 'No disponible', flag: '🌎', country: 'País' },
+            secretId: '',
+            accessCode: '',
+            uniqueLink: '',
+            timestamp: Date.now()
+        };
+    }
+}
+
+/**
  * Cierra el modal de verificación de código
  */
 function closeAccessModal() {
@@ -1960,36 +2009,22 @@ function closeAccessModal() {
  * Muestra la asignación personal de un participante
  */
 function showPersonalAssignment(assignment) {
-    // Extraer los nombres correctamente de los objetos
-    const giverName = assignment.giver?.name || assignment.giver || 'Participante';
-    const receiverName = assignment.receiver?.name || assignment.receiver || 'Asignación';
+    // Primero normalizar para móviles
+    const normalizedAssignment = normalizeAssignmentForMobile(assignment);
     
-    // Asegurar que phone y country sean strings, no objetos
-    let receiverPhone = 'No disponible';
-    let receiverCountry = 'No especificado';
-    
-    if (assignment.receiver?.phone) {
-        receiverPhone = typeof assignment.receiver.phone === 'string' ? assignment.receiver.phone : String(assignment.receiver.phone);
-    } else if (assignment.phone) {
-        receiverPhone = typeof assignment.phone === 'string' ? assignment.phone : String(assignment.phone);
-    }
-    
-    if (assignment.receiver?.country) {
-        receiverCountry = typeof assignment.receiver.country === 'string' ? assignment.receiver.country : String(assignment.receiver.country);
-    } else if (assignment.country) {
-        receiverCountry = typeof assignment.country === 'string' ? assignment.country : String(assignment.country);
-    }
+    // Extraer los nombres correctamente de los objetos normalizados
+    const giverName = normalizedAssignment.giver.name;
+    const receiverName = normalizedAssignment.receiver.name;
+    const receiverPhone = normalizedAssignment.receiver.phone;
+    const receiverCountry = normalizedAssignment.receiver.country;
 
-    console.log('Datos de asignación:', {
-        assignment: assignment,
-        giver: assignment.giver,
-        receiver: assignment.receiver,
+    console.log('Datos de asignación normalizados:', {
+        original: assignment,
+        normalized: normalizedAssignment,
         giverName,
         receiverName,
         receiverPhone,
-        receiverCountry,
-        phoneType: typeof receiverPhone,
-        countryType: typeof receiverCountry
+        receiverCountry
     });
 
     const container = document.createElement('div');
