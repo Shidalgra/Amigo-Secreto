@@ -346,13 +346,26 @@ function generatePairs() {
     assignments = generateSecretSantaAssignments(participants);
     
     // Generar códigos únicos de acceso para cada asignación
+    const usedCodes = new Set(); // Para asegurar códigos únicos
     assignments = assignments.map(assignment => {
-        const accessCode = generateAccessCode(assignment.giver.name);
+        let accessCode;
+        let attempts = 0;
+        const maxAttempts = 100;
+        
+        // Generar código único (no repetido)
+        do {
+            accessCode = generateAccessCode(assignment.giver.name + '_' + attempts);
+            attempts++;
+        } while (usedCodes.has(accessCode) && attempts < maxAttempts);
+        
+        usedCodes.add(accessCode);
+        
         const secretId = generateSecretId(assignment.giver.name, assignment.receiver.name);
         const assignmentWithCodes = {
             ...assignment,
             accessCode: accessCode,
-            secretId: secretId
+            secretId: secretId,
+            timestamp: Date.now() // Agregar timestamp para identificar generación
         };
         assignmentWithCodes.uniqueLink = generateUniqueLink(assignmentWithCodes, accessCode);
         return assignmentWithCodes;
@@ -408,6 +421,12 @@ function generatePairs() {
 
     displayResults();
     showNotification(`¡${assignments.length} asignaciones generadas exitosamente!`, 'success');
+    
+    // Debug: Mostrar información de códigos generados
+    console.log('🔑 Códigos de acceso generados:');
+    assignments.forEach(assignment => {
+        console.log(`${assignment.giver.name}: ${assignment.accessCode} (${assignment.secretId})`);
+    });
 }
 
 /**
@@ -616,19 +635,52 @@ function hideResults() {
  * Genera un ID secreto único para cada asignación
  */
 function generateSecretId(giverName, receiverName) {
-    const combined = giverName + receiverName + Date.now();
-    return btoa(combined).replace(/[^a-zA-Z0-9]/g, '').substring(0, 12);
+    const timestamp = Date.now();
+    const random1 = Math.random().toString(36).substring(2, 8);
+    const random2 = Math.random().toString(36).substring(2, 8);
+    const combined = giverName + receiverName + timestamp + random1 + random2;
+    const encoded = btoa(combined).replace(/[^a-zA-Z0-9]/g, '');
+    
+    // Crear un ID de 12 caracteres
+    let secretId = encoded.substring(0, 12);
+    
+    // Si es muy corto, agregar más aleatoriedad
+    while (secretId.length < 12) {
+        const extraRandom = Math.random().toString(36).substring(2, 8);
+        secretId += extraRandom.replace(/[^a-zA-Z0-9]/g, '');
+    }
+    
+    return secretId.substring(0, 12);
 }
 
 /**
  * Genera un código único de acceso para cada participante
  */
 function generateAccessCode(participantName) {
+    // Crear múltiples fuentes de aleatoriedad
     const timestamp = Date.now().toString();
-    const combined = participantName + timestamp + Math.random().toString(36);
+    const randomPart1 = Math.random().toString(36).substring(2, 8);
+    const randomPart2 = Math.random().toString(36).substring(2, 8);
+    const randomPart3 = (Math.random() * 1000000).toString(36);
+    
+    // Combinar todas las fuentes de aleatoriedad
+    const combined = participantName + timestamp + randomPart1 + randomPart2 + randomPart3;
     const encoded = btoa(combined);
+    
     // Crear un código de 6 caracteres alfanumérico en mayúsculas
-    return encoded.replace(/[^a-zA-Z0-9]/g, '').substring(0, 6).toUpperCase();
+    let code = encoded.replace(/[^a-zA-Z0-9]/g, '').substring(0, 6).toUpperCase();
+    
+    // Si el código es muy corto, agregar más caracteres aleatorios
+    while (code.length < 6) {
+        const extraRandom = Math.random().toString(36).substring(2, 8).toUpperCase();
+        code += extraRandom.replace(/[^a-zA-Z0-9]/g, '');
+    }
+    
+    // Asegurar que tenga exactamente 6 caracteres
+    code = code.substring(0, 6);
+    
+    console.log(`🔑 Código generado para ${participantName}: ${code}`);
+    return code;
 }
 
 /**
@@ -1863,6 +1915,21 @@ function closeAccessModal() {
  * Muestra la asignación personal de un participante
  */
 function showPersonalAssignment(assignment) {
+    // Extraer los nombres correctamente de los objetos
+    const giverName = assignment.giver?.name || assignment.giver || 'Participante';
+    const receiverName = assignment.receiver?.name || assignment.receiver || 'Asignación';
+    const receiverPhone = assignment.receiver?.phone || assignment.phone || 'No disponible';
+    const receiverCountry = assignment.receiver?.country || assignment.country || 'No especificado';
+    
+    console.log('Datos de asignación:', {
+        giver: assignment.giver,
+        receiver: assignment.receiver,
+        giverName,
+        receiverName,
+        receiverPhone,
+        receiverCountry
+    });
+    
     const container = document.createElement('div');
     container.className = 'personal-assignment';
     container.innerHTML = `
@@ -1873,15 +1940,15 @@ function showPersonalAssignment(assignment) {
             </div>
             
             <div class="assignment-content">
-                <p class="greeting">¡Hola <strong>${assignment.giver}</strong>!</p>
+                <p class="greeting">¡Hola <strong>${giverName}</strong>!</p>
                 
                 <div class="reveal-section">
                     <p class="instruction">Tu amigo secreto es:</p>
-                    <div class="recipient-name">🎯 ${assignment.receiver}</div>
+                    <div class="recipient-name">🎯 ${receiverName}</div>
                     <div class="recipient-info">
-                        📱 ${assignment.phone}
+                        📱 ${receiverPhone}
                         <br>
-                        📍 ${assignment.country}
+                        📍 ${receiverCountry}
                     </div>
                 </div>
                 
@@ -1914,6 +1981,62 @@ function showPersonalAssignment(assignment) {
     `;
     
     document.body.appendChild(container);
+}
+
+/**
+ * Función de test para probar el modal de asignación personal
+ */
+function testPersonalAssignment() {
+    const testAssignment = {
+        giver: {
+            name: 'Juan Pérez',
+            phone: '+506 8888-9999',
+            country: 'Costa Rica'
+        },
+        receiver: {
+            name: 'María García',
+            phone: '+506 7777-8888',
+            country: 'Costa Rica'
+        },
+        accessCode: 'ABC123',
+        secretId: 'test123'
+    };
+    
+    console.log('🧪 Probando modal con datos de test:', testAssignment);
+    showPersonalAssignment(testAssignment);
+}
+
+/**
+ * Función de test para verificar la aleatoriedad de códigos
+ */
+function testCodeRandomness() {
+    console.log('🎲 Probando aleatoriedad de códigos de acceso:');
+    const testName = 'Usuario Test';
+    const codes = [];
+    
+    // Generar 10 códigos para el mismo usuario
+    for (let i = 0; i < 10; i++) {
+        const code = generateAccessCode(testName);
+        codes.push(code);
+        console.log(`Código ${i + 1}: ${code}`);
+    }
+    
+    // Verificar si hay duplicados
+    const uniqueCodes = new Set(codes);
+    const hasDuplicates = uniqueCodes.size !== codes.length;
+    
+    console.log(`📊 Resultados:`);
+    console.log(`- Códigos generados: ${codes.length}`);
+    console.log(`- Códigos únicos: ${uniqueCodes.size}`);
+    console.log(`- ¿Hay duplicados?: ${hasDuplicates ? '❌ SÍ' : '✅ NO'}`);
+    
+    if (hasDuplicates) {
+        console.warn('⚠️ Se encontraron códigos duplicados!');
+    } else {
+        console.log('✅ Todos los códigos son únicos');
+    }
+    
+    return !hasDuplicates;
 }
 
 
