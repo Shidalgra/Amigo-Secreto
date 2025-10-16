@@ -2234,6 +2234,78 @@ button:disabled:hover {
     box-shadow: 0 4px 15px rgba(34, 139, 34, 0.4);
 }
 
+/* ===== ESTILOS DEL SISTEMA GLOBAL ===== */
+
+.global-system-badge {
+    background: linear-gradient(135deg, #0f5132, #28a745);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-align: center;
+    margin: 0.5rem 0;
+    border: 2px solid var(--christmas-gold);
+    box-shadow: 0 2px 10px rgba(15, 81, 50, 0.3);
+    animation: globalBadgePulse 2s ease-in-out infinite;
+}
+
+@keyframes globalBadgePulse {
+    0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 2px 10px rgba(15, 81, 50, 0.3);
+    }
+    50% {
+        transform: scale(1.02);
+        box-shadow: 0 4px 15px rgba(15, 81, 50, 0.5);
+    }
+}
+
+.system-info {
+    background: rgba(40, 167, 69, 0.1);
+    border: 1px solid rgba(40, 167, 69, 0.3);
+    border-radius: var(--border-radius);
+    padding: 0.75rem;
+    margin: 1rem 0;
+    text-align: center;
+}
+
+.system-info small {
+    color: #0f5132;
+    font-weight: 600;
+}
+
+#linkCountDisplay {
+    color: var(--christmas-red);
+    font-weight: 700;
+    font-size: 1.1em;
+}
+
+/* Estilos específicos para inputs del sistema global */
+#accessCodeInputGlobal {
+    width: 100%;
+    max-width: 300px;
+    padding: 1rem;
+    border: 3px solid var(--christmas-green);
+    border-radius: var(--border-radius);
+    font-size: 1.2rem;
+    text-align: center;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    font-family: 'Share Tech Mono', monospace;
+    background: linear-gradient(145deg, rgba(248, 249, 250, 0.95), rgba(255, 255, 255, 0.9));
+    transition: var(--transition);
+    box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+#accessCodeInputGlobal:focus {
+    outline: none;
+    border-color: var(--christmas-red);
+    box-shadow: 0 0 0 3px rgba(220, 20, 60, 0.2), inset 0 2px 5px rgba(0, 0, 0, 0.1);
+    background: white;
+    transform: scale(1.02);
+}
+
 /* ===== RESPONSIVE PARA CÓDIGOS DE ACCESO ===== */
 
 @media (max-width: 768px) {

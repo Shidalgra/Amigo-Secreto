@@ -2,6 +2,118 @@
 let participants = [];
 let assignments = []; // Cambio: ahora guardamos asignaciones en lugar de pares
 
+// ===== SISTEMA DE PERSISTENCIA GLOBAL =====
+// Variables globales que persisten durante toda la sesión del servidor
+window.GlobalAmigoSecretoSystem = window.GlobalAmigoSecretoSystem || {
+    // Array principal que guarda todos los enlaces y datos de acceso
+    activeLinks: [],
+    
+    // Control de acceso por códigos
+    accessRegistry: new Map(),
+    
+    // Timestamp de creación del sistema
+    systemInitTime: Date.now(),
+    
+    // Funciones del sistema global
+    registerLink: function(linkData) {
+        const linkId = this.generateLinkId();
+        const linkEntry = {
+            id: linkId,
+            url: linkData.url,
+            participantName: linkData.participantName,
+            accessCode: linkData.accessCode,
+            secretId: linkData.secretId,
+            assignmentData: linkData.assignmentData,
+            createdAt: Date.now(),
+            accessed: false,
+            accessCount: 0
+        };
+        
+        this.activeLinks.push(linkEntry);
+        this.accessRegistry.set(linkData.accessCode, linkId);
+        
+        console.log('🔗 Enlace registrado en sistema global:', linkEntry);
+        return linkId;
+    },
+    
+    validateAccess: function(accessCode, secretId) {
+        console.log('🔍 Validando acceso en Sistema Global:', { 
+            accessCode, 
+            secretId,
+            availableCodes: Array.from(this.accessRegistry.keys()),
+            totalLinks: this.activeLinks.length
+        });
+
+        const linkId = this.accessRegistry.get(accessCode);
+        if (!linkId) {
+            console.warn('❌ Código de acceso no encontrado en registry:', {
+                searchedCode: accessCode,
+                availableCodes: Array.from(this.accessRegistry.keys())
+            });
+            return null;
+        }
+        
+        const linkEntry = this.activeLinks.find(link => link.id === linkId);
+        if (!linkEntry) {
+            console.warn('❌ Enlace no encontrado para ID:', {
+                linkId,
+                availableLinks: this.activeLinks.map(l => ({ id: l.id, participant: l.participantName }))
+            });
+            return null;
+        }
+        
+        if (linkEntry.secretId !== secretId) {
+            console.warn('❌ SecretId no coincide:', { 
+                expected: linkEntry.secretId, 
+                provided: secretId,
+                linkInfo: { participant: linkEntry.participantName, accessCode: linkEntry.accessCode }
+            });
+            return null;
+        }
+        
+        // Marcar como accedido
+        linkEntry.accessed = true;
+        linkEntry.accessCount++;
+        linkEntry.lastAccessAt = Date.now();
+        
+        console.log('✅ Acceso validado para enlace:', {
+            participant: linkEntry.participantName,
+            receiver: linkEntry.assignmentData?.receiver?.name,
+            accessCount: linkEntry.accessCount
+        });
+        return linkEntry.assignmentData;
+    },
+    
+    generateLinkId: function() {
+        return 'link_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    },
+    
+    getSystemStats: function() {
+        return {
+            totalLinks: this.activeLinks.length,
+            accessedLinks: this.activeLinks.filter(link => link.accessed).length,
+            systemUptime: Date.now() - this.systemInitTime,
+            registryCodes: this.accessRegistry.size
+        };
+    }
+};
+
+console.log('🌐 Sistema Global de Amigo Secreto inicializado:', window.GlobalAmigoSecretoSystem.getSystemStats());
+
+// Función de debugging inmediato
+function debugSystemStatus() {
+    console.log('🔍 DEBUG STATUS:', {
+        globalSystemExists: !!window.GlobalAmigoSecretoSystem,
+        activeLinks: window.GlobalAmigoSecretoSystem?.activeLinks?.length || 0,
+        accessRegistry: window.GlobalAmigoSecretoSystem?.accessRegistry?.size || 0,
+        participants: participants.length,
+        assignments: assignments.length
+    });
+}
+
+// Hacer disponible globalmente
+window.debugSystemStatus = debugSystemStatus;
+
 // Detectar entorno de hosting
 const isNetlify = window.location.hostname.includes('.netlify.app') || window.location.hostname.includes('.netlify.com');
 const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
@@ -142,11 +254,33 @@ function addParticipant() {
         return;
     }
 
-    // Extraer solo el emoji de la bandera (antes del primer espacio)
+    // Extraer emoji de la bandera y nombre completo del país
     const optionText = countrySelect.options[countrySelect.selectedIndex].text;
-    const countryFlag = optionText.split(' ')[0]; // Esto extrae solo el emoji antes del primer espacio
-    const countryParts = optionText.split(' ');
-    const countryName = countryParts.length > 1 ? countryParts[1] : 'País'; // Nombre del país (opcional, para uso futuro)
+    const countryFlag = optionText.split(' ')[0]; // Emoji de la bandera
+    
+    // Método simplificado: extraer el nombre del país entre el emoji y el código telefónico
+    // Ejemplo: "🇨🇷 Costa Rica (+506)" -> "Costa Rica"
+    let countryName = 'País';
+    
+    // Buscar el patrón: emoji + espacio + nombre del país + espacio + código telefónico
+    const countryMatch = optionText.match(/^[\u{1F1E6}-\u{1F1FF}]{2}\s+(.+?)\s+\(/u);
+    
+    if (countryMatch && countryMatch[1]) {
+        countryName = countryMatch[1].trim();
+    } else {
+        // Fallback más simple: tomar todo entre espacios, excluyendo el emoji y el código telefónico
+        const parts = optionText.split(' ');
+        const countryParts = [];
+        
+        for (let i = 1; i < parts.length; i++) {
+            if (parts[i].startsWith('(')) break; // Parar cuando encuentre el código telefónico
+            countryParts.push(parts[i]);
+        }
+        
+        if (countryParts.length > 0) {
+            countryName = countryParts.join(' ');
+        }
+    }
 
     // Validaciones
     if (name === '') {
@@ -183,6 +317,14 @@ function addParticipant() {
         showNotification('Este número de teléfono ya está en la lista', 'error');
         return;
     }
+
+    // Debug: Verificar extracción del nombre del país
+    console.log('🏳️ Datos del país extraídos:', {
+        optionText: optionText,
+        countryFlag: countryFlag,
+        countryName: countryName,
+        finalCountry: countryName || 'País'
+    });
 
     // Agregar participante
     participants.push({
@@ -442,6 +584,24 @@ function generatePairs() {
     if (assignments.length === 0) {
         showNotification('Error al generar las asignaciones. Intenta de nuevo.', 'error');
         return;
+    }
+
+    // DEBUGGING: Verificar que se registraron en el sistema global
+    console.log('🚀 ASIGNACIONES GENERADAS - Verificando registro en sistema global:');
+    console.log('📊 Estado actual del sistema:', window.GlobalAmigoSecretoSystem.getSystemStats());
+    console.log('🔗 Enlaces registrados:', window.GlobalAmigoSecretoSystem.activeLinks.map(link => ({
+        participant: link.participantName,
+        code: link.accessCode,
+        secretId: link.secretId
+    })));
+    console.log('🎯 Assignments generados:', assignments.length);
+    
+    if (window.GlobalAmigoSecretoSystem.activeLinks.length !== assignments.length) {
+        console.error('❌ PROBLEMA: No coincide el número de enlaces registrados con asignaciones generadas!');
+        console.error('Enlaces en sistema global:', window.GlobalAmigoSecretoSystem.activeLinks.length);
+        console.error('Asignaciones generadas:', assignments.length);
+    } else {
+        console.log('✅ CORRECTO: Todos los enlaces se registraron en el sistema global');
     }
 
     // Guardar las asignaciones en localStorage para acceso posterior
@@ -812,8 +972,55 @@ function generateUniqueLink(assignment, accessCode) {
 
     const secretId = assignment.secretId || generateSecretId(assignment.giver.name, assignment.receiver.name);
 
-    // Para Netlify, usamos la raíz del sitio
-    return `${baseUrl}?participant=${encodeURIComponent(assignment.giver.name)}&secret=${secretId}&code=${accessCode}`;
+    // Crear datos completos de la asignación para el sistema global
+    const assignmentData = {
+        giver: {
+            name: assignment.giver.name,
+            phone: assignment.giver.phone || 'No disponible',
+            flag: assignment.giver.flag || '🌎',
+            country: assignment.giver.country || 'País'
+        },
+        receiver: {
+            name: assignment.receiver.name,
+            phone: assignment.receiver.phone || 'No disponible',
+            flag: assignment.receiver.flag || '🌎',
+            country: assignment.receiver.country || 'País'
+        },
+        secretId: secretId,
+        accessCode: accessCode,
+        timestamp: Date.now()
+    };
+
+    // Generar la URL del enlace
+    const uniqueUrl = `${baseUrl}?participant=${encodeURIComponent(assignment.giver.name)}&secret=${secretId}&code=${accessCode}`;
+
+    // Registrar el enlace en el sistema global persistente
+    const linkData = {
+        url: uniqueUrl,
+        participantName: assignment.giver.name,
+        accessCode: accessCode,
+        secretId: secretId,
+        assignmentData: assignmentData
+    };
+
+    console.log('🔄 REGISTRANDO ENLACE en sistema global:', {
+        participant: assignment.giver.name,
+        secretId: secretId,
+        accessCode: accessCode,
+        systemExists: !!window.GlobalAmigoSecretoSystem
+    });
+
+    const linkId = window.GlobalAmigoSecretoSystem.registerLink(linkData);
+
+    console.log('✅ ENLACE REGISTRADO con ID:', linkId, {
+        participant: assignment.giver.name,
+        secretId: secretId,
+        accessCode: accessCode,
+        url: uniqueUrl,
+        totalLinksNow: window.GlobalAmigoSecretoSystem.activeLinks.length
+    });
+
+    return uniqueUrl;
 }
 
 /**
@@ -1763,12 +1970,15 @@ function checkForAssignment() {
     console.log('Dispositivo detectado:', isMobile ? 'MÓVIL' : 'DESKTOP');
     console.log('Parámetros URL:', { participant, secret, code });
 
+    // Mostrar estadísticas del sistema global
+    console.log('📊 Estado del Sistema Global:', window.GlobalAmigoSecretoSystem.getSystemStats());
+
     if (participant && secret && code) {
         // Ocultar el formulario principal
         document.querySelector('.container').style.display = 'none';
 
-        // Mostrar modal para verificar código de acceso
-        showAccessCodeModal(participant, secret, code);
+        // Mostrar modal para verificar código de acceso usando el sistema global
+        showAccessCodeModalGlobal(participant, secret, code);
     } else if (urlParams.get('data')) {
         // Mantener compatibilidad con enlaces antiguos
         const assignmentData = urlParams.get('data');
@@ -1883,11 +2093,162 @@ function verifyAccessCode(participant, secret, expectedCode) {
 }
 
 /**
+ * Muestra el modal de acceso usando el sistema global
+ */
+function showAccessCodeModalGlobal(participant, secret, expectedCode) {
+    const modal = document.createElement('div');
+    modal.className = 'access-modal';
+    modal.innerHTML = `
+        <div class="modal-backdrop" onclick="closeAccessModal()"></div>
+        <div class="modal-content access-modal-content">
+            <div class="modal-header">
+                <h2>🔐 Acceso Seguro al Amigo Secreto</h2>
+                <div class="global-system-badge">
+                    🌐 Sistema Global Activo
+                </div>
+            </div>
+            <div class="modal-body">
+                <p><strong>¡Hola ${participant || 'Usuario'}!</strong></p>
+                <p>Para acceder a tu asignación de Amigo Secreto, ingresa tu código de acceso:</p>
+                <div class="code-input-section">
+                    <label for="accessCodeInputGlobal">🔑 Código de Acceso:</label>
+                    <input type="text" id="accessCodeInputGlobal" placeholder="Ingresa tu código" maxlength="6" 
+                           style="text-transform: uppercase; text-align: center; font-size: 1.2em; letter-spacing: 0.3em;">
+                    <div class="code-hint">Tu código tiene 6 caracteres</div>
+                </div>
+                <div class="system-info">
+                    <small>🔗 Enlaces registrados: <span id="linkCountDisplay">${window.GlobalAmigoSecretoSystem.activeLinks.length}</span></small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="verifyAccessGlobalBtn" class="verify-btn">
+                    ✅ Verificar Código
+                </button>
+                <button onclick="closeAccessModal()" class="close-btn">
+                    ❌ Cancelar
+                </button>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+    modal.style.display = 'flex';
+
+    // Agregar event listener para verificación global
+    document.getElementById('verifyAccessGlobalBtn').addEventListener('click', function() {
+        verifyAccessCodeGlobal(participant, secret, expectedCode);
+    });
+
+    // Focus en el input del código
+    setTimeout(() => {
+        document.getElementById('accessCodeInputGlobal').focus();
+    }, 100);
+
+    // Permitir verificar con Enter
+    document.getElementById('accessCodeInputGlobal').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
+            verifyAccessCodeGlobal(participant, secret, expectedCode);
+        }
+    });
+}
+
+/**
+ * Verifica el código de acceso usando el sistema global
+ */
+function verifyAccessCodeGlobal(participant, secret, expectedCode) {
+    const enteredCode = document.getElementById('accessCodeInputGlobal').value.trim().toUpperCase();
+
+    if (!enteredCode) {
+        showNotification('Por favor ingresa tu código de acceso', 'warning');
+        return;
+    }
+
+    console.log('🔍 Verificando código en sistema global:', { 
+        enteredCode, 
+        secret, 
+        participant,
+        systemStats: window.GlobalAmigoSecretoSystem.getSystemStats() 
+    });
+
+    // Usar el sistema global para validar acceso
+    const assignmentData = window.GlobalAmigoSecretoSystem.validateAccess(enteredCode, secret);
+
+    if (assignmentData) {
+        // Código correcto y datos encontrados en sistema global
+        console.log('✅ Acceso autorizado por sistema global');
+        closeAccessModal();
+
+        // Normalizar datos para compatibilidad móvil
+        const normalizedAssignment = normalizeAssignmentForMobile(assignmentData);
+        
+        // Mostrar la asignación desde el sistema global
+        showPersonalAssignment(normalizedAssignment);
+
+    } else {
+        // Debug: mostrar estado del sistema global
+        console.log('🔍 Estado del Sistema Global:', {
+            activeLinks: window.GlobalAmigoSecretoSystem?.activeLinks || [],
+            accessRegistry: window.GlobalAmigoSecretoSystem?.accessRegistry || new Map(),
+            searchingFor: { participant, secret, enteredCode }
+        });
+
+        // Fallback: intentar con método tradicional
+        console.log('⚠️ No encontrado en sistema global, intentando método tradicional...');
+        
+        if (enteredCode === expectedCode.toUpperCase()) {
+            closeAccessModal();
+            const assignment = findAssignmentBySecret(participant, secret);
+            
+            if (assignment && !assignment.isFallback) {
+                // Si encontramos una asignación real, mostrarla
+                showPersonalAssignment(assignment);
+            } else {
+                // Mostrar mensaje más informativo si no hay datos reales
+                Swal.fire({
+                    title: '⚠️ Datos no disponibles',
+                    html: `
+                        <p><strong>¡Hola ${participant}!</strong></p>
+                        <p>Tu código de acceso es válido, pero los datos de tu asignación no están disponibles en este momento.</p>
+                        <p><strong>Posibles causas:</strong></p>
+                        <ul style="text-align: left; margin: 1rem 0;">
+                            <li>📱 Estás accediendo desde un dispositivo diferente</li>
+                            <li>🔄 El sistema se reinició recientemente</li>
+                            <li>🕐 Los enlaces fueron generados hace mucho tiempo</li>
+                        </ul>
+                        <p><strong>Solución:</strong> Contacta al organizador del intercambio para que regenere los enlaces.</p>
+                    `,
+                    icon: 'warning',
+                    confirmButtonText: '✅ Entendido',
+                    width: '500px'
+                });
+            }
+        } else {
+            showNotification('❌ Código incorrecto. Verifica e intenta de nuevo.', 'error');
+            document.getElementById('accessCodeInputGlobal').value = '';
+            document.getElementById('accessCodeInputGlobal').focus();
+        }
+    }
+}
+
+/**
  * Busca una asignación por participante y secreto
  * Múltiples estrategias para máxima compatibilidad
  */
 function findAssignmentBySecret(participant, secret) {
     console.log('🔍 Buscando asignación para:', { participant, secret });
+    
+    // 0. PRIMERA PRIORIDAD: Buscar en el Sistema Global
+    if (window.GlobalAmigoSecretoSystem && window.GlobalAmigoSecretoSystem.activeLinks) {
+        console.log('🌐 Buscando en Sistema Global...');
+        const globalLink = window.GlobalAmigoSecretoSystem.activeLinks.find(link => 
+            link.participantName === participant && link.secretId === secret
+        );
+        
+        if (globalLink && globalLink.assignmentData) {
+            console.log('✅ Asignación encontrada en Sistema Global:', globalLink.assignmentData);
+            return normalizeAssignmentForMobile(globalLink.assignmentData);
+        }
+    }
     
     // 1. Buscar en las asignaciones actuales en memoria
     if (assignments && assignments.length > 0) {
@@ -2090,7 +2451,7 @@ function showPersonalAssignment(assignment) {
                 
                 <div class="reveal-section">
                     <p class="instruction">Tu amigo secreto es:</p>
-                    <div class="recipient-name">🎯 ${receiverName}</div>
+                    <div class="recipient-name">🎯<br> ${receiverName}</div>
                     <div class="recipient-info">
                         📱 ${receiverPhone}
                         <br>
@@ -2354,6 +2715,132 @@ function testNetlifyCompatibility() {
 
     console.log('📊 Resultados de compatibilidad:', results);
 }
+
+/**
+ * Muestra las estadísticas del sistema global
+ */
+function showGlobalSystemStats() {
+    const stats = window.GlobalAmigoSecretoSystem.getSystemStats();
+    const uptime = Math.floor(stats.systemUptime / 1000 / 60); // en minutos
+    
+    Swal.fire({
+        title: '🌐 Estadísticas del Sistema Global',
+        html: `
+            <div style="text-align: left; padding: 1rem;">
+                <p><strong>🔗 Enlaces Registrados:</strong> ${stats.totalLinks}</p>
+                <p><strong>✅ Enlaces Accedidos:</strong> ${stats.accessedLinks}</p>
+                <p><strong>⏱️ Tiempo Activo:</strong> ${uptime} minutos</p>
+                <p><strong>🔑 Códigos en Registro:</strong> ${stats.registryCodes}</p>
+                <hr style="margin: 1rem 0;">
+                <h4>🔍 Enlaces Activos:</h4>
+                <div style="max-height: 200px; overflow-y: auto; font-size: 0.9rem;">
+                    ${window.GlobalAmigoSecretoSystem.activeLinks.map(link => `
+                        <div style="margin: 0.5rem 0; padding: 0.5rem; background: #f8f9fa; border-radius: 5px;">
+                            <strong>${link.participantName}</strong><br>
+                            <small>Código: ${link.accessCode} | ${link.accessed ? '✅ Accedido' : '⏳ Pendiente'}</small>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `,
+        confirmButtonText: '✅ Cerrar',
+        width: '600px'
+    });
+}
+
+/**
+ * Función de desarrollo para limpiar el sistema global (solo para testing)
+ */
+function resetGlobalSystem() {
+    if (confirm('⚠️ ¿Estás seguro de que quieres reiniciar el sistema global? Esto eliminará todos los enlaces registrados.')) {
+        window.GlobalAmigoSecretoSystem.activeLinks = [];
+        window.GlobalAmigoSecretoSystem.accessRegistry.clear();
+        window.GlobalAmigoSecretoSystem.systemInitTime = Date.now();
+        
+        console.log('🔄 Sistema global reiniciado');
+        showNotification('Sistema global reiniciado correctamente', 'success');
+    }
+}
+
+/**
+ * Función de debugging para mostrar estado completo del sistema
+ */
+function debugGlobalSystem() {
+    const system = window.GlobalAmigoSecretoSystem;
+    console.log('🔍 DEBUG - Estado completo del Sistema Global:');
+    console.log('📊 Estadísticas:', system.getSystemStats());
+    console.log('🔗 Enlaces activos:', system.activeLinks);
+    console.log('🔑 Registry de códigos:', Object.fromEntries(system.accessRegistry));
+    console.log('⏰ Tiempo activo:', Math.floor((Date.now() - system.systemInitTime) / 1000), 'segundos');
+    
+    return {
+        stats: system.getSystemStats(),
+        links: system.activeLinks,
+        codes: Object.fromEntries(system.accessRegistry)
+    };
+}
+
+/**
+ * Función de emergencia para verificar y reparar el sistema global
+ */
+function emergencySystemCheck() {
+    console.log('🚨 VERIFICACIÓN DE EMERGENCIA DEL SISTEMA:');
+    
+    // 1. Verificar que existe el sistema global
+    if (!window.GlobalAmigoSecretoSystem) {
+        console.error('❌ Sistema global NO EXISTE!');
+        alert('❌ Error crítico: Sistema global no inicializado. Recarga la página.');
+        return false;
+    }
+    
+    // 2. Verificar estado actual
+    const stats = window.GlobalAmigoSecretoSystem.getSystemStats();
+    console.log('📊 Estado actual:', stats);
+    console.log('🔗 Enlaces:', window.GlobalAmigoSecretoSystem.activeLinks);
+    console.log('👥 Participantes:', participants);
+    console.log('🎯 Asignaciones:', assignments);
+    
+    // 3. Si hay asignaciones pero no enlaces, registrarlos manualmente
+    if (assignments.length > 0 && window.GlobalAmigoSecretoSystem.activeLinks.length === 0) {
+        console.log('🔧 REPARANDO: Registrando asignaciones existentes en sistema global...');
+        
+        assignments.forEach(assignment => {
+            if (assignment.accessCode && assignment.secretId) {
+                const linkData = {
+                    url: assignment.uniqueLink || `${window.location.origin}/?participant=${encodeURIComponent(assignment.giver.name)}&secret=${assignment.secretId}&code=${assignment.accessCode}`,
+                    participantName: assignment.giver.name,
+                    accessCode: assignment.accessCode,
+                    secretId: assignment.secretId,
+                    assignmentData: {
+                        giver: assignment.giver,
+                        receiver: assignment.receiver,
+                        secretId: assignment.secretId,
+                        accessCode: assignment.accessCode,
+                        timestamp: assignment.timestamp || Date.now()
+                    }
+                };
+                
+                window.GlobalAmigoSecretoSystem.registerLink(linkData);
+                console.log('🔧 Reparado enlace para:', assignment.giver.name);
+            }
+        });
+        
+        const newStats = window.GlobalAmigoSecretoSystem.getSystemStats();
+        console.log('✅ REPARACIÓN COMPLETADA. Nuevo estado:', newStats);
+        
+        return true;
+    }
+    
+    // 4. Todo está bien
+    console.log('✅ Sistema funcionando correctamente');
+    return true;
+}
+
+// Hacer las funciones de estadísticas disponibles globalmente para desarrollo
+window.showGlobalSystemStats = showGlobalSystemStats;
+window.resetGlobalSystem = resetGlobalSystem;
+window.debugGlobalSystem = debugGlobalSystem;
+window.emergencySystemCheck = emergencySystemCheck;
 
 
 
