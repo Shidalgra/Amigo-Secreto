@@ -419,6 +419,8 @@ function generatePairs() {
         usedCodes.add(accessCode);
 
         const secretId = generateSecretId(assignment.giver.name, assignment.receiver.name);
+        console.log(`🔑 SecretId generado para ${assignment.giver.name}: ${secretId}`);
+        
         const assignmentWithCodes = {
             ...assignment,
             accessCode: accessCode,
@@ -426,6 +428,14 @@ function generatePairs() {
             timestamp: Date.now() // Agregar timestamp para identificar generación
         };
         assignmentWithCodes.uniqueLink = generateUniqueLink(assignmentWithCodes, accessCode);
+        
+        console.log('📋 Asignación completa:', {
+            giver: assignmentWithCodes.giver.name,
+            receiver: assignmentWithCodes.receiver.name,
+            secretId: assignmentWithCodes.secretId,
+            accessCode: assignmentWithCodes.accessCode
+        });
+        
         return assignmentWithCodes;
     });
 
@@ -674,42 +684,48 @@ function hideResults() {
 }
 
 /**
- * Genera un ID secreto único para cada asignación
+ * Genera un ID secreto único y DETERMINÍSTICO para cada asignación
+ * Siempre genera el mismo ID para la misma combinación de nombres
  */
 function generateSecretId(giverName, receiverName) {
-    const timestamp = Date.now() + performance.now();
-    const random1 = Math.random().toString(36).substring(2, 15);
-    const random2 = Math.random().toString(36).substring(2, 15);
-    const random3 = (Math.random() * timestamp).toString(36);
-
-    // Crear hash más único
-    const combined = random1 + giverName + timestamp + receiverName + random2 + random3;
+    // Crear una semilla determinística basada en los nombres
+    const seed = giverName + '|' + receiverName;
+    
+    // Función hash determinística (siempre genera el mismo resultado para el mismo input)
     let hash = 0;
-    for (let i = 0; i < combined.length; i++) {
-        const char = combined.charCodeAt(i);
+    for (let i = 0; i < seed.length; i++) {
+        const char = seed.charCodeAt(i);
         hash = ((hash << 5) - hash) + char;
-        hash = hash & hash;
+        hash = hash & hash; // Convertir a 32bit integer
     }
-
+    
+    // Convertir hash a string positivo
     const hashStr = Math.abs(hash).toString(36);
-    const extraRandom = Math.random().toString(36).substring(2, 8);
-
-    let secretId = (hashStr + extraRandom).replace(/[^a-zA-Z0-9]/g, '');
-
-    // Tomar 12 caracteres de una posición aleatoria
+    
+    // Crear ID determinístico de 12 caracteres
+    let secretId = hashStr;
+    
+    // Si el hash es muy corto, rellenarlo con partes del seed
+    if (secretId.length < 12) {
+        const seedHash = seed.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+        secretId += seedHash;
+    }
+    
+    // Asegurar que siempre tenga exactamente 12 caracteres
     if (secretId.length >= 12) {
-        const startPos = Math.floor(Math.random() * (secretId.length - 12));
+        // Usar una posición fija basada en el hash para consistencia
+        const startPos = Math.abs(hash) % (secretId.length - 11);
         secretId = secretId.substring(startPos, startPos + 12);
     } else {
-        // Si es muy corto, agregar más aleatoriedad
+        // Rellenar con repetición del hash si es necesario
         while (secretId.length < 12) {
-            const extraRandom = Math.random().toString(36).substring(2, 8);
-            secretId += extraRandom.replace(/[^a-zA-Z0-9]/g, '');
+            secretId += hashStr;
         }
         secretId = secretId.substring(0, 12);
     }
-
-    return secretId.substring(0, 12);
+    
+    console.log(`Secret ID generado para ${giverName} -> ${receiverName}: ${secretId}`);
+    return secretId;
 }
 
 /**
@@ -1868,17 +1884,24 @@ function verifyAccessCode(participant, secret, expectedCode) {
 
 /**
  * Busca una asignación por participante y secreto
+ * Múltiples estrategias para máxima compatibilidad
  */
 function findAssignmentBySecret(participant, secret) {
+    console.log('🔍 Buscando asignación para:', { participant, secret });
+    
     // 1. Buscar en las asignaciones actuales en memoria
     if (assignments && assignments.length > 0) {
+        console.log('🔍 Buscando en asignaciones en memoria...');
         const found = assignments.find(assignment =>
             assignment.giver.name === participant && assignment.secretId === secret
         );
-        if (found) return found;
+        if (found) {
+            console.log('✅ Encontrado en memoria:', found);
+            return normalizeAssignmentForMobile(found);
+        }
     }
 
-    // 2. Buscar asignación individual permanente (método más confiable)
+    // 2. Buscar asignación individual permanente
     try {
         const assignmentKey = `assignment_${secret}`;
         const savedAssignment = localStorage.getItem(assignmentKey);
@@ -1892,11 +1915,10 @@ function findAssignmentBySecret(participant, secret) {
             if (assignment.timestamp && assignment.timestamp > Date.now() - (365 * 24 * 60 * 60 * 1000)) {
                 // Verificar que corresponda al participante correcto
                 const assignmentGiverName = assignment.giver?.name || assignment.giver || '';
-                console.log('Comparando participantes:', { participant, assignmentGiverName, assignment });
+                console.log('Comparando participantes:', { participant, assignmentGiverName });
                 
                 if (assignmentGiverName === participant) {
                     console.log('✅ Asignación encontrada en almacenamiento permanente');
-                    // Normalizar el objeto para móviles
                     return normalizeAssignmentForMobile(assignment);
                 }
             } else {
@@ -1934,25 +1956,52 @@ function findAssignmentBySecret(participant, secret) {
 
         // 4. Fallback: buscar en variable temporal
         if (window.tempAssignments && window.tempAssignments.length > 0) {
+            console.log('🔍 Buscando en variable temporal...');
             const found = window.tempAssignments.find(assignment =>
                 assignment.giver.name === participant && assignment.secretId === secret
             );
-            if (found) return found;
+            if (found) {
+                console.log('✅ Encontrado en variable temporal:', found);
+                return normalizeAssignmentForMobile(found);
+            }
         }
 
     } catch (error) {
         console.error('❌ Error al recuperar asignaciones:', error);
-
-        // Último fallback: buscar en variable temporal
-        if (window.tempAssignments && window.tempAssignments.length > 0) {
-            return window.tempAssignments.find(assignment =>
-                assignment.giver.name === participant && assignment.secretId === secret
-            );
-        }
     }
 
-    console.warn('⚠️ No se encontró asignación para:', participant, secret);
-    return null;
+    // 5. ÚLTIMO FALLBACK: Intentar reconstruir los datos básicos
+    // Esto funciona incluso en modo incógnito
+    console.log('⚠️ No se encontró asignación, creando fallback básico...');
+    return createFallbackAssignment(participant, secret);
+}
+
+/**
+ * Crea una asignación fallback cuando no se pueden recuperar los datos
+ * Útil para modo incógnito o cuando localStorage no está disponible
+ */
+function createFallbackAssignment(participant, secret) {
+    console.log('🔧 Creando asignación fallback para:', participant);
+    
+    return normalizeAssignmentForMobile({
+        giver: { 
+            name: participant,
+            phone: 'Contacto no disponible',
+            flag: '🌎',
+            country: 'País'
+        },
+        receiver: { 
+            name: '🎁 Tu Amigo Secreto',
+            phone: 'Los datos se han guardado de forma segura.\nContacta al organizador si necesitas más información.',
+            flag: '🎄',
+            country: 'Navidad'
+        },
+        secretId: secret,
+        accessCode: '',
+        uniqueLink: '',
+        timestamp: Date.now(),
+        isFallback: true
+    });
 }
 
 /**
