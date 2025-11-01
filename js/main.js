@@ -333,7 +333,8 @@ document.addEventListener('DOMContentLoaded', async function () {
         }
     }
     
-    updateUI();
+    // LLAMADA CRÍTICA: Actualizar la UI para habilitar/deshabilitar botones al inicio
+    updateUI(); 
 
     // Enter key para agregar participante
     nameInput.addEventListener('keypress', function (e) {
@@ -401,7 +402,10 @@ function addParticipant() {
     nameInput.value = '';
     phoneInput.value = '';
     nameInput.focus();
-    updateUI();
+    
+    updateUI(); // LLAMADA CRÍTICA: Actualiza el estado de los botones y la lista
+    
+    showNotification(`¡${name} agregado exitosamente!`, 'success');
 }
 
 
@@ -410,11 +414,24 @@ function addParticipant() {
  * @param {string} name - Nombre del participante a eliminar
  */
 function removeParticipant(name) {
-    participants = participants.filter(p => p.name !== name);
-    assignments = []; // Si se elimina un participante, las asignaciones se invalidan
-    // ELIMINADO: No necesitamos limpiar localStorage aquí
-    hideResults();
-    updateUI();
+    Swal.fire({
+        title: '⚠️ ¿Eliminar participante?',
+        text: `¿Estás seguro de que quieres eliminar a ${name} de la lista? Esto invalidará cualquier asignación previa.`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc143c',
+        cancelButtonColor: '#008000',
+        confirmButtonText: 'Sí, Eliminar',
+        cancelButtonText: 'No, Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            participants = participants.filter(p => p.name !== name);
+            assignments = []; // Si se elimina un participante, las asignaciones se invalidan
+            hideResults();
+            updateUI(); // LLAMADA CRÍTICA: Actualiza el estado de los botones y la lista
+            showNotification(`❌ ${name} ha sido eliminado.`, 'info');
+        }
+    });
 }
 
 /**
@@ -847,45 +864,81 @@ function hideResults() {
     completionMessage.style.display = 'none';
 }
 
-function updateUI() {
-    // Actualiza la lista visible de participantes
-    participantsList.innerHTML = '';
-    participants.forEach(p => {
-        const li = document.createElement('li');
-        li.className = 'participant-item';
-        li.innerHTML = `
-            <span class="participant-name">
-                ${p.flag} ${p.name}
-            </span>
-            <span class="participant-phone">
-                (${getCountryData(p.country).dial_code}) ${p.phone}
-            </span>
+
+// ===============================================
+// === LÓGICA DE UI CORREGIDA (Habilitación de botones) ===
+// ===============================================
+
+/**
+ * Renderiza la lista de participantes en el DOM.
+ * Asume que 'participantsList' es el <ul> en el DOM.
+ */
+function renderParticipantsList() {
+    if (!participantsList) return;
+
+    if (participants.length === 0) {
+        // Mejorar el estado vacío
+        participantsList.innerHTML = '<li class="empty-state">No hay participantes aún. ¡Agrega algunos nombres!</li>';
+        return;
+    }
+
+    participantsList.innerHTML = participants.map((p) => `
+        <li class="participant-item">
+            <div class="participant-info-main">
+                <span class="participant-flag">${p.flag}</span>
+                <span class="participant-name">${p.name}</span>
+            </div>
+            <div class="participant-info-secondary">
+                <span class="participant-phone">(${getCountryData(p.country).dial_code}) ${p.phone}</span>
+            </div>
             <button class="remove-btn" onclick="removeParticipant('${p.name}')" title="Eliminar participante">
                 ❌
             </button>
-        `;
-        participantsList.appendChild(li);
-    });
+        </li>
+    `).join('');
+}
 
-    // Actualiza el contador
-    participantsCount.textContent = `(${participants.length})`;
 
-    // Habilita/deshabilita el botón de generar
-    if (participants.length >= 3) {
-        generateBtn.disabled = false;
-        generateBtn.classList.remove('disabled');
-    } else {
-        generateBtn.disabled = true;
-        generateBtn.classList.add('disabled');
+/**
+ * Actualiza el contador de participantes, la lista visible y el estado de los botones (CRÍTICA).
+ */
+function updateUI() {
+    // 1. Renderizar la lista de participantes
+    renderParticipantsList();
+
+    // 2. Actualizar el contador
+    if (participantsCount) {
+        // Cambio: Incluir el texto completo "participante(s)" para ser más descriptivo
+        participantsCount.textContent = `${participants.length} participante${participants.length === 1 ? '' : 's'}`;
+    }
+
+    // 3. LÓGICA CRÍTICA: Habilitar/Deshabilitar botones
+    const hasParticipants = participants.length > 0;
+    // Se necesitan al menos 3 participantes para el emparejamiento.
+    const canGenerate = participants.length >= 2; 
+
+    // Botón Limpiar Lista (clearBtn)
+    if (clearBtn) {
+        clearBtn.disabled = !hasParticipants;
+        // Opcional: Usar clase 'disabled' si tienes estilos para ello (asumiendo que 'disabled' existe en el CSS)
+        clearBtn.classList.toggle('disabled', !hasParticipants);
+    }
+    
+    // Botón Empezar Emparejamiento (generateBtn)
+    if (generateBtn) {
+        generateBtn.disabled = !canGenerate;
+        generateBtn.classList.toggle('disabled', !canGenerate);
     }
     
     // Si hay asignaciones generadas, muestra el botón de resultados (si no está visible)
-    if (assignments.length > 0) {
-        document.getElementById('showResultsBtn').style.display = 'inline-block';
-    } else {
-        document.getElementById('showResultsBtn').style.display = 'none';
+    const showResultsBtn = document.getElementById('showResultsBtn');
+    if (showResultsBtn) {
+        showResultsBtn.style.display = (assignments.length > 0) ? 'inline-block' : 'none';
     }
 }
+// ===============================================
+// === FIN LÓGICA DE UI CORREGIDA ===
+// ===============================================
 
 
 // Función de utilidad para data de países (Se mantiene)
@@ -921,4 +974,3 @@ window.showNotification = showNotification;
 window.showError = showError;
 
 // ELIMINADO: Funciones de debug/estadísticas globales (resetGlobalSystem, showGlobalSystemStats, etc.)
-// ...
