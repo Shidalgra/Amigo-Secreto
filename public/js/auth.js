@@ -10,7 +10,21 @@ const registerForm = document.getElementById('register-form');
 if (registerForm) {
     const registerEmailInput = document.getElementById('register-email');
     const registerPasswordInput = document.getElementById('register-password');
+    const registerPasswordConfirmInput = document.getElementById('register-password-confirm');
     const registerErrorMessage = document.getElementById('register-error-message');
+
+    // Inicializar reCAPTCHA
+    const recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
+        'size': 'normal', // 'invisible' es otra opción
+        'callback': (response) => {
+            // El reCAPTCHA se resolvió, no es necesario hacer nada aquí
+            // a menos que quieras habilitar el botón de registro solo después de esto.
+        },
+        'expired-callback': () => {
+            // La respuesta del reCAPTCHA expiró.
+            registerErrorMessage.textContent = 'El reCAPTCHA ha expirado, por favor, inténtalo de nuevo.';
+        }
+    });
 
     registerForm.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -18,9 +32,31 @@ if (registerForm) {
 
         const email = registerEmailInput.value;
         const password = registerPasswordInput.value;
+        const confirmPassword = registerPasswordConfirmInput.value;
+
+        // --- VALIDACIONES DEL LADO DEL CLIENTE ---
+
+        // 1. Validar formato de correo
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            registerErrorMessage.textContent = 'Por favor, introduce un correo electrónico válido.';
+            return;
+        }
+
+        // 2. Validar que la contraseña no tenga espacios
+        if (/\s/.test(password)) {
+            registerErrorMessage.textContent = 'La contraseña no puede contener espacios en blanco.';
+            return;
+        }
+
+        // 3. Validar que las contraseñas coincidan
+        if (password !== confirmPassword) {
+            registerErrorMessage.textContent = 'Las contraseñas no coinciden.';
+            return;
+        }
 
         try {
-            const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+            // Usar el verificador de reCAPTCHA al crear el usuario
+            const userCredential = await auth.createUserWithEmailAndPassword(email, password, recaptchaVerifier);
             
             // Enviar correo de verificación
             await userCredential.user.sendEmailVerification();
@@ -31,6 +67,9 @@ if (registerForm) {
 
         } catch (error) {
             console.error("Error en el registro:", error);
+            // Resetear reCAPTCHA en caso de error para que el usuario pueda reintentar
+            recaptchaVerifier.render().then(widgetId => grecaptcha.reset(widgetId));
+
             if (error.code === 'auth/email-already-in-use') {
                 registerErrorMessage.textContent = 'Este correo electrónico ya está en uso.';
             } else if (error.code === 'auth/weak-password') {

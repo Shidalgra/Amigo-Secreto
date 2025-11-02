@@ -31,6 +31,12 @@
                 <i class="fas fa-lock"></i>
                 <input type="password" id="register-password" placeholder="Contraseña (mín. 6 caracteres)" required>
             </div>
+            <div class="input-group">
+                <i class="fas fa-lock"></i>
+                <input type="password" id="register-password-confirm" placeholder="Confirmar contraseña" required>
+            </div>
+            <!-- Contenedor para el reCAPTCHA -->
+            <div id="recaptcha-container" class="recaptcha-container"></div>
             <button type="submit" class="submit-button">Registrarse</button>
             <p id="register-error-message" class="error-message"></p>
             <a href="index.html" class="toggle-button">¿Ya tienes cuenta? Inicia sesión</a>
@@ -44,6 +50,8 @@
     -->
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <!-- reCAPTCHA v2 -->
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
 
