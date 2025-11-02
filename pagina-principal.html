@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Página Principal</title>
+  <link rel="shortcut icon" href="images/Logo.png" />
+  <link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@300;400;600;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+
+<body>
+  <header class="exam-title">
+    <div class="contenedor-accionesUsuario">
+      <button id="btn-menu-hamburguesa" class="menu-hamburguesa" aria-label="Abrir menú">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+      <div id="menu-desplegable" class="menu-desplegable">
+        <button id="btnVerGruposMenu">Ver Grupos</button>
+        <button id="btnGenerarGruposMenu" class="oculto-admin">Generar Grupos</button>
+        <button id="btnBorrarMensajesMenu" class="oculto-admin">Borrar Mensajes</button>
+        <button id="btnBorrarDBMenu" class="oculto-admin">Borrar DB</button>
+        <button id="btnSalirMenu">Salir</button>
+      </div>
+    </div>
+
+    <div class="contendor-logoNombre">
+      <div class="top-bar">
+        <img src="images/LogoFondoBlanco.png" alt="Logo" class="logo-top-left">
+        <h1 class="title">Formación de Grupos</h1>
+      </div>
+    </div>
+
+    <div class="contenedor-busqueda">
+      <label for="busquedaMensajes" class="lbl-buscar">Buscar:</label>
+      <input type="text" id="busquedaMensajes" placeholder="Buscar..." class="input-busqueda" />
+    </div>
+  </header>
+
+  <main class="main-content" id="mainFlexContainer">
+    <section class="mensajes" id="chatSection">
+      <section class="bienvenida">
+        <h2>Hola, <span id="nombreUsuario"></span> !!!</h2>
+        <p>Aquí podés escribir y ver mensajes de todos los participantes en tiempo real.</p>
+      </section>
+
+      <form id="formMensaje" class="form-mensaje">
+        <input type="text" id="mensaje" placeholder="Escribe tu mensaje aquí..." required>
+        <button class="submit" type="submit">Enviar</button>
+      </form>
+
+      <ul id="listaMensajes" class="lista-mensajes"></ul>
+
+    </section>
+  </main>
+
+  <div id="modalGrupos" class="modal">
+    <div class="modal-content">
+      <span class="close-modal">&times;</span>
+      <h3>Grupos Asignados</h3>
+      <div id="listaGruposModal"></div>
+    </div>
+  </div>
+
+
+  <footer class="creditos">
+    <div id="botonBorrarDBAbajo">
+      <!-- Los botones de admin se movieron al menú de hamburguesa -->
+    </div>
+    
+    <p id="footer-credits-text">© 2025 | Hecho por Sergio Hidalgo Granados — <strong>shidalgra</strong><br>
+      <em>Activando Coeficiente Intelectual</em>
+    </p>
+
+    <div id="botonSalirAbajo" class="acciones-footer">
+      <button id="btnSalir">Salir</button>
+    </div>
+  </footer>
+  
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+  <script src="js/main.js"></script>
+</body>
+
+</html>

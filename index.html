@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Amigo secreto</title>
+  <link rel="shortcut icon" href="images/Logo.png" />
+  <link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@300;400;600;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+
+<body>
+
+  <header class="exam-title">
+    <div class="section-container">
+      <div class="top-bar">
+        <img src="images/LogoFondoBlanco.png" alt="Logo" class="logo-top-left">
+        <h1 class="title">Amigo secreto</h1>
+      </div>
+      <div class="intento-panel">
+        Ingreso al sistema de Amigo Secreto
+      </div>
+    </div>
+  </header>
+
+  <main class="login-container">
+    <div class="login-box">
+      <h2>Acceso</h2>
+      
+      <label for="cursoID">Selecciona tu Curso/Sesión:</label>
+      <select id="cursoID" required>
+        <option value="" disabled selected>Seleccionar curso...</option>
+      </select>
+      
+      <label for="cedula">Cédula:</label>
+      <input type="text" id="cedula" required placeholder="Número de Cédula" pattern="[0-9]{9,12}">
+
+      <label for="nombre">Nombre completo</label>
+      <input type="text" id="nombre" placeholder="Ejemplo: Sergio Hidalgo Granados" required>
+
+      <label for="codigo">Código de acceso</label>
+      <input type="password" id="codigo" placeholder="Código que da el profesor">
+
+      <button class="submit" id="btnIngresar">Ingresar</button>
+    </div>
+  </main>
+
+  <footer class="creditos">
+    <p>© 2025 | Hecho por Sergio Hidalgo Granados — <strong>shidalgra</strong><br>
+      <em>Activando Coeficiente Intelectual</em>
+    </p>
+  </footer>
+
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+  <script src="js/main.js"></script>
+</body>
+
+</html>
