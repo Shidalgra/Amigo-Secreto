@@ -17,34 +17,29 @@
   <header class="exam-title">
     <div class="section-container">
       <div class="top-bar">
-        <img src="images/LogoFondoBlanco.png" alt="Logo" class="logo-top-left">
-        <h1 class="title">Amigo secreto</h1>
+        <img src="img/logo.png" alt="Logo" class="logo-top-left">
+        <h1 class="title">Amigo Secreto</h1>
       </div>
       <div class="intento-panel">
-        Ingreso al sistema de Amigo Secreto
+        Ingreso al Sistema
       </div>
     </div>
   </header>
 
   <main class="login-container">
     <div class="login-box">
-      <h2>Acceso</h2>
+      <h2>Iniciar Sesión</h2>
       
-      <label for="cursoID">Selecciona tu Curso/Sesión:</label>
-      <select id="cursoID" required>
-        <option value="" disabled selected>Seleccionar curso...</option>
-      </select>
-      
-      <label for="cedula">Cédula:</label>
-      <input type="text" id="cedula" required placeholder="Número de Cédula" pattern="[0-9]{9,12}">
+      <label for="username">Nombre de Usuario (de la sesión):</label>
+      <input type="text" id="username" required placeholder="Ej: GrupoFamiliaPerez">
 
-      <label for="nombre">Nombre completo</label>
-      <input type="text" id="nombre" placeholder="Ejemplo: Sergio Hidalgo Granados" required>
+      <label for="password">Contraseña:</label>
+      <input type="password" id="password" placeholder="Contraseña de la sesión">
 
-      <label for="codigo">Código de acceso</label>
-      <input type="password" id="codigo" placeholder="Código que da el profesor">
-
-      <button class="submit" id="btnIngresar">Ingresar</button>
+      <button class="submit" id="btnIngresar">Ingresar a la Sesión</button>
+      <div class="register-link">
+        <p>¿No tienes una sesión? <a href="register.html">Crea una aquí</a></p>
+      </div>
     </div>
   </main>
 

@@ -323,6 +323,175 @@ body {
   box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.3);
 }
 
+/* ================================= */
+/* NUEVOS ESTILOS PARA FORMULARIO Y LISTA DE PARTICIPANTES */
+/* ================================= */
+
+.participantes-form {
+    background-color: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+.lista-participantes-container {
+    background-color: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.participantes-form h2,
+.lista-participantes-container h2 {
+    color: #004080;
+    font-weight: 700;
+    margin-bottom: 15px;
+    border-bottom: 2px solid #f0f0f0;
+    padding-bottom: 10px;
+    font-size: 1.2rem;
+}
+
+/* Contenedor para el título y el botón de generar */
+.titulo-con-boton {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.titulo-con-boton h2 {
+    margin-bottom: 0; /* Quitar margen inferior del h2 */
+    border-bottom: none;
+}
+
+/* Formulario en línea */
+.form-participante-inline {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.form-participante-inline input {
+    flex: 1; /* Permite que los inputs crezcan */
+    padding: 8px 12px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 1rem;
+    min-width: 150px; /* Ancho mínimo para que no se colapsen */
+}
+
+.form-participante-inline button {
+    padding: 8px 20px;
+    font-size: 0.9rem;
+    white-space: nowrap; /* Evita que el texto del botón se parta */
+}
+
+/* Estilo específico y amigable para el botón de Añadir Participante */
+.form-participante-inline button.submit {
+    background-color: #d9534f; /* Un rojo amigable y festivo */
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease-out;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.form-participante-inline button.submit:hover {
+    background-color: #c9302c; /* Un rojo un poco más oscuro al pasar el ratón */
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    transform: translateY(-2px); /* Efecto de elevación */
+}
+
+.form-participante-inline button.submit:active {
+    background-color: #ac2925; /* Rojo aún más oscuro al hacer clic */
+    transform: translateY(0); /* Vuelve a su posición original */
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+/* Contenedor de la tabla para overflow */
+.tabla-container {
+    overflow-x: auto; /* Permite scroll horizontal en pantallas pequeñas */
+}
+
+/* Estilos de la tabla */
+.tabla-participantes {
+    width: 100%;
+    border-collapse: collapse; /* Une los bordes de las celdas */
+    margin-top: 10px;
+}
+
+.tabla-participantes th,
+.tabla-participantes td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+.tabla-participantes th {
+    background-color: #eef4fc;
+    color: #004080;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+}
+
+.tabla-participantes tbody tr:hover {
+    background-color: #f9f9f9;
+}
+
+.tabla-participantes td {
+    color: #333;
+}
+
+/* Estilo para la celda de "No hay participantes" */
+.tabla-participantes td[colspan="4"] {
+    text-align: center;
+    color: #888;
+    padding: 20px;
+    font-style: italic;
+}
+
+.btn-borrar-participante {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.1rem;
+    color: #aaa;
+    transition: color 0.2s;
+    padding: 5px;
+}
+
+.btn-borrar-participante:hover {
+    color: #d9534f;
+}
+
+/* Estilos para la tabla de resultados del sorteo en el modal */
+.tabla-resultados-sorteo {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+
+.tabla-resultados-sorteo th,
+.tabla-resultados-sorteo td {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    text-align: left;
+}
+
+.tabla-resultados-sorteo th {
+    background-color: #f2f2f2;
+    font-weight: 600;
+}
+
+.tabla-resultados-sorteo .codigo-consulta {
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: bold;
+    background-color: #fffbdd;
+}
+
 .lista-mensajes {
   list-style-type: none;
   padding: 0;

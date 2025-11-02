@@ -1,17 +1,7 @@
 // ==========================
 // CONFIGURACIÓN FIREBASE
 // ==========================
-const CODIGO_ADMIN = "ADMIN2026";
-
-// NUEVA CONFIGURACIÓN DE CURSOS Y CLAVES
-// Aquí se definen los cursos que aparecerán en el login y su clave de acceso.
-// Para añadir un nuevo curso, simplemente agrega una nueva línea.
-const CURSOS_CONFIG = {
-    "INF1003": "CLAVE2026A",
-    "INF2003": "CLAVE2026B",
-    "INF1004": "CLAVE2026C",
-    "TCS1003": "CLAVE2026D"
-};
+// La configuración de cursos fijos ya no es necesaria. Las sesiones se crearán dinámicamente.
 
 const firebaseConfig = {
     apiKey: "AIzaSyB77bg-KvNbYcr5YndutHMaHRw0vcrCuZE",
@@ -29,7 +19,7 @@ const db = firebase.firestore();
 // VARIABLES GLOBALES
 // ==========================
 let mensajesCache = [];
-let tipoUsuario = localStorage.getItem("tipoUsuario") || "invitado";
+let tipoUsuario = localStorage.getItem("tipoUsuario") || "participante"; // Cambiamos "invitado" a "participante"
 // Ojo: Esta variable es clave para aislar los datos por curso.
 let cursoID = localStorage.getItem("cursoID") || "";
 
@@ -39,92 +29,163 @@ const NOMBRES_GRIEGOS_ORDEN = [
     "Iota", "Kappa", "Lambda", "Mu", "Nu", "Xi", "Omicron", "Pi"
 ];
 
-// ==========================
-// FUNCIONES DE CHAT
-// ==========================
-async function guardarMensaje(nombre, mensaje) {
-    if (!cursoID) return;
-    return db.collection(`${cursoID}_mensajes`).add({
-        nombre,
-        mensaje,
-        tipoUsuario,
-        fecha: firebase.firestore.FieldValue.serverTimestamp()
-    });
-}
-
-function renderizarMensajes(filtro = "") {
-    const lista = document.getElementById("listaMensajes");
-    if (!lista) return;
-
-    lista.innerHTML = "";
-    const filtroLower = filtro.toLowerCase();
-
-    mensajesCache.forEach(msg => {
-        if (!(`${msg.nombre}: ${msg.mensaje}`.toLowerCase().includes(filtroLower))) return;
-
-        const li = document.createElement("li");
-        li.classList.add("mensaje-item");
-        const fecha = msg.fecha ? msg.fecha.toDate().toLocaleString() : "(sin fecha)";
-        const btnBorrarHTML = (tipoUsuario === "admin") ? `<button class="btn-borrar" data-id="${msg.id}">🗑️</button>` : '';
-
-        li.innerHTML = `<strong>${msg.nombre}:</strong> ${msg.mensaje}<br><small>${fecha}</small>${btnBorrarHTML}`;
-
-        if (tipoUsuario === "admin") {
-            li.querySelector(".btn-borrar")?.addEventListener("click", async (e) => {
-                const id = e.target.dataset.id;
-                const confirm = await Swal.fire({
-                    icon: "warning",
-                    title: "¿Borrar mensaje?",
-                    text: "Esta acción no se puede deshacer.",
-                    showCancelButton: true,
-                    confirmButtonText: "Sí, borrar",
-                    cancelButtonText: "Cancelar",
-                    confirmButtonColor: "#d33"
-                });
-                if (confirm.isConfirmed) {
-                    await db.collection(`${cursoID}_mensajes`).doc(id).delete();
-                    Swal.fire({ icon: "success", title: "Mensaje eliminado", timer: 1500, showConfirmButton: false });
-                }
-            });
-        }
-
-        lista.appendChild(li);
-    });
-}
-
-function mostrarMensajes() {
-    const lista = document.getElementById("listaMensajes");
-    if (!lista || !cursoID) return;
-
-    // Lógica para el botón de Borrar Todos los Mensajes (Solo accesible si el botón existe y es admin)
-    if (tipoUsuario === "admin") {
-        document.getElementById("btnBorrarTodos")?.addEventListener("click", async () => {
-            const confirm = await Swal.fire({
-                title: "¿Borrar TODOS los mensajes?",
-                text: `Esta acción eliminará TODOS los mensajes de la sesión **${cursoID}** y no se puede deshacer.`,
-                showCancelButton: true,
-                confirmButtonText: "Sí, borrar todo",
-                cancelButtonText: "Cancelar",
-                confirmButtonColor: "#d33"
-            });
-
-            if (confirm.isConfirmed) {
-                const snapshot = await db.collection(`${cursoID}_mensajes`).get();
-                const batch = db.batch();
-                snapshot.forEach(doc => batch.delete(doc.ref));
-                await batch.commit();
-                Swal.fire({ icon: "success", title: "Todos los mensajes eliminados", timer: 1500, showConfirmButton: false });
+/**
+ * Calcula la distancia de Levenshtein entre dos cadenas.
+ * Mide el número de ediciones (inserciones, eliminaciones o sustituciones) 
+ * necesarias para cambiar una cadena por la otra.
+ * @param {string} s1 La primera cadena.
+ * @param {string} s2 La segunda cadena.
+ * @returns {number} La distancia de edición entre las dos cadenas.
+ */
+function levenshteinDistance(s1, s2) {
+    s1 = s1.toLowerCase();
+    s2 = s2.toLowerCase();
+    const costs = [];
+    for (let i = 0; i <= s1.length; i++) {
+        let lastValue = i;
+        for (let j = 0; j <= s2.length; j++) {
+            if (i === 0) costs[j] = j;
+            else if (j > 0) {
+                let newValue = costs[j - 1];
+                if (s1.charAt(i - 1) !== s2.charAt(j - 1)) newValue = Math.min(Math.min(newValue, lastValue), costs[j]) + 1;
+                costs[j - 1] = lastValue;
+                lastValue = newValue;
             }
-        });
+        }
+        if (i > 0) costs[s2.length] = lastValue;
+    }
+    return costs[s2.length];
+}
 
-        document.getElementById("btnBorrarDBCompleta")?.addEventListener("click", borrarTodaLaBaseDeDatos);
+/**
+ * =================================================
+ * NUEVAS FUNCIONES PARA GESTIONAR LISTA DE PARTICIPANTES
+ * =================================================
+ */
+
+/**
+ * Añade un nuevo participante a la colección _usuariosConectados de la sesión actual.
+ * La cédula se autogenera para mantener la estructura, pero no es visible al usuario.
+ */
+async function handleAnadirParticipante(event) {
+    event.preventDefault();
+    const nombreInput = document.getElementById('nombreParticipante');
+    const telefonoInput = document.getElementById('telefonoParticipante');
+    const correoInput = document.getElementById('correoParticipante');
+
+    const nombre = nombreInput.value.trim();
+    const telefono = telefonoInput.value.trim();
+    const correo = correoInput.value.trim();
+
+    if (!nombre) {
+        Swal.fire({ icon: 'warning', title: 'Nombre requerido', text: 'El nombre del participante no puede estar vacío.', confirmButtonColor: '#004080' });
+        return;
     }
 
-    db.collection(`${cursoID}_mensajes`)
-        .orderBy("fecha", "desc")
+    if (!telefono && !correo) {
+        Swal.fire({ icon: 'warning', title: 'Falta información de contacto', text: 'Debes proporcionar al menos un teléfono o un correo electrónico.', confirmButtonColor: '#004080' });
+        return;
+    }
+
+    try {
+        // VERIFICACIÓN DE DUPLICADOS (Case-insensitive)
+        const snapshot = await db.collection(`${cursoID}_usuariosConectados`).get();        
+        for (const doc of snapshot.docs) {
+            const nombreExistente = doc.data().nombre;
+            const distancia = levenshteinDistance(nombre, nombreExistente);
+
+            if (distancia === 0) { // Coincidencia exacta
+                Swal.fire({ icon: 'error', title: 'Participante Duplicado', text: `El nombre "${nombre}" ya existe en la lista.`, confirmButtonColor: '#d33' });
+                return;
+            }
+
+            if (distancia > 0 && distancia <= 2) { // Coincidencia muy similar (posible error de dedo)
+                const confirmacion = await Swal.fire({
+                    icon: 'warning',
+                    title: '¿Posible Duplicado?',
+                    html: `El nombre que ingresaste, "<b>${nombre}</b>", es muy parecido a "<b>${nombreExistente}</b>" que ya está en la lista.<br><br>¿Estás seguro de que quieres añadirlo como un participante nuevo?`,
+                    showCancelButton: true,
+                    confirmButtonText: 'Sí, añadir de todos modos',
+                    cancelButtonText: 'No, fue un error'
+                });
+
+                if (!confirmacion.isConfirmed) return; // Si el usuario dice que fue un error, detenemos el proceso.
+            }
+        }
+
+        // Usamos un ID autogenerado por Firestore como identificador único del participante.
+        await db.collection(`${cursoID}_usuariosConectados`).add({
+            nombre: nombre,
+            telefono: telefono || "", // Guarda vacío si no se provee
+            correo: correo || "",   // Guarda vacío si no se provee
+            tipoUsuario: "participante", // Todos los añadidos son participantes
+            fechaAgregado: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        // Limpiar los campos del formulario
+        nombreInput.value = "";
+        telefonoInput.value = "";
+        correoInput.value = "";
+        nombreInput.focus(); // Poner el foco de nuevo en el nombre para añadir el siguiente.
+
+    } catch (error) {
+        console.error("Error al añadir participante:", error);
+        Swal.fire({ icon: 'error', title: 'Error de Red', text: 'No se pudo añadir el participante. Inténtalo de nuevo.', confirmButtonColor: '#d33' });
+    }
+}
+
+/**
+ * Escucha los cambios en la lista de participantes y los renderiza en la página.
+ */
+function escucharParticipantes() {
+    if (!cursoID) return;
+
+    db.collection(`${cursoID}_usuariosConectados`)
+        .orderBy("fechaAgregado", "desc")
         .onSnapshot(snapshot => {
-            mensajesCache = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            renderizarMensajes(document.getElementById('busquedaMensajes')?.value || "");
+            const cuerpoTabla = document.getElementById('cuerpoTablaParticipantes');
+            if (!cuerpoTabla) return;
+
+            cuerpoTabla.innerHTML = ""; // Limpiar la tabla antes de volver a renderizar
+
+            if (snapshot.empty) {
+                cuerpoTabla.innerHTML = '<tr><td colspan="4">Aún no hay participantes en la lista.</td></tr>';
+                return;
+            }
+
+            snapshot.forEach(doc => {
+                const participante = doc.data();
+                const id = doc.id;
+
+                const tr = document.createElement('tr');
+
+                tr.innerHTML = `
+                    <td>${participante.nombre}</td>
+                    <td>${participante.telefono || 'N/A'}</td>
+                    <td>${participante.correo || 'N/A'}</td>
+                    <td>
+                        <button class="btn-borrar-participante" data-id="${id}" title="Eliminar a ${participante.nombre}">🗑️</button>
+                    </td>
+                `;
+
+                tr.querySelector('.btn-borrar-participante').addEventListener('click', async () => {
+                    const confirm = await Swal.fire({
+                        title: `¿Eliminar a ${participante.nombre}?`,
+                        text: "Esta acción no se puede deshacer.",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#d33',
+                        cancelButtonText: 'Cancelar',
+                        confirmButtonText: 'Sí, eliminar'
+                    });
+
+                    if (confirm.isConfirmed) {
+                        await db.collection(`${cursoID}_usuariosConectados`).doc(id).delete();
+                    }
+                });
+
+                cuerpoTabla.appendChild(tr);
+            });
         });
 }
 
@@ -136,13 +197,13 @@ function mostrarMensajes() {
  * Función que elimina TODAS las colecciones asociadas ÚNICAMENTE al cursoID actual.
  */
 async function borrarTodaLaBaseDeDatos() {
-    // 1. Verificación de seguridad y contexto
+    // 1. Verificación de seguridad
     if (tipoUsuario !== "admin" || !cursoID) {
         Swal.fire({ icon: "error", title: "Acceso Denegado", text: "Solo administradores pueden hacer esto.", confirmButtonColor: "#d33" });
         return;
     }
 
-    // 2. Confirmación con input para evitar errores
+    // 2. Confirmación
     const { value: confirmacion } = await Swal.fire({
         icon: 'warning',
         title: `¡PELIGRO! Borrar TODA la DB de **${cursoID}**`,
@@ -161,9 +222,8 @@ async function borrarTodaLaBaseDeDatos() {
 
     if (confirmacion) {
         try {
-            // 3. Colecciones dinámicas basadas ÚNICAMENTE en cursoID para aislamiento
-            // ¡Esta es la clave de la seguridad! Solo borra las colecciones del curso activo.
-            const colecciones = [`${cursoID}_mensajes`, `${cursoID}_usuariosConectados`, `${cursoID}_gruposAsignados`];
+            // 3. Borra todas las colecciones de datos, pero DEJA la sesión principal.
+            const colecciones = [`${cursoID}_usuariosConectados`, `${cursoID}_amigoSecreto`];
 
             for (const nombreColeccion of colecciones) {
                 const snapshot = await db.collection(nombreColeccion).get();
@@ -176,16 +236,9 @@ async function borrarTodaLaBaseDeDatos() {
             Swal.fire({
                 icon: 'success',
                 title: 'Borrado Exitoso',
-                text: `Toda la base de datos para el curso ${cursoID} ha sido eliminada.`,
+                text: `Todos los datos (lista, sorteo) de la sesión ${cursoID} han sido eliminados. La página se recargará.`,
                 confirmButtonColor: '#004080'
-            }).then(() => {
-                // Forzar salida al login después del borrado exitoso
-                localStorage.removeItem("nombreEstudiante");
-                localStorage.removeItem("tipoUsuario");
-                localStorage.removeItem("cedulaEstudiante");
-                localStorage.removeItem("cursoID");
-                window.location.href = "index.html";
-            });
+            }).then(() => window.location.reload());
 
         } catch (error) {
             Swal.fire({
@@ -199,7 +252,7 @@ async function borrarTodaLaBaseDeDatos() {
     }
 }
 
-function registrarUsuario(nombre, cedula) {
+function registrarUsuario(nombre, cedula) { // Esta función ya no se usa activamente en el flujo principal, pero se mantiene por si se reutiliza.
     const cursoActual = cursoID;
     const tipoUsuarioActual = tipoUsuario;
 
@@ -230,330 +283,320 @@ function registrarUsuario(nombre, cedula) {
     });
 }
 
+// ==========================
+// NUEVO SISTEMA DE LOGIN Y REGISTRO (BASADO EN SESIONES)
+// ==========================
 
-// ===================================
-// FUNCIÓN MODIFICADA: AUTO-COMPLETAR/LIMPIAR NOMBRE
-// ===================================
+async function handleLogin() {
+    const username = document.getElementById('username')?.value.trim();
+    const password = document.getElementById('password')?.value;
 
-/**
- * Busca en Firebase si existe un registro de usuario para la cédula
- * y cursoID dados. Rellena el campo de nombre si lo encuentra,
- * o lo limpia si la cédula/curso no tienen un match válido.
- */
-async function checkAndFillName(cedula, cursoID) {
-    const nombreInput = document.getElementById('nombre');
-    const cleanCedula = cedula.replace(/[^0-9]/g, '');
-    const cleanCursoID = cursoID.trim().toUpperCase();
-
-    // Si la cédula es muy corta o el curso no tiene formato, salimos.
-    if (cleanCedula.length < 6 || cleanCursoID.length < 4) {
+    if (!username || !password) {
+        Swal.fire({ icon: 'warning', title: 'Campos incompletos', text: 'Por favor, ingresa el nombre de usuario y la contraseña.', confirmButtonColor: '#004080' });
         return;
     }
 
     try {
-        const usuarioDoc = await db.collection(`${cleanCursoID}_usuariosConectados`).doc(cleanCedula).get();
+        const sesionRef = db.collection('sesiones').doc(username);
+        const doc = await sesionRef.get();
 
-        if (usuarioDoc.exists) {
-            const nombreGuardado = usuarioDoc.data().nombre;
-            // Rellenar el input, guardar el nombre traído y deshabilitar.
-            nombreInput.value = nombreGuardado;
-            nombreInput.dataset.fetchedName = nombreGuardado;
-            nombreInput.setAttribute('disabled', true); // Deshabilitar para que no lo cambie
-        } else {
-            // Si NO existe, aseguramos que esté vacío y habilitado.
-            nombreInput.value = "";
-            nombreInput.removeAttribute('data-fetched-name');
-            nombreInput.removeAttribute('disabled'); // Habilitar para que pueda escribir el nombre
+        if (!doc.exists) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Sesión no encontrada',
+                html: `La sesión "<b>${username}</b>" no existe. <br><br> <a href="register.html">Crea una nueva sesión aquí</a>.`,
+                confirmButtonColor: '#d33'
+            });
+            return;
         }
+
+        const data = doc.data();
+        if (data.password !== password) {
+            Swal.fire({ icon: 'error', title: 'Contraseña incorrecta', text: 'La contraseña para esta sesión no es correcta.', confirmButtonColor: '#d33' });
+            return;
+        }
+
+        // ¡Éxito! El usuario es el creador de la sesión, por lo tanto es "admin".
+        localStorage.setItem("tipoUsuario", "admin");
+        localStorage.setItem("cursoID", username); // El "curso" ahora es el nombre de usuario.
+        // Para la página principal, necesitamos un nombre. Usaremos el username.
+        localStorage.setItem("nombreEstudiante", username);
+        // La cédula ya no es relevante, pero la guardamos para consistencia si alguna función la usa.
+        localStorage.setItem("cedulaEstudiante", username);
+
+        Swal.fire({
+            icon: 'success',
+            title: `¡Bienvenido, ${username}!`,
+            text: `Ingresando a tu sesión de Amigo Secreto...`,
+            confirmButtonColor: '#004080'
+        }).then(() => window.location.href = "pagina-principal.html");
+
     } catch (error) {
-        // En caso de error de conexión, solo habilitar el campo para que pueda escribir manualmente
-        nombreInput.removeAttribute('disabled');
-        console.error("Error during auto-fill lookup:", error);
+        console.error("Error durante el login:", error);
+        Swal.fire({ icon: 'error', title: 'Error de Red', text: 'No se pudo verificar la sesión. Inténtalo de nuevo.', confirmButtonColor: '#d33' });
     }
 }
 
+async function handleRegister() {
+    const username = document.getElementById('username')?.value.trim();
+    const password = document.getElementById('password')?.value;
 
-// ==========================
-// LOGIN (Validación de Cédula/Nombre y CURSO)
-// ==========================
-document.getElementById('btnIngresar')?.addEventListener('click', async () => {
-    const cursoID_input = document.getElementById('cursoID').value.trim().toUpperCase();
-    const nombreInput = document.getElementById('nombre');
-    const cedulaInput = document.getElementById('cedula');
-    const nombre = nombreInput.value.trim();
-    const cedula = cedulaInput.value.trim();
-    const codigo = document.getElementById('codigo').value.trim();
-
-    // 1. Validación de Curso ID
-    // Ahora se valida que se haya seleccionado un curso del dropdown.
-    if (!cursoID_input) {
-        Swal.fire({ icon: 'warning', title: 'Selecciona un curso', text: 'Debes seleccionar un curso de la lista.', confirmButtonColor: '#004080' });
+    if (!username || !password) {
+        Swal.fire({ icon: 'warning', title: 'Campos incompletos', text: 'Debes elegir un nombre de usuario y una contraseña.', confirmButtonColor: '#004080' });
+        return;
+    }
+    if (username.includes(" ") || username.length < 4) {
+        Swal.fire({ icon: 'warning', title: 'Nombre de usuario inválido', text: 'Debe tener al menos 4 caracteres y no contener espacios.', confirmButtonColor: '#004080' });
+        return;
+    }
+    if (password.length < 6) {
+        Swal.fire({ icon: 'warning', title: 'Contraseña muy corta', text: 'La contraseña debe tener al menos 6 caracteres.', confirmButtonColor: '#004080' });
         return;
     }
 
-    // 2. Validación de Nombre
-    const palabras = nombre.split(" ").filter(p => p.length > 0);
-    if (palabras.length < 2) {
-        Swal.fire({ icon: 'warning', title: 'Nombre inválido', html: 'Debes ingresar al menos tu nombre y un apellido.', confirmButtonColor: '#004080' });
-        return;
-    }
-
-    // 3. Validación de Cédula (ya limpia de guiones)
-    if (!/^\d{9,12}$/.test(cedula)) {
-        Swal.fire({ icon: 'warning', title: 'Cédula inválida', text: 'Por favor, ingresa un número de cédula válido (solo números).', confirmButtonColor: '#004080' });
-        return;
-    }
-
-    // 4. Validación de Código de Acceso
-    let tipoUsuarioDeterminado;
-    const claveCorrectaEstudiante = CURSOS_CONFIG[cursoID_input];
-    const cursosActivosRef = db.collection('_cursosActivos');
-
-    if (codigo === CODIGO_ADMIN) {
-        tipoUsuarioDeterminado = "admin";
-        // El admin inicia el curso: se asegura de que el documento del curso exista.
-        try {
-            await cursosActivosRef.doc(cursoID_input).set({
-                iniciadoPor: nombre,
-                fechaInicio: firebase.firestore.FieldValue.serverTimestamp()
-            }, { merge: true });
-        } catch (error) {
-            console.error("Error al inicializar el curso:", error);
-            Swal.fire({ icon: 'error', title: 'Error de Red', text: 'No se pudo inicializar el curso. Revisa tu conexión.', confirmButtonColor: '#d33' });
-            return;
-        }
-    } else if (codigo === claveCorrectaEstudiante) {
-        tipoUsuarioDeterminado = "invitado";
-        // El estudiante intenta ingresar: se verifica si el curso ya fue iniciado por un admin.
-        try {
-            const cursoDoc = await cursosActivosRef.doc(cursoID_input).get();
-            if (!cursoDoc.exists) {
-                Swal.fire({ icon: 'error', title: 'Curso no disponible', text: 'El docente aún no ha iniciado la sesión para este curso.', confirmButtonColor: '#d33' });
-                return;
-            }
-        } catch (error) {
-            console.error("Error al verificar el curso:", error);
-            Swal.fire({ icon: 'error', title: 'Error de Red', text: 'No se pudo verificar el estado del curso. Revisa tu conexión.', confirmButtonColor: '#d33' });
-            return;
-        }
-    } else {
-        Swal.fire({ icon: 'error', title: 'Código incorrecto', text: 'Verifica con el profesor el código.', confirmButtonColor: '#004080' });
-        return;
-    }
-
-    // 5. Validación de Identidad (Separada por Curso)
     try {
-        const usuarioDoc = await db.collection(`${cursoID_input}_usuariosConectados`).doc(cedula).get();
-        if (usuarioDoc.exists) {
-            const data = usuarioDoc.data();
-            const storedNombre = data.nombre;
+        const sesionRef = db.collection('sesiones').doc(username);
+        const doc = await sesionRef.get();
 
-            // Se valida que el nombre ingresado coincida con el almacenado.
-            if (storedNombre.toLowerCase() !== nombre.toLowerCase()) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error de Identidad',
-                    text: `La cédula **${cedula}** ya está registrada en el curso **${cursoID_input}** con el nombre: **${storedNombre}**. Por favor, asegúrate de que el nombre sea el correcto.`,
-                    confirmButtonColor: '#d33'
-                });
-                return;
-            }
+        if (doc.exists) {
+            Swal.fire({
+                icon: 'info',
+                title: 'Nombre de usuario no disponible',
+                html: `La sesión "<b>${username}</b>" ya existe. Por favor, elige otro nombre o <a href="index.html">inicia sesión</a>.`,
+                confirmButtonColor: '#004080'
+            });
+            return;
+        }
+
+        // Crear la nueva sesión
+        await sesionRef.set({
+            password: password, // ADVERTENCIA: Guardando en texto plano.
+            creador: username,
+            fechaCreacion: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        Swal.fire({
+            icon: 'success',
+            title: '¡Sesión Creada!',
+            text: `Tu sesión "${username}" ha sido creada con éxito. Ahora puedes iniciar sesión.`,
+            confirmButtonColor: '#004080'
+        }).then(() => {
+            window.location.href = "index.html"; // Redirigir a la página de login
+        });
+
+    } catch (error) {
+        console.error("Error durante el registro:", error);
+        Swal.fire({ icon: 'error', title: 'Error de Red', text: 'No se pudo crear la sesión. Inténtalo de nuevo.', confirmButtonColor: '#d33' });
+    }
+}
+
+async function handleConsultaAmigoSecreto() {
+    const codigoInput = document.getElementById('codigoConsulta');
+    const codigo = codigoInput.value.trim();
+
+    if (!codigo) {
+        Swal.fire({ icon: 'warning', title: 'Código Requerido', text: 'Por favor, ingresa tu código de consulta.' });
+        return;
+    }
+
+    // El formato esperado es "sesion-codigoAleatorio"
+    const partes = codigo.split('-');
+    if (partes.length < 2) {
+        Swal.fire({ icon: 'error', title: 'Código Inválido', text: 'El formato del código no es correcto.' });
+        return;
+    }
+
+    const sesionId = partes[0];
+    const resultadoContainer = document.getElementById('resultado-container');
+    const nombreAmigoSecretoEl = document.getElementById('nombreAmigoSecreto');
+
+    try {
+        const snapshot = await db.collection(`${sesionId}_amigoSecreto`).where('codigoConsulta', '==', codigo).get();
+        if (snapshot.empty) {
+            Swal.fire({ icon: 'error', title: 'Código no encontrado', text: 'No se encontró ningún resultado para este código. Verifica que lo hayas escrito bien.' });
+            resultadoContainer.style.display = 'none';
+        } else {
+            const resultado = snapshot.docs[0].data();
+            nombreAmigoSecretoEl.textContent = resultado.a; // "a" es la persona a la que se le regala
+            resultadoContainer.style.display = 'block';
         }
     } catch (error) {
-        console.error("Error al validar cédula:", error);
-        Swal.fire({ icon: 'error', title: 'Error de Conexión', text: 'Hubo un problema al verificar la cédula. Inténtalo de nuevo.', confirmButtonColor: '#d33' });
-        return;
+        console.error("Error al consultar amigo secreto:", error);
+        Swal.fire({ icon: 'error', title: 'Error de Red', text: 'No se pudo realizar la consulta. Inténtalo de nuevo.' });
     }
+}
 
-    // 6. Almacenamiento en LocalStorage y Redirección
-    tipoUsuario = tipoUsuarioDeterminado;
-    cursoID = cursoID_input;
-    localStorage.setItem("nombreEstudiante", nombre);
-    localStorage.setItem("tipoUsuario", tipoUsuario);
-    localStorage.setItem("cedulaEstudiante", cedula);
-    localStorage.setItem("cursoID", cursoID_input);
-
-    Swal.fire({
-        icon: 'success',
-        title: `Bienvenido ${nombre}`,
-        text: `Has ingresado al curso **${cursoID}** como ${tipoUsuario}.`,
-        confirmButtonColor: '#004080'
-    }).then(() => window.location.href = "pagina-principal.html");
-});
-
-// ===============================================
-// GENERACIÓN Y MANEJO DE GRUPOS 
-// ===============================================
-
-async function generarGruposAleatorios() {
+/**
+ * Maneja la eliminación de la sesión actual.
+ * Pide la contraseña para confirmar y borra el documento de la sesión en Firestore.
+ */
+async function handleDeleteSession() {
     if (tipoUsuario !== "admin" || !cursoID) {
-        Swal.fire({ icon: "error", title: "Acceso denegado", text: "Solo administradores pueden generar grupos.", confirmButtonColor: "#004080" });
+        Swal.fire({ icon: "error", title: "Acción no permitida", text: "Solo el creador de la sesión puede eliminarla.", confirmButtonColor: "#d33" });
         return;
     }
 
-    const coleccionGrupos = db.collection(`${cursoID}_gruposAsignados`);
-    const snapshotGruposExistentes = await coleccionGrupos.orderBy("fechaGeneracion", "desc").get();
-    const hayGruposExistentes = !snapshotGruposExistentes.empty;
-
-    // --- NUEVA LÓGICA DE RE-GENERACIÓN ---
-    // Si ya hay grupos, preguntar si se quiere re-generar todo o solo añadir.
-    if (hayGruposExistentes) {
-        const decision = await Swal.fire({
-            title: 'Ya existen grupos',
-            text: '¿Qué deseas hacer?',
-            icon: 'question',
-            showDenyButton: true,
-            showCancelButton: true,
-            confirmButtonText: 'Crear grupos nuevos (Incremental)',
-            denyButtonText: 'Re-generar TODO desde cero',
-            cancelButtonText: 'Cancelar'
-        });
-
-        if (decision.isDenied) {
-            // Opción: Re-generar TODO desde cero.
-            const confirmacionBorrado = await Swal.fire({
-                title: '¿Estás seguro?',
-                text: 'Se borrarán TODOS los grupos existentes y se crearán de nuevo con todos los estudiantes. Esta acción es irreversible.',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                confirmButtonText: 'Sí, re-generar todo',
-                cancelButtonText: 'Cancelar'
-            });
-
-            if (!confirmacionBorrado.isConfirmed) return;
-
-            // Borrar todos los grupos existentes antes de continuar.
-            const batchDelete = db.batch();
-            snapshotGruposExistentes.docs.forEach(doc => batchDelete.delete(doc.ref));
-            await batchDelete.commit();
-        } else if (decision.isDismissed) {
-            return; // El usuario canceló.
-        }
-        // Si es .isConfirmed, la función continúa con la lógica incremental normal.
-    }
-
-    // Volvemos a obtener el estado actual por si se borraron los grupos.
-    const snapshotActualizado = await db.collection(`${cursoID}_gruposAsignados`).orderBy("fechaGeneracion", "desc").get();
-    const hayGruposAhora = !snapshotActualizado.empty;
-
-    // 1. OBTENER PARTICIPANTES NO ASIGNADOS
-    const snapshotUsuarios = await db.collection(`${cursoID}_usuariosConectados`).where("tipoUsuario", "==", "invitado").get();
-    const todosParticipantes = snapshotUsuarios.docs
-        .map(doc => doc.data());
-
-    const miembrosAsignados = new Set();
-    let ultimoNumGrupo = 0;
-    let tamanoGrupoAnterior = 0;
-
-    if (hayGruposAhora) {
-        snapshotActualizado.docs.forEach(doc => {
-            const grupo = doc.data();
-            grupo.miembros.forEach(m => miembrosAsignados.add(m.cedula));
-        });
-
-        const ultimoGrupo = snapshotActualizado.docs[0]?.data();
-        if (ultimoGrupo && ultimoGrupo.miembros.length > 0) {
-            tamanoGrupoAnterior = ultimoGrupo.miembros.length;
-        }
-
-        const gruposExistentesArray = snapshotActualizado.docs.map(doc => doc.data().nombreGrupo);
-        const maxNum = gruposExistentesArray.reduce((max, name) => {
-            const match = name.match(/(\d+)$/);
-            return match ? Math.max(max, parseInt(match[1])) : max;
-        }, 0);
-        ultimoNumGrupo = maxNum;
-    }
-
-    const participantesNuevos = todosParticipantes.filter(u => !miembrosAsignados.has(u.cedula));
-
-    if (participantesNuevos.length === 0) {
-        Swal.fire({
-            icon: "info",
-            title: "Todos los estudiantes asignados",
-            text: "Los " + todosParticipantes.length + " estudiantes registrados ya tienen un grupo asignado en el curso **" + cursoID + "**.",
-            confirmButtonColor: "#004080"
-        });
-        return;
-    }
-
-    // 2. CONFIRMACIÓN Y PREGUNTA DEL TAMAÑO
-    const mensajeAdvertencia = hayGruposAhora
-        ? `<p style="color: darkred; font-weight: bold;">ADVERTENCIA: Ya existen grupos en **${cursoID}**. Se crearán grupos nuevos SÓLO con los ${participantesNuevos.length} estudiantes que faltan.</p>`
-        : `<p>¡Esta es la primera asignación de grupos para **${cursoID}**!</p>`;
-
-    const tamanoSugerido = tamanoGrupoAnterior || 2;
-
-    const { value: n } = await Swal.fire({
-        title: `Generar Grupos Incrementales`,
-        html: `${mensajeAdvertencia} <br> Total de estudiantes faltantes: <strong>${participantesNuevos.length}</strong>. <br><br> ¿Número de personas por grupo nuevo?`,
-        input: "number",
-        inputValue: tamanoSugerido,
-        inputAttributes: { min: 1, step: 1, max: participantesNuevos.length },
+    const { value: password } = await Swal.fire({
+        title: `Eliminar la sesión "${cursoID}"`,
+        html: `Esta acción es <b>permanente</b>. Se borrará el acceso a esta sesión, pero no los datos de los grupos o mensajes (puedes borrarlos con "Borrar DB").<br><br>Para confirmar, ingresa la contraseña de la sesión:`,
+        input: 'password',
+        inputPlaceholder: 'Ingresa la contraseña de la sesión',
+        inputAttributes: {
+            autocapitalize: 'off',
+            autocorrect: 'off'
+        },
         showCancelButton: true,
-        confirmButtonText: "Crear Nuevos Grupos",
-        cancelButtonText: "Cancelar",
-        preConfirm: num => {
-            const val = parseInt(num);
-            if (!val || val < 1) return Swal.showValidationMessage("Número inválido.");
-            if (val > participantesNuevos.length) return Swal.showValidationMessage(`El número no puede ser mayor a ${participantesNuevos.length} participantes restantes.`);
-            return val;
-        }
+        confirmButtonText: 'Eliminar Sesión',
+        confirmButtonColor: '#d33',
+        cancelButtonText: 'Cancelar'
     });
 
-    if (!n) return;
+    if (password) {
+        try {
+            const sesionRef = db.collection('sesiones').doc(cursoID);
+            const doc = await sesionRef.get();
 
-    // 3. Lógica de Agrupamiento Incremental
-    const shuffled = participantesNuevos.sort(() => Math.random() - 0.5);
-    const gruposParaGuardar = [];
+            if (doc.exists && doc.data().password === password) {
+                // La contraseña es correcta. Proceder con el BORRADO TOTAL.
+                
+                // 1. Borrar todas las colecciones de datos
+                const coleccionesAsociadas = [`${cursoID}_usuariosConectados`, `${cursoID}_amigoSecreto`];
+                for (const nombreColeccion of coleccionesAsociadas) {
+                    const snapshot = await db.collection(nombreColeccion).get();
+                    if (!snapshot.empty) {
+                        const batch = db.batch();
+                        snapshot.forEach(doc => batch.delete(doc.ref));
+                        await batch.commit();
+                        console.log(`Colección ${nombreColeccion} eliminada.`);
+                    }
+                }
 
-    const gruposExistentesArray = snapshotActualizado.docs.map(doc => doc.data().nombreGrupo);
+                // 2. Borrar el documento principal de la sesión (el usuario y contraseña).
+                await sesionRef.delete();
+                console.log(`Documento de sesión ${cursoID} eliminado.`);
 
-    let nombreIndex = 0;
-    while (nombreIndex < NOMBRES_GRIEGOS_ORDEN.length && gruposExistentesArray.includes(NOMBRES_GRIEGOS_ORDEN[nombreIndex])) {
-        nombreIndex++;
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Sesión Eliminada',
+                    text: `La sesión "${cursoID}" ha sido eliminada. Serás redirigido.`
+                }).then(() => {
+                    // Salida inmediata sin preguntar.
+                    localStorage.removeItem("nombreEstudiante");
+                    localStorage.removeItem("tipoUsuario");
+                    localStorage.removeItem("cedulaEstudiante");
+                    localStorage.removeItem("cursoID");
+                    window.location.href = "index.html";
+                });
+            } else {
+                Swal.fire({ icon: 'error', title: 'Contraseña Incorrecta', text: 'La contraseña no coincide. La sesión no ha sido eliminada.' });
+            }
+        } catch (error) {
+            console.error("Error al eliminar la sesión:", error);
+            Swal.fire({ icon: 'error', title: 'Error de Red', text: 'No se pudo completar la eliminación.' });
+        }
+    }
+}
+// ===============================================
+// GENERACIÓN Y MANEJO DE GRUPOS 
+// (AHORA, EMPAREJAMIENTO DE AMIGO SECRETO)
+// ===============================================
+
+async function generarEmparejamientoAmigoSecreto() {
+    if (tipoUsuario !== "admin" || !cursoID) {
+        Swal.fire({ icon: "error", title: "Acceso denegado", text: "Solo el creador de la sesión puede generar el emparejamiento.", confirmButtonColor: "#004080" });
+        return;
     }
 
-    for (let i = 0; i < shuffled.length; i += n) {
-        const miembros = shuffled.slice(i, i + n);
+    // 1. Obtener participantes
+    const snapshotUsuarios = await db.collection(`${cursoID}_usuariosConectados`).get();
+    if (snapshotUsuarios.docs.length < 2) {
+        Swal.fire({ icon: "error", title: "Participantes insuficientes", text: "Necesitas al menos 2 participantes para iniciar el sorteo.", confirmButtonColor: "#d33" });
+        return;
+    }
+    const participantes = snapshotUsuarios.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-        let nombreGrupo;
-        if (nombreIndex < NOMBRES_GRIEGOS_ORDEN.length) {
-            nombreGrupo = NOMBRES_GRIEGOS_ORDEN[nombreIndex];
-            nombreIndex++;
-        } else {
-            ultimoNumGrupo++;
-            nombreGrupo = `Grupo ${ultimoNumGrupo}`;
+    // 2. Verificar si ya existe un sorteo y pedir confirmación para re-hacerlo
+    const sorteoAnterior = await db.collection(`${cursoID}_amigoSecreto`).limit(1).get();
+    if (!sorteoAnterior.empty) {
+        const confirmacion = await Swal.fire({
+            title: '¡Ya existe un sorteo!',
+            text: 'Si continúas, se borrará el sorteo anterior y se generará uno nuevo con los participantes actuales. ¿Estás seguro?',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, generar nuevo sorteo',
+            confirmButtonColor: '#d33',
+            cancelButtonText: 'Cancelar'
+        });
+        if (!confirmacion.isConfirmed) return;
+    }
+
+    // 3. Lógica del sorteo
+    let sorteoValido = false;
+    let emparejamientos = [];
+    while (!sorteoValido) {
+        const da_a = [...participantes].sort(() => Math.random() - 0.5);
+        const recibe_de = [...participantes].sort(() => Math.random() - 0.5);
+        emparejamientos = [];
+        let problemas = false;
+        for (let i = 0; i < da_a.length; i++) {
+            if (da_a[i].id === recibe_de[i].id) {
+                problemas = true;
+                break; // A alguien le tocó regalarse a sí mismo, re-intentar.
+            }
+            emparejamientos.push({ de: da_a[i], a: recibe_de[i] });
+        }
+        if (!problemas) sorteoValido = true;
+    }
+
+    // 4. Generar códigos y preparar para guardar
+    const resultadosParaGuardar = emparejamientos.map(par => {
+        const codigoRandom = Math.random().toString(36).substring(2, 8).toUpperCase();
+        return {
+            de: par.de.nombre,
+            a: par.a.nombre,
+            codigoConsulta: `${cursoID}-${codigoRandom}`,
+            fechaSorteo: firebase.firestore.FieldValue.serverTimestamp()
+        };
+    });
+
+    // 5. Guardar en Firestore
+    try {
+        // Borrar sorteo anterior si existe
+        if (!sorteoAnterior.empty) {
+            const batchDelete = db.batch();
+            sorteoAnterior.docs.forEach(doc => batchDelete.delete(doc.ref));
+            await batchDelete.commit();
         }
 
-        gruposParaGuardar.push({
-            nombreGrupo: nombreGrupo,
-            miembros: miembros.map(m => ({ nombre: m.nombre, cedula: m.cedula })),
-            fechaGeneracion: firebase.firestore.FieldValue.serverTimestamp()
+        // Guardar el nuevo sorteo
+        const batchWrite = db.batch();
+        const coleccionSorteo = db.collection(`${cursoID}_amigoSecreto`);
+        resultadosParaGuardar.forEach(resultado => {
+            const docRef = coleccionSorteo.doc(); // ID automático
+            batchWrite.set(docRef, resultado);
         });
-    }
+        await batchWrite.commit();
 
-    // 4. Guardar los nuevos grupos en Firestore
-    try {
-        const batchGuardado = db.batch();
-        gruposParaGuardar.forEach(grupo => {
-            const nuevoDocRef = coleccionGrupos.doc(); // Crea una referencia con un ID nuevo y único
-            batchGuardado.set(nuevoDocRef, grupo);
+        // 6. Mostrar resultados al admin para que los comparta
+        let tablaResultadosHTML = `<table class="tabla-resultados-sorteo"><thead><tr><th>Participante (De)</th><th>Código de Consulta</th></tr></thead><tbody>`;
+        resultadosParaGuardar.forEach(res => {
+            tablaResultadosHTML += `<tr><td>${res.de}</td><td class="codigo-consulta">${res.codigoConsulta}</td></tr>`;
         });
-        await batchGuardado.commit();
-
+        tablaResultadosHTML += `</tbody></table>`;
+        
         Swal.fire({
             icon: "success",
-            title: "Grupos creados!",
-            text: `${gruposParaGuardar.length} nuevos grupos fueron asignados al curso **${cursoID}** .`,
-            timer: 2500, showConfirmButton: false
+            title: "¡Sorteo Realizado!",
+            html: `<p>Copia y comparte cada código con el participante correspondiente. Pueden consultar su resultado en:</p>
+                   <p><a href="consultar.html" target="_blank">${window.location.origin}/consultar.html</a></p>
+                   ${tablaResultadosHTML}`,
+            confirmButtonText: '¡Entendido!',
+            width: '600px'
         });
 
-        mostrarGrupos(null);
-
     } catch (error) {
-        Swal.fire({ icon: "error", title: "Error", text: "Error al guardar grupos en Firebase.", confirmButtonColor: "#d33" });
-        console.error("Error al guardar grupos:", error);
+        console.error("Error al generar emparejamiento:", error);
+        Swal.fire({ icon: "error", title: "Error", text: "No se pudo guardar el sorteo en la base de datos.", confirmButtonColor: "#d33" });
     }
 }
 
@@ -620,27 +663,17 @@ async function mostrarGrupos(gruposRecibidos = null) {
         const { miembros, id: idGrupo } = dataGrupo;
         const div = document.createElement("div");
         div.classList.add("grupo-card");
-
+        
         const miembrosHTML = miembros.map(m => {
-            const botonMover = tipoUsuario === 'admin'
-                ? `<button class="btn-mover-miembro" data-cedula-miembro="${m.cedula}" data-nombre-miembro="${m.nombre}" data-id-grupo-origen="${idGrupo}">🔄</button>`
-                : '';
-
-            // La cédula solo se muestra si el usuario es un administrador.
-            const cedulaHTML = tipoUsuario === 'admin' ? ` (Cédula: ${m.cedula})` : '';
+            // Ya no se puede mover miembros en este nuevo modelo simplificado.
+            const botonMover = '';
+            const cedulaHTML = ''; // La cédula ya no es relevante
 
             return `<li>${m.nombre}${cedulaHTML} ${botonMover}</li>`;
         }).join("");
 
         div.innerHTML = `<h3>${nombreGrupo} (${miembros.length} personas)</h3><ul>${miembrosHTML}</ul>`;
         listaModal.appendChild(div);
-    }
-
-    // Añadir listeners a los nuevos botones de mover
-    if (tipoUsuario === 'admin') {
-        document.querySelectorAll('.btn-mover-miembro').forEach(btn => {
-            btn.addEventListener('click', (e) => moverMiembro(e, grupos));
-        });
     }
 
     document.getElementById("modalGrupos").style.display = "flex";
@@ -759,11 +792,11 @@ function inicializarListenersUI() {
 // ==========================
 // FUNCIONES AUXILIARES
 // ==========================
-function activarBotonSalir() {
-    document.getElementById("btnSalir")?.addEventListener("click", () => {
+function activarBotonSalir(forceExit = false) {
+    const performExit = () => {
         Swal.fire({
             icon: "question",
-            title: "¿Deseas salir?",
+            title: forceExit ? "Sesión Cerrada" : "¿Deseas salir?",
             text: `Se cerrará la sesión del curso **${cursoID}**.`,
             showCancelButton: true,
             confirmButtonText: "Sí, salir",
@@ -779,12 +812,14 @@ function activarBotonSalir() {
                 window.location.href = "index.html";
             }
         });
-    });
-}
+    };
 
-document.getElementById('busquedaMensajes')?.addEventListener('input', e => {
-    renderizarMensajes(e.target.value.toLowerCase());
-});
+    if (forceExit) {
+        performExit();
+    } else {
+        document.getElementById("btnSalir")?.addEventListener("click", performExit);
+    }
+}
 
 
 // ==========================
@@ -800,7 +835,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (window.location.pathname.endsWith("pagina-principal.html")) {
         // Si falta cualquier dato, forzar el regreso al login
         if (!nombre || !userType || !cedula || !curso) {
-            window.location.href = "index.html";
+            window.location.href = "index.html"; // Redirige a la nueva página de login
             return;
         }
 
@@ -814,102 +849,51 @@ document.addEventListener("DOMContentLoaded", () => {
             tituloPrincipal.textContent = `Amigo Secreto (${curso})`;
         }
 
-        mostrarMensajes();
+        escucharParticipantes(); // Reemplaza a mostrarMensajes()
         inicializarListenersUI(); // Inicializa el nuevo menú y modal
         activarBotonSalir(); // Activa el botón de salir del footer
-        registrarUsuario(nombre, cedula);
 
-        const form = document.getElementById("formMensaje"); // Formulario de chat
-        form?.addEventListener("submit", async e => {
-            e.preventDefault();
-            const mensaje = document.getElementById("mensaje").value.trim();
-            if (!mensaje) return;
-            await guardarMensaje(nombre, mensaje);
-            document.getElementById("mensaje").value = "";
-        });
+        // Conectar el nuevo formulario para añadir participantes
+        document.getElementById('formAnadirParticipante')?.addEventListener('submit', handleAnadirParticipante);
 
-        // Lógica de VISIBILIDAD DE ADMINISTRADOR:
         // Se obtienen las referencias a los botones DENTRO del menú.
-        const btnGenerarGruposMenu = document.getElementById("btnGenerarGruposMenu");
-        const btnBorrarMensajesMenu = document.getElementById("btnBorrarMensajesMenu");
+        const btnGenerarEmparejamientoMenu = document.getElementById("btnGenerarEmparejamientoMenu");
+        const btnGenerarEmparejamientoPrincipal = document.getElementById("btnGenerarEmparejamiento");
+        const btnBorrarListaMenu = document.getElementById("btnBorrarListaMenu");
         const btnBorrarDBMenu = document.getElementById("btnBorrarDBMenu");
+        const btnEliminarSesionMenu = document.getElementById("btnEliminarSesionMenu");
         const btnSalirMenu = document.getElementById("btnSalirMenu");
 
         if (userType === "admin") {
             // Si es admin, se quita la clase que los oculta.
-            btnGenerarGruposMenu?.classList.remove("oculto-admin");
-            btnBorrarMensajesMenu?.classList.remove("oculto-admin");
+            btnGenerarEmparejamientoMenu?.classList.remove("oculto-admin");
+            btnGenerarEmparejamientoPrincipal?.classList.remove("oculto-admin");
+            btnBorrarListaMenu?.classList.remove("oculto-admin");
             btnBorrarDBMenu?.classList.remove("oculto-admin");
+            btnEliminarSesionMenu?.classList.remove("oculto-admin");
 
             // Conectar los botones del menú a sus funciones
-            btnGenerarGruposMenu?.addEventListener("click", generarGruposAleatorios);
-            btnBorrarMensajesMenu?.addEventListener("click", borrarTodosLosMensajes); // Conectado a la función
+            // **CORRECCIÓN CLAVE**: Ambos botones de generar emparejamiento ahora llaman a la función correcta.
+            btnGenerarEmparejamientoMenu?.addEventListener("click", generarEmparejamientoAmigoSecreto);
+            btnGenerarEmparejamientoPrincipal?.addEventListener("click", generarEmparejamientoAmigoSecreto);
+            btnBorrarListaMenu?.addEventListener("click", borrarListaParticipantes);
             btnBorrarDBMenu?.addEventListener("click", borrarTodaLaBaseDeDatos);
+            btnEliminarSesionMenu?.addEventListener("click", handleDeleteSession);
         } else {
             // No es necesario hacer nada, los botones ya están ocultos por defecto.
         }
         // Conectar el botón de salir del menú directamente a la función de salir.
         btnSalirMenu?.addEventListener("click", () => activarBotonSalir(true));
     }
-    // --- Lógica en index.html (Página de Login) ---
-    else if (window.location.pathname.endsWith("index.html") || window.location.pathname === "/") {
-        const cedulaInput = document.getElementById('cedula');
-        const cursoIDInput = document.getElementById('cursoID');
-        const nombreInput = document.getElementById('nombre');
-
-        // Llenar el dropdown de cursos dinámicamente
-        if (cursoIDInput && cursoIDInput.tagName === 'SELECT') {
-            Object.keys(CURSOS_CONFIG).forEach(curso => {
-                const option = document.createElement('option');
-                option.value = curso;
-                option.textContent = curso;
-                cursoIDInput.appendChild(option);
-            });
-        }
-
-        if (cedulaInput && cursoIDInput && nombreInput) {
-
-            // Función auxiliar para limpiar y habilitar el campo de nombre (antes de cualquier validación)
-            const cleanNameField = () => {
-                // Solo limpiar el valor si fue autocompletado previamente
-                if (nombreInput.dataset.fetchedName) {
-                    nombreInput.value = "";
-                }
-                nombreInput.removeAttribute('data-fetched-name');
-                nombreInput.removeAttribute('disabled'); // Asegurar que siempre esté habilitado si no ha sido validado
-            };
-
-            // Listener para limpiar Cédula de no-dígitos y llamar a auto-completado/limpieza
-            cedulaInput.addEventListener('input', () => {
-                // 1. Limpieza de input (elimina guiones y otros caracteres)
-                const oldValue = cedulaInput.value;
-                const newValue = oldValue.replace(/[^0-9]/g, '');
-                if (oldValue !== newValue) {
-                    cedulaInput.value = newValue;
-                }
-
-                // 2. Limpieza y re-validación.
-                cleanNameField(); // Limpiar el nombre ANTES de la búsqueda
-                checkAndFillName(newValue, cursoIDInput.value);
-            });
-
-            // Listener para el cursoID y llamar a auto-completado/limpieza
-            cursoIDInput.addEventListener('change', () => {
-                // 2. Limpiar el campo de nombre y re-validar
-                cleanNameField(); // Limpiar el nombre ANTES de la búsqueda
-                checkAndFillName(cedulaInput.value, cursoIDInput.value);
-            });
-
-            // Listener para el nombre (en caso de que el usuario lo modifique manualmente)
-            nombreInput.addEventListener('input', () => {
-                // Si el usuario empieza a escribir manualmente, quitamos la marca de autocompletado
-                nombreInput.removeAttribute('data-fetched-name');
-                nombreInput.removeAttribute('disabled');
-            });
-
-            // Inicializar la validación en caso de que el navegador guarde valores
-            checkAndFillName(cedulaInput.value, cursoIDInput.value);
-        }
+    // --- Lógica en login.html y register.html ---
+    else if (window.location.pathname.endsWith("index.html") || window.location.pathname.endsWith("register.html") || window.location.pathname === "/") {
+        // Asignar listeners a los botones de login y registro
+        document.getElementById('btnIngresar')?.addEventListener('click', handleLogin);
+        document.getElementById('btnRegistrar')?.addEventListener('click', handleRegister);
+    }
+    // --- Lógica en la página de consulta ---
+    else if (window.location.pathname.endsWith("consultar.html")) {
+        document.getElementById('btnConsultar')?.addEventListener('click', handleConsultaAmigoSecreto);
     }
 });
 
@@ -917,28 +901,28 @@ document.addEventListener("DOMContentLoaded", () => {
  * Función reutilizable para borrar todos los mensajes del curso actual.
  * Ahora es independiente y puede ser llamada desde cualquier botón.
  */
-async function borrarTodosLosMensajes() {
+async function borrarListaParticipantes() {
     if (tipoUsuario !== "admin" || !cursoID) return;
 
     const confirm = await Swal.fire({
         icon: "warning",
-        title: "¿Borrar TODOS los mensajes?",
-        text: `Esta acción eliminará TODOS los mensajes de la sesión **${cursoID}** y no se puede deshacer.`,
+        title: "¿Borrar la lista de participantes?",
+        text: `Esta acción eliminará a TODOS los participantes de la sesión **${cursoID}** y no se puede deshacer.`,
         showCancelButton: true,
-        confirmButtonText: "Sí, borrar todo",
+        confirmButtonText: "Sí, borrar lista",
         cancelButtonText: "Cancelar",
         confirmButtonColor: "#d33"
     });
 
     if (confirm.isConfirmed) {
         try {
-            const snapshot = await db.collection(`${cursoID}_mensajes`).get();
+            const snapshot = await db.collection(`${cursoID}_usuariosConectados`).get();
             const batch = db.batch();
             snapshot.forEach(doc => batch.delete(doc.ref));
             await batch.commit();
-            Swal.fire({ icon: "success", title: "Todos los mensajes eliminados", timer: 1500, showConfirmButton: false });
+            Swal.fire({ icon: "success", title: "Lista de participantes eliminada", timer: 1500, showConfirmButton: false });
         } catch (error) {
-            console.error("Error al borrar mensajes:", error);
+            console.error("Error al borrar la lista de participantes:", error);
         }
     }
 }

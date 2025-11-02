@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consultar Amigo Secreto</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" href="img/favicon.ico" type="image/x-icon">
+</head>
+<body>
+    <header class="exam-title">
+        <div class="section-container">
+            <div class="top-bar">
+                <img src="img/logo.png" alt="Logo" class="logo-top-left">
+                <h1 class="title">Amigo Secreto</h1>
+            </div>
+            <div class="intento-panel">
+                Consulta tu resultado
+            </div>
+        </div>
+    </header>
+
+    <main class="login-container">
+        <div class="login-box">
+            <h2>Consulta tu Amigo Secreto</h2>
+            
+            <label for="codigoConsulta">Ingresa el código que recibiste:</label>
+            <input type="text" id="codigoConsulta" required placeholder="Ej: MiSesion-XyZ123">
+
+            <button class="submit" id="btnConsultar">Ver Resultado</button>
+
+            <div id="resultado-container" style="display: none; margin-top: 20px; text-align: center;">
+                <p style="font-size: 1.1rem;">Le tienes que dar un regalo a:</p>
+                <h3 id="nombreAmigoSecreto" style="font-size: 2rem; color: #d9534f; margin-top: 10px;"></h3>
+            </div>
+        </div>
+    </main>
+
+    <footer class="creditos">
+        <p>© 2025 | Hecho por Sergio Hidalgo Granados — <strong>shidalgra</strong><br>
+          <em>Activando Coeficiente Intelectual</em>
+        </p>
+    </footer>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>

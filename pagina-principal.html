@@ -22,16 +22,17 @@
       </button>
       <div id="menu-desplegable" class="menu-desplegable">
         <button id="btnVerGruposMenu">Ver Grupos</button>
-        <button id="btnGenerarGruposMenu" class="oculto-admin">Generar Grupos</button>
-        <button id="btnBorrarMensajesMenu" class="oculto-admin">Borrar Mensajes</button>
+        <button id="btnGenerarEmparejamientoMenu" class="oculto-admin">Generar Emparejamiento</button>
+        <button id="btnBorrarListaMenu" class="oculto-admin">Borrar Lista</button>
         <button id="btnBorrarDBMenu" class="oculto-admin">Borrar DB</button>
+        <button id="btnEliminarSesionMenu" class="oculto-admin">Eliminar Sesión</button>
         <button id="btnSalirMenu">Salir</button>
       </div>
     </div>
 
     <div class="contendor-logoNombre">
       <div class="top-bar">
-        <img src="images/LogoFondoBlanco.png" alt="Logo" class="logo-top-left">
+        <img src="img/Logo.png" alt="Logo" class="logo-top-left">
         <h1 class="title">Formación de Grupos</h1>
       </div>
     </div>
@@ -43,19 +44,30 @@
   </header>
 
   <main class="main-content" id="mainFlexContainer">
-    <section class="mensajes" id="chatSection">
-      <section class="bienvenida">
-        <h2>Hola, <span id="nombreUsuario"></span> !!!</h2>
-        <p>Aquí podés escribir y ver mensajes de todos los participantes en tiempo real.</p>
-      </section>
-
-      <form id="formMensaje" class="form-mensaje">
-        <input type="text" id="mensaje" placeholder="Escribe tu mensaje aquí..." required>
-        <button class="submit" type="submit">Enviar</button>
+    <!-- Nueva sección para añadir participantes -->
+    <section class="participantes-form">
+      <h2>Añadir Participante</h2>
+      <form id="formAnadirParticipante" class="form-participante-inline">
+        <input type="text" id="nombreParticipante" placeholder="Nombre y Apellido" required>
+        <input type="tel" id="telefonoParticipante" placeholder="Teléfono (opcional)">
+        <input type="email" id="correoParticipante" placeholder="Correo (opcional)">
+        <button class="submit" type="submit">Añadir 🎁</button>
       </form>
+    </section>
 
-      <ul id="listaMensajes" class="lista-mensajes"></ul>
-
+    <section class="lista-participantes-container">
+      <div class="titulo-con-boton">
+        <h2>Lista de Participantes</h2>
+        <button id="btnGenerarEmparejamiento" class="submit oculto-admin">Generar Emparejamiento 🎲</button>
+      </div>
+      <div class="tabla-container">
+        <table class="tabla-participantes">
+          <thead>
+            <tr><th>Nombre</th><th>Teléfono</th><th>Correo</th><th>Acción</th></tr>
+          </thead>
+          <tbody id="cuerpoTablaParticipantes"></tbody>
+        </table>
+      </div>
     </section>
   </main>
 
