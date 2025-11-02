@@ -1,9 +1,0 @@
-# archivo: netlify.toml (Debe estar en la raíz del proyecto)
-[build]
-  publish = "public" 
-  # El comando de construcción es opcional si solo usas HTML/CSS/JS, 
-  # pero si usas un framework o necesitas instalar dependencias:
-  command = "npm install" 
-
-[functions]
-  directory = "functions"
