@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | Amigo Secreto Navideño</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <div class="background-container"></div>
+    
+    <div class="dashboard-container">
+        
+        <header class="dashboard-header">
+            <h1>
+                <i class="fas fa-tree christmas-icon"></i>
+                Amigo Secreto Navideño
+                <i class="fas fa-gift christmas-icon"></i>
+            </h1>
+            <p>Organiza tu intercambio de regalos navideño</p>
+            
+            <button id="logout-button" class="logout-button"><i class="fas fa-sign-out-alt"></i> Salir</button>
+        </header>
+        
+        <main>
+            
+            <section class="add-participant-section">
+                <h2>Agregar Participantes</h2>
+                <form id="add-participant-form" class="participant-form">
+                    
+                    <div class="input-row">
+                        <div class="input-group">
+                            <label for="name-input"><i class="fas fa-user"></i> Nombre del participante:</label>
+                            <input type="text" id="name-input" placeholder="Ej: Juan Pérez" required>
+                        </div>
+                        
+                        <div class="input-group">
+                            <label for="email-input"><i class="fas fa-envelope"></i> Correo electrónico:</label>
+                            <input type="email" id="email-input" placeholder="Correo (secreto para el sorteo)">
+                        </div>
+                        
+                        <div class="input-group">
+                            <label for="phone-input"><i class="fas fa-phone"></i> Número de teléfono:</label>
+                            <input type="tel" id="phone-input" placeholder="Opcional (Ej: +506 8888-9999)">
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="submit-button add-button">
+                        <i class="fas fa-plus-circle"></i> Agregar a la Lista
+                    </button>
+                    <p id="add-error-message" class="error-message"></p>
+                </form>
+            </section>
+            
+            <hr>
+            
+            <section class="participant-list-section">
+                <h2>Lista de Participantes (<span id="participant-count">0</span>)</h2>
+                
+                <table id="participants-table">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Correo Electrónico</th>
+                            <th>Teléfono</th>
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody id="participants-tbody">
+                        </tbody>
+                </table>
+                
+                <div class="action-buttons">
+                    <button id="clear-list-button" class="action-button clear-button">
+                        <i class="fas fa-trash-alt"></i> Limpiar Lista Completa
+                    </button>
+                    
+                    <button id="draw-button" class="action-button draw-button" disabled>
+                        <i class="fas fa-gift"></i> Realizar el Emparejamiento Secreto
+                    </button>
+                </div>
+            </section>
+            
+            <div id="draw-result-container" class="draw-result hidden">
+                <h3>¡Sorteo Realizado!</h3>
+                <p>El emparejamiento secreto ha sido completado. Se enviarán los resultados por correo electrónico a los participantes.</p>
+                </div>
+            
+        </main>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    
+    <script type="module" src="js/firebase-config.js"></script>
+    <script type="module" src="js/app.js"></script>
+</body>
+</html>
