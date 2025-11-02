@@ -1,6 +1,6 @@
 // archivo: public/js/app.js
 
-import { auth, db } from '../public/js/firebase-config.js';
+import { auth, db } from './firebase-config.js';
 
 // ----------------------------------------------------
 // 1. Manejo de Autenticación y Cierre de Sesión
