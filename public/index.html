@@ -1,36 +1,31 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎄 Amigo Secreto Navideño - Ingreso</title>
+    <title>Amigo Secreto Navideño</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 </head>
-
 <body>
-    <div class="background-container">
-    </div>
+    <div class="background-container"></div>
 
-    <main class="auth-container">
-        <button id="toggle-auth-mode" class="toggle-button">¿No tienes cuenta? Regístrate</button>
-
+    <div class="auth-container">
         <header class="auth-header">
             <h1>
                 <i class="fas fa-tree christmas-icon"></i>
-                Amigo Secreto Navideño
+                Amigo Secreto
                 <i class="fas fa-gift christmas-icon"></i>
             </h1>
-            <p>Organiza tu intercambio de regalos navideño</p>
+            <p>Organiza tu sorteo de regalos fácil y rápido</p>
         </header>
 
+        <!-- Formulario de Inicio de Sesión (Visible por defecto) -->
         <form id="login-form" class="auth-form">
             <h2>Iniciar Sesión</h2>
             <div class="input-group">
                 <i class="fas fa-envelope"></i>
-                <input type="email" id="login-email" placeholder="Correo Electrónico" required>
+                <input type="email" id="login-email" placeholder="Correo electrónico" required>
             </div>
             <div class="input-group">
                 <i class="fas fa-lock"></i>
@@ -38,15 +33,15 @@
             </div>
             <button type="submit" class="submit-button">Entrar</button>
             <p id="login-error-message" class="error-message"></p>
-            <div class="g-recaptcha" data-sitekey="6LcW2f4rAAAAAMAIFn0_2uWYXFV-1_xvwbpumUQ3" id="login-recaptcha"></div>
-            <button type="submit" class="submit-button">Entrar</button>
+            <button type="button" id="toggle-to-register" class="toggle-button">¿No tienes cuenta? Regístrate aquí</button>
         </form>
 
+        <!-- Formulario de Registro (Oculto por defecto) -->
         <form id="register-form" class="auth-form hidden">
             <h2>Crear Cuenta</h2>
             <div class="input-group">
                 <i class="fas fa-envelope"></i>
-                <input type="email" id="register-email" placeholder="Correo Electrónico" required>
+                <input type="email" id="register-email" placeholder="Correo electrónico" required>
             </div>
             <div class="input-group">
                 <i class="fas fa-lock"></i>
@@ -54,16 +49,23 @@
             </div>
             <button type="submit" class="submit-button">Registrarse</button>
             <p id="register-error-message" class="error-message"></p>
-            <div class="g-recaptcha" data-sitekey="6LcW2f4rAAAAAMAIFn0_2uWYXFV-1_xvwbpumUQ3" id="register-recaptcha"></div>
-            <button type="submit" class="submit-button">Registrarse</button>
+            <button type="button" id="toggle-to-login" class="toggle-button">¿Ya tienes cuenta? Inicia sesión</button>
         </form>
-    </main>
 
+    </div>
+
+    <!-- 
+        Scripts de Firebase y de la aplicación.
+        El orden es importante. 
+    -->
+    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+
+    <!-- Tus scripts (usando type="module") -->
     <script type="module" src="js/firebase-config.js"></script>
     <script type="module" src="js/auth.js"></script>
-</body>
 
+</body>
 </html>

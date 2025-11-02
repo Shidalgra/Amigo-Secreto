@@ -19,16 +19,16 @@ exports.handler = async (event, context) => {
         const msgList = [];
 
         // Iterar sobre cada emparejamiento (Dador -> Receptor)
-        for (const [giver, receiver] of Object.entries(pairings)) {
+        for (const pairing of pairings) {
             // El 'giver' es el que recibe este correo
             const subject = `🎅 ¡Ya se hizo el Sorteo Secreto Navideño!`;
             
             const content = `
-                Hola ${giver.name},<br><br>
+                Hola ${pairing.giverName},<br><br>
                 
                 ¡La Navidad ha llegado! Tu amigo(a) secreto(a) para este intercambio de regalos es:<br><br>
                 
-                <h2 style="color: #C0392B; text-align: center;">🎁 ${receiver.name} 🎁</h2>
+                <h2 style="color: #C0392B; text-align: center;">🎁 ${pairing.receiverName} 🎁</h2>
                 
                 <p>Recuerda mantener el secreto y preparar un regalo especial.</p>
                 <p>Si necesitas contactar al organizador, puedes hacerlo a este correo: ${organizerEmail}</p>
@@ -38,7 +38,7 @@ exports.handler = async (event, context) => {
 
             // Agregar el mensaje a la lista de envíos de SendGrid
             msgList.push({
-                to: giver.email, // Correo del Dador
+                to: pairing.giverEmail, // Correo del Dador
                 from: organizerEmail, // Correo desde donde se envía (debe ser un remitente verificado en SendGrid)
                 subject: subject,
                 html: content,

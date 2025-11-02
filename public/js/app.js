@@ -1,4 +1,4 @@
-// archivo: js/app.js
+// archivo: public/js/app.js
 
 import { auth, db } from '../public/js/firebase-config.js';
 
