@@ -338,65 +338,87 @@ async function handleLogin() {
 }
 
 async function handleRegister() {
-    const username = document.getElementById('username')?.value.trim();
-    const passwordInput = document.getElementById('password');
-    const confirmPasswordInput = document.getElementById('confirmPassword');
-    const password = passwordInput?.value;
-    const confirmPassword = confirmPasswordInput?.value;
+  const username = document.getElementById('username')?.value.trim();
+  const passwordInput = document.getElementById('password');
+  const confirmPasswordInput = document.getElementById('confirmPassword');
+  const password = passwordInput?.value;
+  const confirmPassword = confirmPasswordInput?.value;
 
-    if (!username || !password || !confirmPassword) {
-        Swal.fire({ icon: 'warning', title: 'Campos incompletos', text: 'Debes elegir un nombre de usuario y una contraseña.', confirmButtonColor: '#004080' });
-        return;
+  // --- Validaciones en el cliente (rápidas) ---
+  if (!username || !password || !confirmPassword) {
+    Swal.fire({ icon: 'warning', title: 'Campos incompletos', text: 'Debes elegir un nombre de usuario y una contraseña.', confirmButtonColor: '#004080' });
+    return;
+  }
+  if (password !== confirmPassword) {
+    Swal.fire({ icon: 'error', title: 'Las contraseñas no coinciden', text: 'Por favor, verifica que ambas contraseñas sean iguales.', confirmButtonColor: '#d33' });
+    return;
+  }
+  if (username.includes(" ") || username.length < 4) {
+    Swal.fire({ icon: 'warning', title: 'Nombre de usuario inválido', text: 'Debe tener al menos 4 caracteres y no contener espacios.', confirmButtonColor: '#004080' });
+    return;
+  }
+  if (password.length < 6) {
+    Swal.fire({ icon: 'warning', title: 'Contraseña muy corta', text: 'La contraseña debe tener al menos 6 caracteres.', confirmButtonColor: '#004080' });
+    return;
+  }
+
+  Swal.fire({
+    title: 'Creando sesión...',
+    text: 'Por favor, espera.',
+    allowOutsideClick: false,
+    didOpen: () => Swal.showLoading()
+  });
+
+  try {
+    // --- Llamada a la nueva Netlify Function ---
+    const response = await fetch('/.netlify/functions/crear-sesion', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      // Si la respuesta no es exitosa, lanzamos un error con el mensaje del servidor
+      const error = new Error(result.error || 'Error desconocido del servidor.');
+      error.statusCode = response.status;
+      throw error;
     }
-    if (password !== confirmPassword) {
-        Swal.fire({ icon: 'error', title: 'Las contraseñas no coinciden', text: 'Por favor, verifica que ambas contraseñas sean iguales.', confirmButtonColor: '#d33' });
-        return;
+
+    // --- Éxito ---
+    Swal.close();
+    Swal.fire({
+      icon: 'success',
+      title: '¡Sesión Creada!',
+      text: `Tu sesión "${username}" ha sido creada con éxito. Ahora puedes iniciar sesión.`,
+      confirmButtonColor: '#004080'
+    }).then(() => {
+      window.location.href = "index.html"; // Redirigir a la página de login
+    });
+
+  } catch (error) {
+    // --- Manejo de Errores ---
+    Swal.close();
+    console.error("Error durante el registro:", error);
+
+    if (error.statusCode === 409) { // Conflicto: El usuario ya existe
+      Swal.fire({
+        icon: 'info',
+        title: 'Nombre de usuario no disponible',
+        html: `La sesión "<b>${username}</b>" ya existe. Por favor, elige otro nombre o <a href="index.html">inicia sesión</a>.`,
+        confirmButtonColor: '#004080'
+      });
+    } else {
+      // Otros errores (de red, validación del servidor, etc.)
+      Swal.fire({
+        icon: 'error',
+        title: 'Error al Registrar',
+        text: error.message || 'No se pudo crear la sesión. Inténtalo de nuevo.',
+        confirmButtonColor: '#d33'
+      });
     }
-    if (username.includes(" ") || username.length < 4) {
-        Swal.fire({ icon: 'warning', title: 'Nombre de usuario inválido', text: 'Debe tener al menos 4 caracteres y no contener espacios.', confirmButtonColor: '#004080' });
-        return;
-    }
-    if (password.length < 6) {
-        Swal.fire({ icon: 'warning', title: 'Contraseña muy corta', text: 'La contraseña debe tener al menos 6 caracteres.', confirmButtonColor: '#004080' });
-        return;
-    }
-
-    try {
-        // --- INICIO DEL BLOQUE TRY: Todo lo que pueda fallar va aquí ---
-        const sesionRef = db.collection('sesiones').doc(username);
-        const doc = await sesionRef.get();
-
-        if (doc.exists) {
-            Swal.fire({
-                icon: 'info',
-                title: 'Nombre de usuario no disponible',
-                html: `La sesión "<b>${username}</b>" ya existe. Por favor, elige otro nombre o <a href="index.html">inicia sesión</a>.`,
-                confirmButtonColor: '#004080'
-            });
-            return;
-        }
-
-        // Crear la nueva sesión
-        await sesionRef.set({
-            password: password, // ADVERTENCIA: Guardando en texto plano.
-            creador: username,
-            fechaCreacion: firebase.firestore.FieldValue.serverTimestamp()
-        });
-
-        Swal.fire({
-            icon: 'success',
-            title: '¡Sesión Creada!',
-            text: `Tu sesión "${username}" ha sido creada con éxito. Ahora puedes iniciar sesión.`,
-            confirmButtonColor: '#004080'
-        }).then(() => {
-            window.location.href = "index.html"; // Redirigir a la página de login
-        });
-
-    } catch (error) {
-        // --- BLOQUE CATCH: Si algo falla, se ejecuta esto ---
-        console.error("Error durante el registro:", error);
-        Swal.fire({ icon: 'error', title: 'Error de Red', text: 'No se pudo crear la sesión. Inténtalo de nuevo.', confirmButtonColor: '#d33' });
-    }
+  }
 }
 
 async function handleConsultaAmigoSecreto() {
@@ -571,6 +593,7 @@ async function generarEmparejamientoAmigoSecreto() {
         }
 
         Swal.fire({
+            icon: 'success',
             icon: "success",
             title: "¡Sorteo Realizado!",
             text: "Se han enviado los correos a todos los participantes con su código secreto.",
