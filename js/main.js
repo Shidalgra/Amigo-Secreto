@@ -520,94 +520,64 @@ async function generarEmparejamientoAmigoSecreto() {
 
     // 1. Obtener participantes
     const snapshotUsuarios = await db.collection(`${cursoID}_usuariosConectados`).get();
-    if (snapshotUsuarios.docs.length < 2) {
-        Swal.fire({ icon: "error", title: "Participantes insuficientes", text: "Necesitas al menos 2 participantes para iniciar el sorteo.", confirmButtonColor: "#d33" });
+    const participantes = snapshotUsuarios.docs.map(doc => doc.data());
+
+    if (participantes.length < 2) {
+        Swal.fire({ icon: "error", title: "Participantes insuficientes", text: "Necesitas al menos 2 participantes para iniciar el sorteo." });
         return;
     }
-    const participantes = snapshotUsuarios.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-    // 2. Verificar si ya existe un sorteo y pedir confirmación para re-hacerlo
-    const sorteoAnterior = await db.collection(`${cursoID}_amigoSecreto`).limit(1).get();
-    if (!sorteoAnterior.empty) {
-        const confirmacion = await Swal.fire({
-            title: '¡Ya existe un sorteo!',
-            text: 'Si continúas, se borrará el sorteo anterior y se generará uno nuevo con los participantes actuales. ¿Estás seguro?',
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonText: 'Sí, generar nuevo sorteo',
-            confirmButtonColor: '#d33',
-            cancelButtonText: 'Cancelar'
-        });
-        if (!confirmacion.isConfirmed) return;
+    if (participantes.some(p => !p.correo)) {
+        Swal.fire({ icon: "error", title: "Faltan correos", text: "Todos los participantes deben tener un correo electrónico para poder enviarles el resultado." });
+        return;
     }
 
-    // 3. Lógica del sorteo
-    let sorteoValido = false;
-    let emparejamientos = [];
-    while (!sorteoValido) {
-        const da_a = [...participantes].sort(() => Math.random() - 0.5);
-        const recibe_de = [...participantes].sort(() => Math.random() - 0.5);
-        emparejamientos = [];
-        let problemas = false;
-        for (let i = 0; i < da_a.length; i++) {
-            if (da_a[i].id === recibe_de[i].id) {
-                problemas = true;
-                break; // A alguien le tocó regalarse a sí mismo, re-intentar.
-            }
-            emparejamientos.push({ de: da_a[i], a: recibe_de[i] });
-        }
-        if (!problemas) sorteoValido = true;
-    }
-
-    // 4. Generar códigos y preparar para guardar
-    const resultadosParaGuardar = emparejamientos.map(par => {
-        const codigoRandom = Math.random().toString(36).substring(2, 8).toUpperCase();
-        return {
-            de: par.de.nombre,
-            a: par.a.nombre,
-            codigoConsulta: `${cursoID}-${codigoRandom}`,
-            fechaSorteo: firebase.firestore.FieldValue.serverTimestamp()
-        };
+    // 2. Confirmación para iniciar el proceso
+    const confirmacion = await Swal.fire({
+        title: '¿Iniciar el sorteo?',
+        html: `Se realizará el sorteo para <b>${participantes.length} participantes</b>. Se enviará un correo a cada uno con su código secreto.<br><br>Este proceso puede tardar unos segundos y es irreversible.`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, ¡iniciar sorteo!',
+        confirmButtonColor: '#28a745',
+        cancelButtonText: 'Cancelar'
     });
 
-    // 5. Guardar en Firestore
+    if (!confirmacion.isConfirmed) return;
+
+    Swal.fire({
+        title: 'Realizando sorteo...',
+        html: 'Por favor, espera. Estamos barajando los nombres y enviando los correos.',
+        allowOutsideClick: false,
+        didOpen: () => {
+            Swal.showLoading();
+        }
+    });
+
+    // 3. Llamar a la Netlify Function
     try {
-        // Borrar sorteo anterior si existe
-        if (!sorteoAnterior.empty) {
-            const batchDelete = db.batch();
-            sorteoAnterior.docs.forEach(doc => batchDelete.delete(doc.ref));
-            await batchDelete.commit();
+        const response = await fetch('/.netlify/functions/generar-sorteo', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ sesionId: cursoID })
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(result.error || 'Error desconocido en el servidor.');
         }
 
-        // Guardar el nuevo sorteo
-        const batchWrite = db.batch();
-        const coleccionSorteo = db.collection(`${cursoID}_amigoSecreto`);
-        resultadosParaGuardar.forEach(resultado => {
-            const docRef = coleccionSorteo.doc(); // ID automático
-            batchWrite.set(docRef, resultado);
-        });
-        await batchWrite.commit();
-
-        // 6. Mostrar resultados al admin para que los comparta
-        let tablaResultadosHTML = `<table class="tabla-resultados-sorteo"><thead><tr><th>Participante (De)</th><th>Código de Consulta</th></tr></thead><tbody>`;
-        resultadosParaGuardar.forEach(res => {
-            tablaResultadosHTML += `<tr><td>${res.de}</td><td class="codigo-consulta">${res.codigoConsulta}</td></tr>`;
-        });
-        tablaResultadosHTML += `</tbody></table>`;
-        
         Swal.fire({
             icon: "success",
             title: "¡Sorteo Realizado!",
-            html: `<p>Copia y comparte cada código con el participante correspondiente. Pueden consultar su resultado en:</p>
-                   <p><a href="consultar.html" target="_blank">${window.location.origin}/consultar.html</a></p>
-                   ${tablaResultadosHTML}`,
-            confirmButtonText: '¡Entendido!',
-            width: '600px'
+            text: "Se han enviado los correos a todos los participantes con su código secreto.",
+            confirmButtonText: '¡Excelente!'
         });
 
     } catch (error) {
         console.error("Error al generar emparejamiento:", error);
-        Swal.fire({ icon: "error", title: "Error", text: "No se pudo guardar el sorteo en la base de datos.", confirmButtonColor: "#d33" });
+        Swal.fire({ icon: "error", title: "Error en el Sorteo", text: `No se pudo completar el proceso. Error: ${error.message}`, confirmButtonColor: "#d33" });
     }
 }
 
