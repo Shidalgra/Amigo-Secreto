@@ -88,31 +88,6 @@ async function handleAnadirParticipante(event) {
     }
 
     try {
-        // VERIFICACIÓN DE DUPLICADOS (Case-insensitive)
-        const snapshot = await db.collection(`${cursoID}_usuariosConectados`).get();        
-        for (const doc of snapshot.docs) {
-            const nombreExistente = doc.data().nombre;
-            const distancia = levenshteinDistance(nombre, nombreExistente);
-
-            if (distancia === 0) { // Coincidencia exacta
-                Swal.fire({ icon: 'error', title: 'Participante Duplicado', text: `El nombre "${nombre}" ya existe en la lista.`, confirmButtonColor: '#d33' });
-                return;
-            }
-
-            if (distancia > 0 && distancia <= 2) { // Coincidencia muy similar (posible error de dedo)
-                const confirmacion = await Swal.fire({
-                    icon: 'warning',
-                    title: '¿Posible Duplicado?',
-                    html: `El nombre que ingresaste, "<b>${nombre}</b>", es muy parecido a "<b>${nombreExistente}</b>" que ya está en la lista.<br><br>¿Estás seguro de que quieres añadirlo como un participante nuevo?`,
-                    showCancelButton: true,
-                    confirmButtonText: 'Sí, añadir de todos modos',
-                    cancelButtonText: 'No, fue un error'
-                });
-
-                if (!confirmacion.isConfirmed) return; // Si el usuario dice que fue un error, detenemos el proceso.
-            }
-        }
-
         // Usamos la nueva estructura: sub-colección 'participantes' dentro de la sesión
         await db.collection('sesiones').doc(cursoID).collection('participantes').add({
             nombre: nombre,
@@ -222,15 +197,17 @@ async function borrarTodaLaBaseDeDatos() {
 
     if (confirmacion) {
         try {
-            // 3. Borra las sub-colecciones de datos, pero DEJA la sesión principal.
+            // Borra las sub-colecciones de datos, pero DEJA la sesión principal.
             const colecciones = ['participantes', 'sorteo'];
 
             for (const nombreColeccion of colecciones) {
-                const snapshot = await db.collection(nombreColeccion).get();
-                const batch = db.batch();
-                snapshot.forEach(doc => batch.delete(doc.ref));
-                await batch.commit();
-                console.log(`Colección ${nombreColeccion} eliminada.`);
+                const snapshot = await db.collection('sesiones').doc(cursoID).collection(nombreColeccion).get();
+                if (!snapshot.empty) {
+                    const batch = db.batch();
+                    snapshot.forEach(doc => batch.delete(doc.ref));
+                    await batch.commit();
+                    console.log(`Sub-colección ${nombreColeccion} eliminada.`);
+                }
             }
 
             Swal.fire({
@@ -470,15 +447,15 @@ async function handleDeleteSession() {
             if (doc.exists && doc.data().password === password) {
                 // La contraseña es correcta. Proceder con el BORRADO TOTAL.
                 
-                // 1. Borrar las sub-colecciones de datos
+                // Borrar las sub-colecciones de datos
                 const coleccionesAsociadas = ['participantes', 'sorteo'];
                 for (const nombreColeccion of coleccionesAsociadas) {
-                    const snapshot = await db.collection(nombreColeccion).get();
+                    const snapshot = await db.collection('sesiones').doc(cursoID).collection(nombreColeccion).get();
                     if (!snapshot.empty) {
                         const batch = db.batch();
                         snapshot.forEach(doc => batch.delete(doc.ref));
                         await batch.commit();
-                        console.log(`Colección ${nombreColeccion} eliminada.`);
+                        console.log(`Sub-colección ${nombreColeccion} eliminada.`);
                     }
                 }
 
@@ -884,7 +861,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 /**
  * Configura el evento de clic para todos los íconos de "ojo" que
- * permiten mostrar u ocultar la contraseña en los campos de texto.     });
+ * permiten mostrar u ocultar la contraseña en los campos de texto.
  */
 function setupPasswordToggle() {
     document.querySelectorAll('.toggle-password').forEach(toggle => {
