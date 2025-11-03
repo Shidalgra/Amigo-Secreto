@@ -891,18 +891,19 @@ document.addEventListener("DOMContentLoaded", () => {
         // Conectar el botón de salir del menú directamente a la función de salir.
         btnSalirMenu?.addEventListener("click", () => activarBotonSalir(true));
     }
+
     // --- Lógica en la página de login ---
-    else if (window.location.pathname.endsWith("index.html") || window.location.pathname === "/") {
+    if (window.location.pathname.endsWith("index.html") || window.location.pathname === "/") {
         document.getElementById('btnIngresar')?.addEventListener('click', handleLogin);
         setupPasswordToggle();
     }
     // --- Lógica en la página de registro ---
-    else if (window.location.pathname.endsWith("register.html")) {
+    if (window.location.pathname.endsWith("register.html")) {
         document.getElementById('btnRegistrar')?.addEventListener('click', handleRegister);
         setupPasswordToggle();
     }
     // --- Lógica en la página de consulta ---
-    else if (window.location.pathname.endsWith("consultar.html")) {
+    if (window.location.pathname.endsWith("consultar.html")) {
         document.getElementById('btnConsultar')?.addEventListener('click', handleConsultaAmigoSecreto);
     }
 });
