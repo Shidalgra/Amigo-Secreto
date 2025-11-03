@@ -207,7 +207,7 @@ async function borrarTodaLaBaseDeDatos() {
     const { value: confirmacion } = await Swal.fire({
         icon: 'warning',
         title: `¡PELIGRO! Borrar TODA la DB de **${cursoID}**`,
-        html: `Esta acción eliminará **TODAS las colecciones** (mensajes, usuarios conectados, grupos) para **SOLO el curso ${cursoID}** y es **irreversible**. <br><br> Escribe la palabra **"BORRAR TODO"** para confirmar:`,
+        html: `Esta acción eliminará **TODOS los datos** (lista de participantes, sorteo) para la sesión **${cursoID}** y es **irreversible**. La sesión y su contraseña se mantendrán. <br><br> Escribe la palabra **"BORRAR TODO"** para confirmar:`,
         input: 'text',
         showCancelButton: true,
         confirmButtonText: 'Confirmar Borrado Total',
@@ -339,10 +339,17 @@ async function handleLogin() {
 
 async function handleRegister() {
     const username = document.getElementById('username')?.value.trim();
-    const password = document.getElementById('password')?.value;
+    const passwordInput = document.getElementById('password');
+    const confirmPasswordInput = document.getElementById('confirmPassword');
+    const password = passwordInput?.value;
+    const confirmPassword = confirmPasswordInput?.value;
 
-    if (!username || !password) {
+    if (!username || !password || !confirmPassword) {
         Swal.fire({ icon: 'warning', title: 'Campos incompletos', text: 'Debes elegir un nombre de usuario y una contraseña.', confirmButtonColor: '#004080' });
+        return;
+    }
+    if (password !== confirmPassword) {
+        Swal.fire({ icon: 'error', title: 'Las contraseñas no coinciden', text: 'Por favor, verifica que ambas contraseñas sean iguales.', confirmButtonColor: '#d33' });
         return;
     }
     if (username.includes(" ") || username.length < 4) {
@@ -438,7 +445,7 @@ async function handleDeleteSession() {
 
     const { value: password } = await Swal.fire({
         title: `Eliminar la sesión "${cursoID}"`,
-        html: `Esta acción es <b>permanente</b>. Se borrará el acceso a esta sesión, pero no los datos de los grupos o mensajes (puedes borrarlos con "Borrar DB").<br><br>Para confirmar, ingresa la contraseña de la sesión:`,
+        html: `Esta acción es <b>permanente</b>. Se borrará la sesión, su contraseña y **TODOS los datos asociados** (lista de participantes, sorteo).<br><br>Para confirmar, ingresa la contraseña de la sesión:`,
         input: 'password',
         inputPlaceholder: 'Ingresa la contraseña de la sesión',
         inputAttributes: {
@@ -890,6 +897,24 @@ document.addEventListener("DOMContentLoaded", () => {
         // Asignar listeners a los botones de login y registro
         document.getElementById('btnIngresar')?.addEventListener('click', handleLogin);
         document.getElementById('btnRegistrar')?.addEventListener('click', handleRegister);
+
+        // Lógica para el toggle de visibilidad de contraseña
+        document.querySelectorAll('.toggle-password').forEach(toggle => {
+            toggle.addEventListener('click', () => {
+                const passwordInput = toggle.previousElementSibling;
+                const eyeIcon = toggle.querySelector('.icon-eye');
+                const eyeSlashIcon = toggle.querySelector('.icon-eye-slash');
+                if (passwordInput.type === 'password') {
+                    passwordInput.type = 'text';
+                    eyeIcon.style.display = 'none';
+                    eyeSlashIcon.style.display = 'inline-block';
+                } else {
+                    passwordInput.type = 'password';
+                    eyeIcon.style.display = 'inline-block';
+                    eyeSlashIcon.style.display = 'none';
+                }
+            });
+        });
     }
     // --- Lógica en la página de consulta ---
     else if (window.location.pathname.endsWith("consultar.html")) {

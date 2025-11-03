@@ -87,7 +87,7 @@ body {
 
 .login-box {
   background-color: white;
-  padding: 30px;
+  padding: 25px; /* Reducido */
   border-radius: 10px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   width: 100%;
@@ -99,7 +99,8 @@ body {
 .login-box h2 {
   text-align: center;
   color: #004080;
-  margin-bottom: 20px;
+  margin-bottom: 15px; /* Reducido */
+  font-size: 1.5rem; /* Reducido */
 }
 
 .login-box label {
@@ -110,12 +111,36 @@ body {
 
 .login-box input[type="text"],
 .login-box input[type="password"],
+.password-container input[type="text"], /* Aplicar a contraseña visible */
 .login-box select {
-    padding: 10px;
-    margin-bottom: 15px;
+    padding: 8px 12px; /* Reducido */
+    margin-bottom: 10px; /* Reducido */
     border: 1px solid #ccc;
     border-radius: 5px;
     font-size: 1rem;
+    width: 100%; /* Asegurar que ocupe todo el contenedor */
+}
+
+.password-container input {
+    padding-right: 50px; /* Espacio para el texto "Ver" */
+}
+
+/* Contenedor para el input de contraseña y el ícono de visibilidad */
+.password-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.password-container .toggle-password {
+    position: absolute;
+    right: 12px;
+    top: 42%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    user-select: none;
+    color: #888; /* Un color gris para el ícono */
+    display: flex; /* Para centrar el SVG si es necesario */
 }
 
 /* Estilo específico para el combo box para que coincida con el menú */
@@ -128,14 +153,14 @@ body {
 
 /* Botón de Ingresar */
 .login-box .submit {
-  padding: 12px;
+  padding: 10px; /* Reducido */
   border: none;
   background-color: #004080;
   color: white;
   cursor: pointer;
   border-radius: 5px;
   font-weight: 700;
-  margin-top: 10px;
+  margin-top: 5px; /* Reducido */
   transition: background-color 0.2s, box-shadow 0.1s, transform 0.1s;
 }
 
@@ -150,6 +175,18 @@ body {
   box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.3);
 }
 
+/* Enlace para registrarse o iniciar sesión */
+.register-link {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 0.9rem;
+}
+
+.register-link a {
+    color: #0056b3;
+    font-weight: 600;
+    text-decoration: none;
+}
 /* --- ESTILOS ESPECÍFICOS PARA PAGINA-PRINCIPAL.HTML --- */
 
 /* Botón Ver Grupos (Izquierda Fija en Header) */
@@ -465,6 +502,32 @@ body {
 
 .btn-borrar-participante:hover {
     color: #d9534f;
+}
+
+/* Estilo para el botón principal "Generar Emparejamiento" */
+.titulo-con-boton button.submit {
+    background-color: #28a745; /* Un verde "éxito" amigable */
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease-out;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    padding: 8px 16px; /* Ajuste de padding */
+    font-size: 0.9rem;
+}
+
+.titulo-con-boton button.submit:hover {
+    background-color: #218838; /* Verde más oscuro */
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    transform: translateY(-2px);
+}
+
+.titulo-con-boton button.submit:active {
+    background-color: #1e7e34; /* Verde aún más oscuro */
+    transform: translateY(0);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
 }
 
 /* Estilos para la tabla de resultados del sorteo en el modal */
