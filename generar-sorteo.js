@@ -37,20 +37,20 @@ exports.handler = async (event, context) => {
     // El ID de la sesión nos lo enviará la página principal.
     const { sesionId } = JSON.parse(event.body);
     if (!sesionId) {
-      return { statusCode: 400, body: 'Falta el ID de la sesión.' };
+      return { statusCode: 400, body: JSON.stringify({ error: 'Falta el ID de la sesión.' }) };
     }
 
     // 2. LEER PARTICIPANTES DE FIRESTORE
     const snapshotUsuarios = await db.collection(`${sesionId}_usuariosConectados`).get();
     if (snapshotUsuarios.docs.length < 2) {
-      return { statusCode: 400, body: 'Se necesitan al menos 2 participantes.' };
+      return { statusCode: 400, body: JSON.stringify({ error: 'Se necesitan al menos 2 participantes para realizar el sorteo.' }) };
     }
 
     const participantes = snapshotUsuarios.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
     // Validar que todos tengan correo
     if (participantes.some(p => !p.correo)) {
-        return { statusCode: 400, body: 'Todos los participantes deben tener un correo electrónico.' };
+        return { statusCode: 400, body: JSON.stringify({ error: 'Todos los participantes deben tener un correo electrónico.' }) };
     }
 
     // 3. REALIZAR EL SORTEO
