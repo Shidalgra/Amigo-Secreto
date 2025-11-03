@@ -2,7 +2,7 @@
 const admin = require('firebase-admin');
 const { Resend } = require('resend');
 const CryptoJS = require('crypto-js');
-const { v4: uuidv4 } = require('uuid');
+const { v4: uuid } = require('uuid'); // Cambio aquí
 
 // --- CONFIGURACIÓN DE SERVICIOS ---
 // Estas variables las configuraremos en Netlify para mantenerlas seguras.
@@ -77,7 +77,7 @@ exports.handler = async (event, context) => {
 
     emparejamientos.forEach(par => {
       const { de, a } = par;
-      const codigoConsulta = `${sesionId}-${uuidv4().substring(0, 8)}`;
+      const codigoConsulta = `${sesionId}-${uuid().substring(0, 8)}`; // Y cambio aquí
 
       // Ciframos el nombre de la persona a la que se le regala
       const asignacionCifrada = CryptoJS.AES.encrypt(a.nombre, ENCRYPTION_SECRET_KEY).toString();

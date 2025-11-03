@@ -5,9 +5,12 @@ const CryptoJS = require('crypto-js');
 
 // --- CONFIGURACIÓN DE SERVICIOS ---
 const ENCRYPTION_SECRET_KEY = process.env.ENCRYPTION_SECRET_KEY;
-const serviceAccount = JSON.parse(Buffer.from(process.env.FIREBASE_SERVICE_ACCOUNT_KEY, 'base64').toString('utf-8'));
 
-if (!admin.apps.length) {
+// Solo inicializar si no hay apps existentes
+if (admin.apps.length === 0) {
+  const serviceAccount = JSON.parse(
+    Buffer.from(process.env.FIREBASE_SERVICE_ACCOUNT_KEY, 'base64').toString('utf-8')
+  );
   admin.initializeApp({
     credential: admin.credential.cert(serviceAccount)
   });
