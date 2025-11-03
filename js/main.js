@@ -362,6 +362,7 @@ async function handleRegister() {
     }
 
     try {
+        // --- INICIO DEL BLOQUE TRY: Todo lo que pueda fallar va aquí ---
         const sesionRef = db.collection('sesiones').doc(username);
         const doc = await sesionRef.get();
 
@@ -392,6 +393,7 @@ async function handleRegister() {
         });
 
     } catch (error) {
+        // --- BLOQUE CATCH: Si algo falla, se ejecuta esto ---
         console.error("Error durante el registro:", error);
         Swal.fire({ icon: 'error', title: 'Error de Red', text: 'No se pudo crear la sesión. Inténtalo de nuevo.', confirmButtonColor: '#d33' });
     }
