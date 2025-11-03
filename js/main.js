@@ -866,10 +866,15 @@ document.addEventListener("DOMContentLoaded", () => {
         // Conectar el botón de salir del menú directamente a la función de salir.
         btnSalirMenu?.addEventListener("click", () => activarBotonSalir(true));
     }
-    // --- Lógica en login.html y register.html ---
-    else if (window.location.pathname.endsWith("index.html") || window.location.pathname.endsWith("register.html") || window.location.pathname === "/") {
-        // Asignar listeners a los botones de login y registro
+    // --- Lógica en la página de login ---
+    else if (window.location.pathname.endsWith("index.html") || window.location.pathname === "/") {
         document.getElementById('btnIngresar')?.addEventListener('click', handleLogin);
+
+        // Lógica para el toggle de visibilidad de contraseña
+        setupPasswordToggle();
+    }
+    // --- Lógica en la página de registro ---
+    else if (window.location.pathname.endsWith("register.html")) {
         document.getElementById('btnRegistrar')?.addEventListener('click', handleRegister);
 
         // Lógica para el toggle de visibilidad de contraseña
@@ -895,6 +900,25 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById('btnConsultar')?.addEventListener('click', handleConsultaAmigoSecreto);
     }
 });
+
+function setupPasswordToggle() {
+    document.querySelectorAll('.toggle-password').forEach(toggle => {
+        toggle.addEventListener('click', () => {
+            const passwordInput = toggle.previousElementSibling;
+            const eyeIcon = toggle.querySelector('.icon-eye');
+            const eyeSlashIcon = toggle.querySelector('.icon-eye-slash');
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                eyeIcon.style.display = 'none';
+                eyeSlashIcon.style.display = 'inline-block';
+            } else {
+                passwordInput.type = 'password';
+                eyeIcon.style.display = 'inline-block';
+                eyeSlashIcon.style.display = 'none';
+            }
+        });
+    });
+}
 
 /**
  * Función reutilizable para borrar todos los mensajes del curso actual.
