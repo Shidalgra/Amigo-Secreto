@@ -866,58 +866,24 @@ document.addEventListener("DOMContentLoaded", () => {
         // Conectar el botón de salir del menú directamente a la función de salir.
         btnSalirMenu?.addEventListener("click", () => activarBotonSalir(true));
     }
-    // --- Lógica en la página de login ---
+    // --- Lógica en lass páginsas dL Lon, Registro y Cogsultain, Registro y Consulta ---
     else if (window.location.pathname.endsWith("index.html") || window.location.pathname === "/") {
-        document.getElementById('btnIngresar')?.addEventListener('click', handleLogin);
-
-        // Lógica para el toggle de visibilidad de contraseña
-        setupPasswordToggle();
+        document.getElementById('btnIngresar')?.addEventListener('click', handleLogin);        setupPasswordToggle();
+    } (window.location.pathname.endsWith("register.html")) {
+     
     }
-    // --- Lógica en la página de registro ---
-    else if (window.location.pathname.endsWith("register.html")) {
-        document.getElementById('btnRegistrar')?.addEventListener('click', handleRegister);
-
-        // Lógica para el toggle de visibilidad de contraseña
-        document.querySelectorAll('.toggle-password').forEach(toggle => {
-            toggle.addEventListener('click', () => {
-                const passwordInput = toggle.previousElementSibling;
-                const eyeIcon = toggle.querySelector('.icon-eye');
-                const eyeSlashIcon = toggle.querySelector('.icon-eye-slash');
-                if (passwordInput.type === 'password') {
-                    passwordInput.type = 'text';
-                    eyeIcon.style.display = 'none';
-                    eyeSlashIcon.style.display = 'inline-block';
-                } else {
-                    passwordInput.type = 'password';
-                    eyeIcon.style.display = 'inline-block';
-                    eyeSlashIcon.style.display = 'none';
-                }
-            });
-        });
-    }
-    // --- Lógica en la página de consulta ---
-    else if (window.location.pathname.endsWith("consultar.html")) {
-        document.getElementById('btnConsultar')?.addEventListener('click', handleConsultaAmigoSecreto);
-    }
-});
-
-function setupPasswordToggle() {
-    document.querySelectorAll('.toggle-password').forEach(toggle => {
-        toggle.addEventListener('click', () => {
-            const passwordInput = toggle.previousElementSibling;
-            const eyeIcon = toggle.querySelector('.icon-eye');
-            const eyeSlashIcon = toggle.querySelector('.icon-eye-slash');
-            if (passwordInput.type === 'password') {
-                passwordInput.type = 'text';
-                eyeIcon.style.display = 'none';
-                eyeSlashIcon.style.display = 'inline-block';
-            } else {
-                passwordInput.type = 'password';
+    else if (window.location.pathname.endsWith("consultar.html")) {        document.getElementById('btnConsultar')?.addEventListener('click', handleConsultaAmigoSecreto);
+PT       eyeSlashIcon.style.display = 'inline-block';
+     ';
                 eyeIcon.style.display = 'inline-block';
                 eyeSlashIcon.style.display = 'none';
             }
-        });
-    });
+   
+
+/**
+ * Configura el evento de clic para todos los íconos de "ojo" que
+ * permiten mostrar u ocultar la contraseña en los campos de texto.     });
+ */    });
 }
 
 /**
