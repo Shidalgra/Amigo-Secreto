@@ -15,9 +15,11 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 const fromEmail = process.env.FROM_EMAIL; // El correo desde el que se enviarán los emails
 
 // Configuración para conectar con Firebase de forma segura (como administrador)
-const serviceAccount = JSON.parse(Buffer.from(process.env.FIREBASE_SERVICE_ACCOUNT_KEY, 'base64').toString('utf-8'));
-
-if (!admin.apps.length) {
+// Solo inicializar si no hay apps existentes
+if (admin.apps.length === 0) {
+  const serviceAccount = JSON.parse(
+    Buffer.from(process.env.FIREBASE_SERVICE_ACCOUNT_KEY, 'base64').toString('utf-8')
+  );
   admin.initializeApp({
     credential: admin.credential.cert(serviceAccount)
   });
@@ -40,8 +42,8 @@ exports.handler = async (event, context) => {
       return { statusCode: 400, body: JSON.stringify({ error: 'Falta el ID de la sesión.' }) };
     }
 
-    // 2. LEER PARTICIPANTES DE FIRESTORE
-    const snapshotUsuarios = await db.collection(`${sesionId}_usuariosConectados`).get();
+    // 2. LEER PARTICIPANTES DESDE LA SUB-COLECCIÓN
+    const snapshotUsuarios = await db.collection('sesiones').doc(sesionId).collection('participantes').get();
     if (snapshotUsuarios.docs.length < 2) {
       return { statusCode: 400, body: JSON.stringify({ error: 'Se necesitan al menos 2 participantes para realizar el sorteo.' }) };
     }
@@ -111,16 +113,16 @@ exports.handler = async (event, context) => {
     // 5. EJECUTAR OPERACIONES EN BATCH (TODO O NADA)
     
     // Borrar sorteo anterior si existe
-    const sorteoAnterior = await db.collection(`${sesionId}_sorteo`).get();
+    const sorteoAnterior = await db.collection('sesiones').doc(sesionId).collection('sorteo').get();
     if (!sorteoAnterior.empty) {
       const batchDelete = db.batch();
       sorteoAnterior.docs.forEach(doc => batchDelete.delete(doc.ref));
       await batchDelete.commit();
     }
 
-    // Guardar el nuevo sorteo
+    // Guardar el nuevo sorteo en la sub-colección
     const batchWrite = db.batch();
-    const coleccionSorteo = db.collection(`${sesionId}_sorteo`);
+    const coleccionSorteo = db.collection('sesiones').doc(sesionId).collection('sorteo');
     resultadosParaGuardar.forEach(resultado => {
       const docRef = coleccionSorteo.doc();
       batchWrite.set(docRef, resultado);

@@ -113,8 +113,8 @@ async function handleAnadirParticipante(event) {
             }
         }
 
-        // Usamos un ID autogenerado por Firestore como identificador único del participante.
-        await db.collection(`${cursoID}_usuariosConectados`).add({
+        // Usamos la nueva estructura: sub-colección 'participantes' dentro de la sesión
+        await db.collection('sesiones').doc(cursoID).collection('participantes').add({
             nombre: nombre,
             telefono: telefono || "", // Guarda vacío si no se provee
             correo: correo || "",   // Guarda vacío si no se provee
@@ -140,7 +140,7 @@ async function handleAnadirParticipante(event) {
 function escucharParticipantes() {
     if (!cursoID) return;
 
-    db.collection(`${cursoID}_usuariosConectados`)
+    db.collection('sesiones').doc(cursoID).collection('participantes')
         .orderBy("fechaAgregado", "desc")
         .onSnapshot(snapshot => {
             const cuerpoTabla = document.getElementById('cuerpoTablaParticipantes');
@@ -180,7 +180,7 @@ function escucharParticipantes() {
                     });
 
                     if (confirm.isConfirmed) {
-                        await db.collection(`${cursoID}_usuariosConectados`).doc(id).delete();
+                        await db.collection('sesiones').doc(cursoID).collection('participantes').doc(id).delete();
                     }
                 });
 
@@ -222,8 +222,8 @@ async function borrarTodaLaBaseDeDatos() {
 
     if (confirmacion) {
         try {
-            // 3. Borra todas las colecciones de datos, pero DEJA la sesión principal.
-            const colecciones = [`${cursoID}_usuariosConectados`, `${cursoID}_sorteo`];
+            // 3. Borra las sub-colecciones de datos, pero DEJA la sesión principal.
+            const colecciones = ['participantes', 'sorteo'];
 
             for (const nombreColeccion of colecciones) {
                 const snapshot = await db.collection(nombreColeccion).get();
@@ -470,8 +470,8 @@ async function handleDeleteSession() {
             if (doc.exists && doc.data().password === password) {
                 // La contraseña es correcta. Proceder con el BORRADO TOTAL.
                 
-                // 1. Borrar todas las colecciones de datos
-                const coleccionesAsociadas = [`${cursoID}_usuariosConectados`, `${cursoID}_sorteo`];
+                // 1. Borrar las sub-colecciones de datos
+                const coleccionesAsociadas = ['participantes', 'sorteo'];
                 for (const nombreColeccion of coleccionesAsociadas) {
                     const snapshot = await db.collection(nombreColeccion).get();
                     if (!snapshot.empty) {
@@ -519,8 +519,8 @@ async function generarEmparejamientoAmigoSecreto() {
     }
 
     // 1. Obtener participantes
-    const snapshotUsuarios = await db.collection(`${cursoID}_usuariosConectados`).get();
-    const participantes = snapshotUsuarios.docs.map(doc => doc.data());
+    const snapshotUsuarios = await db.collection('sesiones').doc(cursoID).collection('participantes').get();
+    const participantes = snapshotUsuarios.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
     if (participantes.length < 2) {
         Swal.fire({ icon: "error", title: "Participantes insuficientes", text: "Necesitas al menos 2 participantes para iniciar el sorteo." });
@@ -915,7 +915,7 @@ async function borrarListaParticipantes() {
 
     if (confirm.isConfirmed) {
         try {
-            const snapshot = await db.collection(`${cursoID}_usuariosConectados`).get();
+            const snapshot = await db.collection('sesiones').doc(cursoID).collection('participantes').get();
             const batch = db.batch();
             snapshot.forEach(doc => batch.delete(doc.ref));
             await batch.commit();

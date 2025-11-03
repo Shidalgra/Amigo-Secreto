@@ -36,8 +36,8 @@ exports.handler = async (event, context) => {
       return { statusCode: 400, body: JSON.stringify({ error: 'El formato del código es inválido.' }) };
     }
 
-    // 2. BUSCAR EL CÓDIGO EN FIRESTORE
-    const snapshot = await db.collection(`${sesionId}_sorteo`).where('codigoConsulta', '==', codigoConsulta).limit(1).get();
+    // 2. BUSCAR EL CÓDIGO EN LA SUB-COLECCIÓN DE FIRESTORE
+    const snapshot = await db.collection('sesiones').doc(sesionId).collection('sorteo').where('codigoConsulta', '==', codigoConsulta).limit(1).get();
 
     if (snapshot.empty) {
       return { statusCode: 404, body: JSON.stringify({ error: 'Código no encontrado o inválido.' }) };
