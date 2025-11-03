@@ -223,7 +223,7 @@ async function borrarTodaLaBaseDeDatos() {
     if (confirmacion) {
         try {
             // 3. Borra todas las colecciones de datos, pero DEJA la sesión principal.
-            const colecciones = [`${cursoID}_usuariosConectados`, `${cursoID}_amigoSecreto`];
+            const colecciones = [`${cursoID}_usuariosConectados`, `${cursoID}_sorteo`];
 
             for (const nombreColeccion of colecciones) {
                 const snapshot = await db.collection(nombreColeccion).get();
@@ -402,30 +402,34 @@ async function handleConsultaAmigoSecreto() {
     const codigo = codigoInput.value.trim();
 
     if (!codigo) {
-        Swal.fire({ icon: 'warning', title: 'Código Requerido', text: 'Por favor, ingresa tu código de consulta.' });
+        Swal.fire({ icon: 'warning', title: 'Código Requerido', text: 'Por favor, ingresa tu código de consulta.', confirmButtonColor: '#004080' });
         return;
     }
 
-    // El formato esperado es "sesion-codigoAleatorio"
-    const partes = codigo.split('-');
-    if (partes.length < 2) {
-        Swal.fire({ icon: 'error', title: 'Código Inválido', text: 'El formato del código no es correcto.' });
-        return;
-    }
-
-    const sesionId = partes[0];
-    const resultadoContainer = document.getElementById('resultado-container');
-    const nombreAmigoSecretoEl = document.getElementById('nombreAmigoSecreto');
+    Swal.fire({
+        title: 'Consultando...',
+        text: 'Buscando tu amigo secreto.',
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading()
+    });
 
     try {
-        const snapshot = await db.collection(`${sesionId}_amigoSecreto`).where('codigoConsulta', '==', codigo).get();
-        if (snapshot.empty) {
-            Swal.fire({ icon: 'error', title: 'Código no encontrado', text: 'No se encontró ningún resultado para este código. Verifica que lo hayas escrito bien.' });
-            resultadoContainer.style.display = 'none';
+        const response = await fetch('/.netlify/functions/revelar-secreto', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ codigoConsulta: codigo })
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(result.error || 'Error desconocido del servidor.');
         } else {
-            const resultado = snapshot.docs[0].data();
-            nombreAmigoSecretoEl.textContent = resultado.a; // "a" es la persona a la que se le regala
+            const resultadoContainer = document.getElementById('resultado-container');
+            const nombreAmigoSecretoEl = document.getElementById('nombreAmigoSecreto');
+            nombreAmigoSecretoEl.textContent = result.amigoSecreto;
             resultadoContainer.style.display = 'block';
+            Swal.close(); // Cierra el popup de "cargando"
         }
     } catch (error) {
         console.error("Error al consultar amigo secreto:", error);
@@ -467,7 +471,7 @@ async function handleDeleteSession() {
                 // La contraseña es correcta. Proceder con el BORRADO TOTAL.
                 
                 // 1. Borrar todas las colecciones de datos
-                const coleccionesAsociadas = [`${cursoID}_usuariosConectados`, `${cursoID}_amigoSecreto`];
+                const coleccionesAsociadas = [`${cursoID}_usuariosConectados`, `${cursoID}_sorteo`];
                 for (const nombreColeccion of coleccionesAsociadas) {
                     const snapshot = await db.collection(nombreColeccion).get();
                     if (!snapshot.empty) {
