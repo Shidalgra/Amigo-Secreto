@@ -88,7 +88,30 @@ async function handleAnadirParticipante(event) {
     }
 
     try {
-        // Usamos la nueva estructura: sub-colección 'participantes' dentro de la sesión
+        // VERIFICACIÓN DE DUPLICADOS (Case-insensitive)
+        const snapshot = await db.collection('sesiones').doc(cursoID).collection('participantes').get();
+        for (const doc of snapshot.docs) {
+            const nombreExistente = doc.data().nombre;
+            const distancia = levenshteinDistance(nombre, nombreExistente);
+
+            if (distancia === 0) { // Coincidencia exacta
+                Swal.fire({ icon: 'error', title: 'Participante Duplicado', text: `El nombre "${nombre}" ya existe en la lista.`, confirmButtonColor: '#d33' });
+                return;
+            }
+
+            if (distancia > 0 && distancia <= 2) { // Coincidencia muy similar (posible error de dedo)
+                const confirmacion = await Swal.fire({
+                    icon: 'warning',
+                    title: '¿Posible Duplicado?',
+                    html: `El nombre que ingresaste, "<b>${nombre}</b>", es muy parecido a "<b>${nombreExistente}</b>" que ya está en la lista.<br><br>¿Estás seguro de que quieres añadirlo como un participante nuevo?`,
+                    showCancelButton: true,
+                    confirmButtonText: 'Sí, añadir de todos modos',
+                    cancelButtonText: 'No, fue un error'
+                });
+                if (!confirmacion.isConfirmed) return;
+            }
+        }
+
         await db.collection('sesiones').doc(cursoID).collection('participantes').add({
             nombre: nombre,
             telefono: telefono || "", // Guarda vacío si no se provee
