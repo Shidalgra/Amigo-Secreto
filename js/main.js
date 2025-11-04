@@ -71,11 +71,11 @@ async function crearSesion() {
     Swal.fire({
       icon: "success",
       title: "Sesión creada correctamente",
-      text: `"Sesión" ${data.message} " creada correctamente serás redirigido a la página de inicio."`, 
-      timer: 3000, // 3 segunos
+      text: `Sesión "${data.message}" creada correctamente. Serás redirigido a la página de inicio.`,
+      timer: 3000, // 3 segundos
       timerProgressBar: true,
       showConfirmButton: false,
-    }).then(()=> {
+    }).then(() => {
       // Este bloque corre despues de que el temporizador termine
       window.location.href = "index.html";
     });
