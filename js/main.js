@@ -242,7 +242,7 @@ document.addEventListener("DOMContentLoaded", () => {
         Swal.fire({
           icon: "success",
           title: "Sesión creada correctamente",
-          text: `La sesión "${data.username}" ha sido creada. Serás redirigido para que puedas iniciar sesión.`,
+          text: `La sesión "${data.username}" ha sido creada. \n Viajando a la página de Inicio de Sesión para que puedas ingresar.`,
           timer: 3000, // 3 segundos
           showConfirmButton: false,
           timerProgressBar: true,
@@ -298,9 +298,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
         Swal.fire({
           icon: "success",
-          title: "Sesión iniciada",
-          text: "Bienvenido a tu grupo de Amigo Secreto 🎁",
+          title: `Sesión iniciada \n "${data.username}" `,
+          text: "Bienvenido a tu grupo de Amigo Secreto 🎁. \n Viajando a la página principal para que puedas hacer tu lista.",
           timer: 2500,
+          timerProgressBar: true,
           showConfirmButton: false,
         }).then(() => {
           // Redirigir a la página principal del grupo
