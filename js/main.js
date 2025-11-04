@@ -56,7 +56,7 @@ async function crearSesion() {
   if (!formValues) return;
 
   try {
-    const res = await fetch("/.netlify/functions/crear-sesion", {
+    const res = await fetch(`${window.location.origin}/.netlify/functions/crear-sesion`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(formValues),
@@ -254,3 +254,57 @@ async function handleDeleteSession() {
     });
   }
 }
+
+// ==========================
+// EVENTO: BOTÓN REGISTRAR SESIÓN
+// ==========================
+document.addEventListener("DOMContentLoaded", () => {
+  const btnRegistrar = document.getElementById("btnRegistrar");
+  if (btnRegistrar) {
+    btnRegistrar.addEventListener("click", async (e) => {
+      e.preventDefault();
+
+      const username = document.getElementById("username").value.trim();
+      const password = document.getElementById("password").value.trim();
+      const confirmPassword = document.getElementById("confirmPassword").value.trim();
+
+      if (!username || !password || !confirmPassword) {
+        Swal.fire("Campos incompletos", "Por favor llena todos los campos.", "warning");
+        return;
+      }
+
+      if (password !== confirmPassword) {
+        Swal.fire("Error", "Las contraseñas no coinciden.", "error");
+        return;
+      }
+
+      try {
+        const res = await fetch("/.netlify/functions/crear-sesion", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, password }),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) throw new Error(data.error || "Error al crear la sesión.");
+
+        Swal.fire({
+          icon: "success",
+          title: "Sesión creada correctamente",
+          text: data.message,
+          timer: 2500,
+          showConfirmButton: false,
+        });
+
+      } catch (error) {
+        console.error("❌ Error:", error);
+        Swal.fire({
+          icon: "error",
+          title: "Error al crear la sesión",
+          text: error.message,
+        });
+      }
+    });
+  }
+});
