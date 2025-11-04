@@ -14,8 +14,11 @@ btnIngresar.addEventListener("click", async () => {
     const data = await res.json();
 
     if (res.ok) {
-      // ✅ Acceso correcto, redirigir a la página de sesión
-      window.location.href = "pagina-principal.html"; // o la página que quieras
+      // ✅ Guardamos que el usuario inició sesión
+      localStorage.setItem("usuarioLogueado", username);
+
+      // Redirigimos a la página principal
+      window.location.href = "pagina-principal.html";
     } else {
       // ❌ Mostrar error
       Swal.fire({
