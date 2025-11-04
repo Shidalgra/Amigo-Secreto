@@ -504,6 +504,72 @@ body {
     color: #d9534f;
 }
 
+/* ================================= */
+/* NUEVOS ESTILOS PARA TARJETAS DE PARTICIPANTES */
+/* ================================= */
+
+.grid-participantes {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.participante-card {
+  background-color: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+  border-left: 5px solid #007bff;
+  transition: transform 0.2s, box-shadow 0.2s;
+  display: flex;
+  flex-direction: column;
+}
+
+.participante-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 12px rgba(0,0,0,0.12);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 15px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.card-nombre {
+  font-weight: 600;
+  color: #072D4E;
+  font-size: 1.1rem;
+}
+
+.card-body {
+  padding: 15px;
+  flex-grow: 1;
+}
+
+.card-info {
+  font-size: 0.9rem;
+  color: #555;
+  margin: 0 0 5px 0;
+}
+
+.card-info strong {
+  color: #333;
+}
+
+.no-participantes {
+  text-align: center;
+  grid-column: 1 / -1; /* Ocupa todo el ancho del grid */
+  padding: 30px;
+  font-style: italic;
+  color: #888;
+  background-color: #fafafa;
+  border-radius: 8px;
+  border: 2px dashed #e0e0e0;
+}
+
 /* Estilo para el botón principal "Generar Emparejamiento" */
 .titulo-con-boton button.submit {
     background-color: #28a745; /* Un verde "éxito" amigable */

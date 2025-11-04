@@ -31,44 +31,44 @@ let sesionID = localStorage.getItem(`${STORAGE_PREFIX}sesionID`) || "";
 // ==========================
 // FUNCIÓN: AGREGAR PARTICIPANTE
 // ==========================
-async function agregarParticipante() {
-  const { value: formValues } = await Swal.fire({
-    title: "Agregar participante",
-    html: `
-      <input id="nombre" class="swal2-input" placeholder="Nombre completo">
-      <input id="correo" class="swal2-input" placeholder="Correo electrónico">
-    `,
-    confirmButtonText: "Guardar",
-    focusConfirm: false,
-    preConfirm: () => {
-      const nombre = document.getElementById("nombre").value.trim();
-      const correo = document.getElementById("correo").value.trim();
+async function agregarParticipanteDesdeFormulario() {
+  // Obtener los elementos del formulario
+  const nombreInput = document.getElementById("nombreParticipante");
+  const telefonoInput = document.getElementById("telefonoParticipante");
+  const correoInput = document.getElementById("correoParticipante");
 
-      if (!nombre || !correo) {
-        Swal.showValidationMessage("Todos los campos son obligatorios");
-        return false;
-      }
+  // Obtener y limpiar los valores
+  const nombre = nombreInput.value.trim();
+  const telefono = telefonoInput.value.trim();
+  const correo = correoInput.value.trim();
 
-      if (!/^[\w-.]+@([\w-]+\.)+[\w-]{2,}$/.test(correo)) {
-        Swal.showValidationMessage("Correo inválido");
-        return false;
-      }
+  // Validaciones
+  if (!nombre) {
+    Swal.fire("Campo requerido", "El nombre del participante es obligatorio.", "warning");
+    return;
+  }
+  if (correo && !/^[\w-.]+@([\w-]+\.)+[\w-]{2,}$/.test(correo)) {
+    Swal.fire("Correo inválido", "El formato del correo electrónico no es válido.", "error");
+    return;
+  }
 
-      return { nombre, correo };
-    },
-  });
-
-  if (!formValues) return;
+  const participanteData = { nombre, telefono, correo };
 
   try {
-    await db.collection("sesiones").doc(sesionID).collection("participantes").add(formValues);
+    await db.collection("sesiones").doc(sesionID).collection("participantes").add(participanteData);
 
     Swal.fire({
       icon: "success",
       title: "Participante agregado",
-      timer: 1800,
+      timer: 1500,
       showConfirmButton: false,
     });
+
+    // Limpiar los campos del formulario
+    nombreInput.value = "";
+    telefonoInput.value = "";
+    correoInput.value = "";
+
   } catch (error) {
     Swal.fire({
       icon: "error",
@@ -350,9 +350,58 @@ document.addEventListener("DOMContentLoaded", () => {
       formAnadirParticipante.addEventListener("submit", (e) => {
         e.preventDefault(); // Evitar que la página se recargue
         // La función agregarParticipante() ya existe y usa SweetAlert para pedir los datos.
-        // La llamamos directamente.
-        agregarParticipante();
+        // Ahora llamamos a la nueva función que usa el formulario.
+        agregarParticipanteDesdeFormulario();
       });
+    }
+
+    // 4. Escuchar y renderizar la lista de participantes en tiempo real
+    const contenedorParticipantes = document.getElementById("contenedorParticipantes");
+    if (sesionID && contenedorParticipantes) {
+      db.collection("sesiones").doc(sesionID).collection("participantes")
+        .onSnapshot((snapshot) => {
+          if (snapshot.empty) {
+            contenedorParticipantes.innerHTML = `<p class="no-participantes">Aún no hay participantes en esta sesión. ¡Añade el primero!</p>`;
+            return;
+          }
+
+          let cardsHTML = "";
+          snapshot.forEach(doc => {
+            const participante = doc.data();
+            cardsHTML += `
+              <div class="participante-card">
+                <div class="card-header">
+                  <strong class="card-nombre">${participante.nombre}</strong>
+                  <button class="btn-borrar-participante" data-id="${doc.id}" title="Eliminar participante">
+                    &times;
+                  </button>
+                </div>
+                <div class="card-body">
+                  ${participante.correo ? `<p class="card-info"><strong>Correo:</strong> ${participante.correo}</p>` : ''}
+                  ${participante.telefono ? `<p class="card-info"><strong>Tel:</strong> ${participante.telefono}</p>` : ''}
+                </div>
+              </div>
+            `;
+          });
+          contenedorParticipantes.innerHTML = cardsHTML;
+
+          // Añadir event listeners a los nuevos botones de borrar
+          document.querySelectorAll('.btn-borrar-participante').forEach(button => {
+            button.addEventListener('click', async (e) => {
+              const participanteId = e.target.dataset.id;
+              try {
+                await db.collection("sesiones").doc(sesionID).collection("participantes").doc(participanteId).delete();
+                Swal.fire('Eliminado', 'El participante ha sido eliminado.', 'success');
+              } catch (error) {
+                Swal.fire('Error', 'No se pudo eliminar al participante.', 'error');
+              }
+            });
+          });
+
+        }, (error) => {
+          console.error("Error al obtener participantes: ", error);
+          contenedorParticipantes.innerHTML = `<p class="no-participantes" style="color: red;">Error al cargar la lista de participantes.</p>`;
+        });
     }
   }
 });
