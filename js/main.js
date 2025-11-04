@@ -296,7 +296,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 
       } catch (error) {
-        console.error("❌ Error:", error);
+        console.error("Error:", error);
         Swal.fire({
           icon: "error",
           title: "Error al crear la sesión",

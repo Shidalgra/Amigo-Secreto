@@ -98,6 +98,21 @@ exports.handler = async (event, context) => {
 
     console.log(`Sesión "${username}" creada correctamente.`);
 
+     // Mostramos Swal de bienvenida genérico
+      Swal.fire({
+        icon: "success",
+        title: `¡Hola, ${username}!`,
+        text: "Has creado el usuario correctamente. Serás redirigido a la página de inicio...",
+        timer: 2000,
+        timerProgressBar: true,
+        showConfirmButton: false
+      });
+
+      // Redirigir después de 2 segundos
+      setTimeout(() => {
+        window.location.href = "index.html";
+      }, 2000);
+
     return {
       statusCode: 201,
       headers,
