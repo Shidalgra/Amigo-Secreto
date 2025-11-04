@@ -1,15 +1,20 @@
 // netlify/functions/ingresar-sesion.js
-import { initializeApp, applicationDefault } from "firebase-admin/app";
-import { getFirestore } from "firebase-admin/firestore";
+import admin from "firebase-admin";
 
-if (!global.firebaseAdminApp) {
-  global.firebaseAdminApp = initializeApp({
-    credential: applicationDefault(),
+// Inicialización segura
+if (!admin.apps.length) {
+  admin.initializeApp({
+    credential: admin.credential.cert({
+      projectId: "amigo-secreto-app-a95be",
+      clientEmail: "firebase-adminsdk-xxxxx@amigo-secreto-app-a95be.iam.gserviceaccount.com",
+      privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+    }),
   });
 }
-const db = getFirestore();
 
-export async function handler(event, context) {
+const db = admin.firestore();
+
+export async function handler(event) {
   try {
     const { username, password } = JSON.parse(event.body || "{}");
 
@@ -20,8 +25,7 @@ export async function handler(event, context) {
       };
     }
 
-    const sessionRef = db.collection("sesiones").doc(username);
-    const doc = await sessionRef.get();
+    const doc = await db.collection("sesiones").doc(username).get();
 
     if (!doc.exists) {
       return {
@@ -44,10 +48,10 @@ export async function handler(event, context) {
       body: JSON.stringify({ message: "Acceso correcto" }),
     };
   } catch (error) {
-    console.error("Error en ingresar-sesion:", error);
+    console.error("🔥 Error en ingresar-sesion:", error);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: "Error interno del servidor" }),
+      body: JSON.stringify({ error: "Error interno del servidor", details: error.message }),
     };
   }
 }
