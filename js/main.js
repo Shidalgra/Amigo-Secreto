@@ -64,14 +64,22 @@ async function crearSesion() {
 
     if (!res.ok) throw new Error(data.error || "Error al crear la sesión");
 
+    document.getElementById("username").value = "";
+    document.getElementById("password").value = "";
+    document.getElementById("confirmPassword").value = "";
+
     Swal.fire({
       icon: "success",
-      title: "Sesión creada",
-      text: data.message,
-      timer: 2500,
+      title: "Sesión creada correctamente",
+      text: `"Sesión" ${data.message} " creada correctamente serás redirigido a la página de inicio."`, 
+      timer: 3000, // 3 segunos
+      timerProgressBar: true,
       showConfirmButton: false,
+    }).then(()=> {
+      // Este bloque corre despues de que el temporizador termine
+      window.location.href = "index.html";
     });
-
+    
   } catch (error) {
     Swal.fire({
       icon: "error",
