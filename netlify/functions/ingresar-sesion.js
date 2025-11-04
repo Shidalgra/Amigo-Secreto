@@ -1,59 +1,80 @@
-// netlify/functions/ingresar-sesion.js
-import admin from "firebase-admin";
+const admin = require("firebase-admin");
+const bcrypt = require("bcryptjs");
 
-// Inicialización segura
+let db;
+
+// ==========================
+// Inicialización de Firebase Admin
+// ==========================
 if (!admin.apps.length) {
-  const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY);
+  try {
+    if (!process.env.FIREBASE_SERVICE_ACCOUNT_KEY) {
+      throw new Error("No se encontró FIREBASE_SERVICE_ACCOUNT_KEY en variables de entorno");
+    }
 
-  admin.initializeApp({
-    credential: admin.credential.cert({
-      projectId: serviceAccount.project_id,
-      clientEmail: serviceAccount.client_email,
-      privateKey: serviceAccount.private_key.replace(/\\n/g, '\n'),
-    }),
-  });
+    // Decodificar la clave del servicio
+    const serviceAccount = JSON.parse(
+      Buffer.from(process.env.FIREBASE_SERVICE_ACCOUNT_KEY, "base64").toString("utf8")
+    );
+
+    admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount),
+    });
+
+    db = admin.firestore();
+    console.log("Firebase inicializado correctamente.");
+  } catch (error) {
+    console.error("Error inicializando Firebase:", error);
+  }
+} else {
+  db = admin.firestore();
 }
 
-const db = admin.firestore();
+// ==========================
+// Handler principal
+// ==========================
+exports.handler = async (event) => {
+  const headers = {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Headers": "Content-Type",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+  };
 
-export async function handler(event) {
+  // Preflight (CORS)
+  if (event.httpMethod === "OPTIONS") {
+    return { statusCode: 200, headers, body: "OK" };
+  }
+
+  if (event.httpMethod !== "POST") {
+    return { statusCode: 405, headers, body: JSON.stringify({ error: "Método no permitido" }) };
+  }
+
   try {
     const { username, password } = JSON.parse(event.body || "{}");
 
     if (!username || !password) {
-      return {
-        statusCode: 400,
-        body: JSON.stringify({ error: "Faltan datos" }),
-      };
+      return { statusCode: 400, headers, body: JSON.stringify({ error: "Datos incompletos" }) };
     }
 
-    const doc = await db.collection("sesiones").doc(username).get();
+    const sesionRef = db.collection("sesiones").doc(username);
+    const doc = await sesionRef.get();
 
     if (!doc.exists) {
-      return {
-        statusCode: 404,
-        body: JSON.stringify({ error: "La sesión no existe" }),
-      };
+      return { statusCode: 404, headers, body: JSON.stringify({ error: "La sesión no existe" }) };
     }
 
     const data = doc.data();
 
-    if (data.password !== password) {
-      return {
-        statusCode: 401,
-        body: JSON.stringify({ error: "Contraseña incorrecta" }),
-      };
+    // Comparar contraseñas con bcrypt
+    const valid = await bcrypt.compare(password, data.password);
+    if (!valid) {
+      return { statusCode: 401, headers, body: JSON.stringify({ error: "Contraseña incorrecta" }) };
     }
 
-    return {
-      statusCode: 200,
-      body: JSON.stringify({ message: "Acceso correcto" }),
-    };
+    console.log(`Acceso exitoso a la sesión "${username}"`);
+    return { statusCode: 200, headers, body: JSON.stringify({ message: "Acceso correcto" }) };
   } catch (error) {
-    console.error("Error en ingresar-sesion:", error);
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ error: "Error interno del servidor", details: error.message }),
-    };
+    console.error("Error al ingresar sesión:", error);
+    return { statusCode: 500, headers, body: JSON.stringify({ error: "Error interno del servidor" }) };
   }
-}
+};
