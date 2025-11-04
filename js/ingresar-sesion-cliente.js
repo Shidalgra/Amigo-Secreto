@@ -15,7 +15,7 @@ btnIngresar.addEventListener("click", async () => {
 
     if (res.ok) {
       // ✅ Acceso correcto, redirigir a la página de sesión
-      window.location.href = "sesion.html"; // o la página que quieras
+      window.location.href = "pagina-principal.html"; // o la página que quieras
     } else {
       // ❌ Mostrar error
       Swal.fire({
