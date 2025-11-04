@@ -726,7 +726,7 @@ body {
 /* FOOTER Y BOTONES FIJOS INFERIORES */
 /* ========================== */
 .creditos {
-    position: fixed;
+    position: relative;
     bottom: 0;
     left: 0;
     width: 100%;
