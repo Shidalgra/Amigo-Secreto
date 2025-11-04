@@ -295,15 +295,25 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (!res.ok) throw new Error(data.error || "Error al crear la sesión.");
 
+        // Limpiar los campos del formulario inmediatamente después de una respuesta exitosa.
+        document.getElementById("username").value = "";
+        document.getElementById("password").value = "";
+        document.getElementById("confirmPassword").value = "";
+
         Swal.fire({
           icon: "success",
           title: "Sesión creada correctamente",
-          text: data.message,
-          timer: 2500,
+          text: `La sesión "${data.username}" ha sido creada. Serás redirigido para que puedas iniciar sesión.`,
+          timer: 3000, // 3 segundos
           showConfirmButton: false,
+          timerProgressBar: true,
+        }).then(() => {
+          // Este bloque se ejecuta después de que el temporizador de Swal termina.
+          window.location.href = "index.html";
         });
 
       } catch (error) {
+        // Es buena práctica registrar el error en la consola para depuración.
         console.error("Error:", error);
         Swal.fire({
           icon: "error",
