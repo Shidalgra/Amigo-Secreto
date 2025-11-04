@@ -4,7 +4,7 @@ const bcrypt = require('bcryptjs');
 let db; // Variable global para la instancia de Firestore
 
 // ==============================
-// 🔧 CONFIGURACIÓN DE FIREBASE ADMIN
+// CONFIGURACIÓN DE FIREBASE ADMIN
 // ==============================
 if (admin.apps.length === 0) {
   try {
@@ -22,17 +22,17 @@ if (admin.apps.length === 0) {
     });
 
     db = admin.firestore();
-    console.log("✅ Firebase Admin inicializado correctamente.");
+    console.log("Firebase Admin inicializado correctamente.");
 
   } catch (error) {
-    console.error("❌ Error al inicializar Firebase Admin SDK:", error);
+    console.error("Error al inicializar Firebase Admin SDK:", error);
   }
 } else {
   db = admin.firestore();
 }
 
 // ==============================
-// 🌐 HANDLER PRINCIPAL
+// HANDLER PRINCIPAL
 // ==============================
 exports.handler = async (event, context) => {
   const headers = {
@@ -41,17 +41,17 @@ exports.handler = async (event, context) => {
     'Access-Control-Allow-Methods': 'POST, OPTIONS'
   };
 
-  // 🔹 Manejo del preflight (CORS)
+  // Manejo del preflight (CORS)
   if (event.httpMethod === 'OPTIONS') {
     return { statusCode: 200, headers, body: 'OK' };
   }
 
-  // 🔹 Solo aceptar POST
+  // Solo aceptar POST
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, headers, body: JSON.stringify({ error: 'Método no permitido. Usa POST.' }) };
   }
 
-  // 🔹 Verificar conexión a Firestore
+  // Verificar conexión a Firestore
   if (!db) {
     console.error("❌ No hay conexión a Firestore.");
     return { statusCode: 500, headers, body: JSON.stringify({ error: 'Error interno: no se pudo conectar a la base de datos.' }) };
@@ -61,7 +61,7 @@ exports.handler = async (event, context) => {
     const { username, password } = JSON.parse(event.body || '{}');
 
     // ==============================
-    // 🧾 VALIDACIONES
+    // VALIDACIONES
     // ==============================
     if (!username || !password) {
       return { statusCode: 400, headers, body: JSON.stringify({ error: 'Nombre de usuario y contraseña son requeridos.' }) };
@@ -76,7 +76,7 @@ exports.handler = async (event, context) => {
     }
 
     // ==============================
-    // 🔍 VERIFICAR SI YA EXISTE
+    // VERIFICAR SI YA EXISTE
     // ==============================
     const sesionRef = db.collection('sesiones').doc(username);
     const doc = await sesionRef.get();
@@ -86,7 +86,7 @@ exports.handler = async (event, context) => {
     }
 
     // ==============================
-    // 🔐 CREAR NUEVA SESIÓN
+    // CREAR NUEVA SESIÓN
     // ==============================
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -96,7 +96,7 @@ exports.handler = async (event, context) => {
       fechaCreacion: admin.firestore.FieldValue.serverTimestamp()
     });
 
-    console.log(`✅ Sesión "${username}" creada correctamente.`);
+    console.log(`Sesión "${username}" creada correctamente.`);
 
     return {
       statusCode: 201,
@@ -105,7 +105,7 @@ exports.handler = async (event, context) => {
     };
 
   } catch (error) {
-    console.error("❌ Error en crear-sesion:", error);
+    console.error("Error en crear-sesion:", error);
     return {
       statusCode: 500,
       headers,
