@@ -75,7 +75,7 @@ exports.handler = async (event, context) => {
 
     // 4. PREPARAR DATOS PARA GUARDAR Y ENVIAR
     const resultadosParaGuardar = [];
-    const correosParaEnviar = [];
+    const resultadosParaAdmin = []; // Array para devolver los códigos al cliente
 
     emparejamientos.forEach(par => {
       const { de, a } = par;
@@ -83,31 +83,16 @@ exports.handler = async (event, context) => {
 
       // Ciframos el nombre de la persona a la que se le regala
       const asignacionCifrada = CryptoJS.AES.encrypt(a.nombre, ENCRYPTION_SECRET_KEY).toString();
-
-      // Preparamos el documento para guardar en Firestore
-      resultadosParaGuardar.push({
+      
+      // Preparamos los datos para guardar en Firestore
+      const resultado = {
         participante: de.nombre,
         codigoConsulta: codigoConsulta,
         asignacionCifrada: asignacionCifrada,
         fechaSorteo: admin.firestore.FieldValue.serverTimestamp()
-      });
-
-      // Preparamos el correo para enviar con Resend
-      correosParaEnviar.push({
-        from: fromEmail,
-        to: de.correo,
-        subject: `🎁 ¡Tu Amigo Secreto de la sesión "${sesionId}" ha sido revelado!`,
-        html: `
-          <h1>¡Hola, ${de.nombre}!</h1>
-          <p>El sorteo del Amigo Secreto para la sesión "<b>${sesionId}</b>" ha sido realizado.</p>
-          <p>Para descubrir a quién te tocó darle un regalo, usa el siguiente código en la página de consulta:</p>
-          <h2 style="background-color: #f0f0f0; padding: 15px; border-radius: 8px; text-align: center;">${codigoConsulta}</h2>
-          <p>Visita el siguiente enlace (o ve a la sección "Consultar" en la página principal) para hacer tu consulta:</p>
-          <a href="https://amigo-secreto-app.netlify.app/consultar.html" style="display: inline-block; padding: 12px 20px; background-color: #28a745; color: white; text-decoration: none; border-radius: 8px;">Consultar mi Amigo Secreto</a>
-          <br><br>
-          <p>¡Que te diviertas!</p>
-        `
-      });
+      };
+      resultadosParaGuardar.push(resultado);
+      resultadosParaAdmin.push({ participante: de.nombre, codigo: codigoConsulta });
     });
 
     // 5. EJECUTAR OPERACIONES EN BATCH (TODO O NADA)
