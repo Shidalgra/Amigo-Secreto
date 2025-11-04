@@ -2,3 +2,4 @@
 [functions]
   # El directorio donde vivirán nuestras funciones.
   directory = "netlify/functions"
+  node_bundler = "esbuild"
