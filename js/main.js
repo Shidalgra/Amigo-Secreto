@@ -29,67 +29,6 @@ let tipoUsuario = localStorage.getItem(`${STORAGE_PREFIX}tipoUsuario`) || "parti
 let cursoID = localStorage.getItem(`${STORAGE_PREFIX}cursoID`) || "";
 
 // ==========================
-// FUNCIÓN: CREAR SESIÓN
-// ==========================
-async function crearSesion() {
-  const { value: formValues } = await Swal.fire({
-    title: "Crear nueva sesión",
-    html: `
-      <input id="username" class="swal2-input" placeholder="Nombre de la sesión">
-      <input id="password" type="password" class="swal2-input" placeholder="Contraseña">
-    `,
-    confirmButtonText: "Crear",
-    focusConfirm: false,
-    preConfirm: () => {
-      const username = document.getElementById("username").value.trim();
-      const password = document.getElementById("password").value.trim();
-      if (!username || !password) {
-        Swal.showValidationMessage("Por favor, complete ambos campos");
-        return false;
-      }
-      return { username, password };
-    },
-  });
-
-  if (!formValues) return;
-
-  try {
-    const res = await fetch(`${window.location.origin}/.netlify/functions/crear-sesion`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(formValues),
-    });
-
-    const data = await res.json();
-
-    if (!res.ok) throw new Error(data.error || "Error al crear la sesión");
-
-    document.getElementById("username").value = "";
-    document.getElementById("password").value = "";
-    document.getElementById("confirmPassword").value = "";
-
-    Swal.fire({
-      icon: "success",
-      title: "Sesión creada correctamente",
-      text: `Sesión "${data.message}" creada correctamente. Serás redirigido a la página de inicio.`,
-      timer: 3000, // 3 segundos
-      timerProgressBar: true,
-      showConfirmButton: false,
-    }).then(() => {
-      // Este bloque corre despues de que el temporizador termine
-      window.location.href = "index.html";
-    });
-    
-  } catch (error) {
-    Swal.fire({
-      icon: "error",
-      title: "Error",
-      text: error.message || "Error desconocido",
-    });
-  }
-}
-
-// ==========================
 // FUNCIÓN: AGREGAR PARTICIPANTE
 // ==========================
 async function agregarParticipante() {
