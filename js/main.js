@@ -118,24 +118,32 @@ async function generarSorteo() {
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Error desconocido en el servidor.');
 
-    // Lógica para marcar visualmente los participantes que recibieron correo
-    if (data.enviados && data.enviados.length > 0) {
-      data.enviados.forEach(participanteId => {
-        const card = document.querySelector(`.participante-card[data-id="${participanteId}"]`);
-        if (card) {
-          const nombreElement = card.querySelector('.card-nombre');
-          if (nombreElement && !nombreElement.textContent.includes('✅')) {
-            nombreElement.textContent += ' ✅';
-          }
-        }
+    // Si la respuesta incluye los resultados, los mostramos en un modal.
+    if (data.resultados && data.resultados.length > 0) {
+      let resultadosHtml = `
+        <p>¡Sorteo finalizado! Comparte cada código con su participante correspondiente:</p>
+        <table class="tabla-resultados-sorteo">
+          <thead><tr><th>Participante</th><th>Código de Consulta</th></tr></thead>
+          <tbody>
+      `;
+      data.resultados.forEach(res => {
+        resultadosHtml += `<tr><td>${res.participante}</td><td class="codigo-consulta">${res.codigo}</td></tr>`;
+      });
+      resultadosHtml += '</tbody></table>';
+
+      Swal.fire({
+        title: '¡Sorteo Realizado!',
+        html: resultadosHtml,
+        icon: 'success',
+        confirmButtonText: '¡Entendido!'
+      });
+    } else {
+      Swal.fire({
+        icon: "success",
+        title: "¡Sorteo Realizado!",
+        text: data.message || "El proceso ha finalizado.",
       });
     }
-
-    Swal.fire({
-      icon: "success",
-      title: "¡Sorteo Realizado!",
-      text: data.message || "El proceso ha finalizado.",
-    });
 
   } catch (error) {
     Swal.fire({
