@@ -82,60 +82,53 @@ async function agregarParticipanteDesdeFormulario() {
 // FUNCIÓN: GENERAR SORTEO
 // ==========================
 async function generarSorteo() {
+  // Confirmación antes de realizar una acción importante
+  const confirmacion = await Swal.fire({
+    title: '¿Estás seguro?',
+    text: "Se realizará el sorteo y se enviarán los correos a todos los participantes. Esta acción no se puede deshacer.",
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#28a745',
+    cancelButtonColor: '#d33',
+    confirmButtonText: 'Sí, ¡realizar sorteo!',
+    cancelButtonText: 'Cancelar'
+  });
+
+  if (!confirmacion.isConfirmed) {
+    return;
+  }
+
+  // Mostrar un indicador de carga
+  Swal.fire({
+    title: 'Realizando sorteo...',
+    text: 'Por favor, espera mientras se asignan los amigos secretos y se envían los correos.',
+    allowOutsideClick: false,
+    didOpen: () => {
+      Swal.showLoading();
+    }
+  });
+
   try {
-    const participantesRef = db.collection("sesiones").doc(sesionID).collection("participantes");
-    const snapshot = await participantesRef.get();
-    const participantes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    const res = await fetch('/.netlify/functions/generar-sorteo', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sesionId: sesionID })
+    });
 
-    if (participantes.length < 2) {
-      Swal.fire({
-        icon: "error",
-        title: "No hay suficientes participantes",
-        text: "Se necesitan al menos 2 participantes para sortear.",
-      });
-      return;
-    }
-
-    // Validar correos antes de sortear
-    for (const p of participantes) {
-      if (!p.correo || !/^[\w-.]+@([\w-]+\.)+[\w-]{2,}$/.test(p.correo)) {
-        Swal.fire({
-          icon: "error",
-          title: "Correo inválido",
-          text: `El correo de ${p.nombre} no tiene un formato válido.`,
-        });
-        return;
-      }
-    }
-
-    // Mezclar y asignar
-    const asignaciones = [...participantes];
-    asignaciones.sort(() => Math.random() - 0.5);
-
-    const resultados = participantes.map((p, i) => ({
-      de: p.nombre,
-      para: asignaciones[(i + 1) % participantes.length].nombre,
-      correo: p.correo,
-    }));
-
-    // Guardar en Firestore
-    for (const r of resultados) {
-      await participantesRef.doc(r.de).update({ amigoSecreto: r.para });
-    }
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Error desconocido en el servidor.');
 
     Swal.fire({
       icon: "success",
-      title: "Sorteo generado",
-      text: "Los resultados se enviarán automáticamente a los correos.",
-      timer: 2500,
-      showConfirmButton: false,
+      title: "¡Sorteo Realizado!",
+      text: data.message || "Los correos han sido enviados a todos los participantes.",
     });
 
   } catch (error) {
     Swal.fire({
       icon: "error",
       title: "Error en el sorteo",
-      text: error.message,
+      text: error.message || "No se pudo completar el sorteo.",
     });
   }
 }
@@ -363,6 +356,18 @@ document.addEventListener("DOMContentLoaded", () => {
           if (snapshot.empty) {
             contenedorParticipantes.innerHTML = `<p class="no-participantes">Aún no hay participantes en esta sesión. ¡Añade el primero!</p>`;
             return;
+          }
+
+          // =================================================================
+          // LÓGICA PARA MOSTRAR/OCULTAR BOTONES DE ADMINISTRADOR
+          // =================================================================
+          const botonesAdmin = document.querySelectorAll('.oculto-admin');
+          if (snapshot.size >= 2) {
+            // Si hay 2 o más participantes, muestra los botones de admin
+            botonesAdmin.forEach(btn => btn.style.display = 'block');
+          } else {
+            // Si hay menos de 2, los oculta
+            botonesAdmin.forEach(btn => btn.style.display = 'none');
           }
 
           let cardsHTML = "";
