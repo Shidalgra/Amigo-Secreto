@@ -82,53 +82,58 @@ async function agregarParticipanteDesdeFormulario() {
 // FUNCIÓN: GENERAR SORTEO
 // ==========================
 async function generarSorteo() {
-  // Confirmación antes de realizar una acción importante
-  const confirmacion = await Swal.fire({
-    title: '¿Estás seguro?',
-    text: "Se realizará el sorteo y se enviarán los correos a todos los participantes. Esta acción no se puede deshacer.",
-    icon: 'warning',
-    showCancelButton: true,
-    confirmButtonColor: '#28a745',
-    cancelButtonColor: '#d33',
-    confirmButtonText: 'Sí, ¡realizar sorteo!',
-    cancelButtonText: 'Cancelar'
-  });
-
-  if (!confirmacion.isConfirmed) {
-    return;
-  }
-
-  // Mostrar un indicador de carga
-  Swal.fire({
-    title: 'Realizando sorteo...',
-    text: 'Por favor, espera mientras se asignan los amigos secretos y se envían los correos.',
-    allowOutsideClick: false,
-    didOpen: () => {
-      Swal.showLoading();
-    }
-  });
-
   try {
-    const res = await fetch('/.netlify/functions/generar-sorteo', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ sesionId: sesionID })
-    });
+    const participantesRef = db.collection("sesiones").doc(sesionID).collection("participantes");
+    const snapshot = await participantesRef.get();
+    const participantes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Error desconocido en el servidor.');
+    if (participantes.length < 2) {
+      Swal.fire({
+        icon: "error",
+        title: "No hay suficientes participantes",
+        text: "Se necesitan al menos 2 participantes para sortear.",
+      });
+      return;
+    }
+
+    // Validar correos antes de sortear
+    for (const p of participantes) {
+      if (!p.correo || !/^[\w-.]+@([\w-]+\.)+[\w-]{2,}$/.test(p.correo)) {
+        Swal.fire({
+          icon: "error",
+          title: "Correo inválido",
+          text: `El correo de ${p.nombre} no tiene un formato válido.`,
+        });
+        return;
+      }
+    }
+
+    // Mezclar y asignar
+    const asignaciones = [...participantes];
+    asignaciones.sort(() => Math.random() - 0.5);
+
+    const resultados = participantes.map((p, i) => ({
+      de: p.nombre,
+      para: asignaciones[(i + 1) % participantes.length].nombre,
+      correo: p.correo,
+    }));
+
+    // Guardar en Firestore
+    for (const r of resultados) {
+      await participantesRef.doc(r.de).update({ amigoSecreto: r.para });
+    }
 
     Swal.fire({
       icon: "success",
-      title: "¡Sorteo Realizado!",
-      text: data.message || "Los correos han sido enviados a todos los participantes.",
+      text: "Los resultados se enviarán automáticamente a los correos.",
+      timer: 2500,
+      showConfirmButton: false,
     });
 
   } catch (error) {
     Swal.fire({
       icon: "error",
-      title: "Error en el sorteo",
-      text: error.message || "No se pudo completar el sorteo.",
+      title: "Error en      text: error.message,
     });
   }
 }
@@ -337,6 +342,20 @@ document.addEventListener("DOMContentLoaded", () => {
       spanNombreSesion.textContent = sesionGuardada || "No identificada";
     }
 
+    // Asignar eventos a los botones del menú desplegable
+    const btnGenerarMenu = document.getElementById("btnGenerarEmparejamientoMenu");
+    const btnEliminarSesionMenu = document.getElementById("btnEliminarSesionMenu");
+
+    if (btnGenerarMenu) {
+      // La función generarSorteo ya existe.
+      btnGenerarMenu.addEventListener("click", generarSorteo);
+    }
+
+    if (btnEliminarSesionMenu) {
+      // La función handleDeleteSession ya existe.
+      btnEliminarSesionMenu.addEventListener("click", handleDeleteSession);
+    }
+
     // 3. Funcionalidad del formulario para añadir participantes
     const formAnadirParticipante = document.getElementById("formAnadirParticipante");
     if (formAnadirParticipante) {
@@ -355,6 +374,8 @@ document.addEventListener("DOMContentLoaded", () => {
         .onSnapshot((snapshot) => {
           if (snapshot.empty) {
             contenedorParticipantes.innerHTML = `<p class="no-participantes">Aún no hay participantes en esta sesión. ¡Añade el primero!</p>`;
+            // Ocultar botones de admin si no hay participantes
+            document.querySelectorAll('.oculto-admin').forEach(btn => btn.style.display = 'none');
             return;
           }
 
