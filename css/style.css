@@ -23,7 +23,7 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  overflow: hidden;
+  overflow-y: auto; /* Permite el scroll vertical cuando sea necesario */
 }
 
 .oculto-admin {
@@ -957,4 +957,31 @@ body {
         border-radius: 0 0 8px 8px;
         width: 100%;
     }
+}
+
+/* ========================== */
+/* ESTILOS DE SCROLLBAR PERSONALIZADO */
+/* ========================== */
+
+/* Para navegadores Webkit (Chrome, Safari, Edge) */
+::-webkit-scrollbar {
+  width: 10px; /* Ancho de la barra de scroll */
+}
+
+/* El "camino" por donde se mueve la barra */
+::-webkit-scrollbar-track {
+  background: transparent; /* Hacer el track invisible */
+}
+
+/* La barra de scroll en sí (el "pulgar") */
+::-webkit-scrollbar-thumb {
+  background-color: rgba(29, 53, 29, 0.5); /* Verde oscuro semi-transparente de tu paleta */
+  border-radius: 10px;
+  border: 3px solid transparent; /* Espacio alrededor del pulgar para que parezca más delgada */
+  background-clip: content-box;
+}
+
+/* Estilo al hacer hover sobre la propia barra para hacerla más visible */
+::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(50, 86, 50, 0.8); /* Verde un poco más sólido */
 }
