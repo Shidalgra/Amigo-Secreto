@@ -42,14 +42,14 @@
   </header>
 
   <main class="main-content" id="mainFlexContainer">
-    <!-- Contenedor para mostrar el nombre de la sesión activa -->
-    <div class="sesion-activa-info">
-      <h2>Sesión Activa: <span id="nombreSesionActiva">Cargando...</span></h2>
-    </div>
-
     <!-- Nueva sección para añadir participantes -->
     <section class="participantes-form">
-      <h2>Añadir Participante</h2>
+      <div class="form-header">
+        <h2>Añadir Participante</h2>
+        <div class="sesion-activa-info">
+          <h2>Sesión Activa: <span id="nombreSesionActiva">Cargando...</span></h2>
+        </div>
+      </div>
       <form id="formAnadirParticipante" class="form-participante-inline">
         <input type="text" id="nombreParticipante" placeholder="Nombre y Apellido" required>
         <input type="tel" id="telefonoParticipante" placeholder="Teléfono (opcional)">

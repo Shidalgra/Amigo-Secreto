@@ -394,6 +394,14 @@ body {
     font-size: 1.2rem;
 }
 
+/* Nuevo contenedor para el header del formulario de participantes */
+.form-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
 /* Contenedor para el título y el botón de generar */
 .titulo-con-boton {
     display: flex;
@@ -605,8 +613,8 @@ body {
 
 /* Estilo para mostrar la sesión activa en pagina-principal.html */
 .sesion-activa-info {
-  text-align: right;
-  margin-bottom: 15px;
+  text-align: right; /* Mantenemos por si acaso */
+  margin-bottom: 0; /* Eliminamos el margen inferior */
   padding: 10px;
   background-color: rgba(230, 190, 154, 0.2); /* Beige muy claro */
   border-radius: 8px;
@@ -614,7 +622,7 @@ body {
 }
 
 .sesion-activa-info h2 {
-  font-size: 1.1rem;
+  font-size: 1rem; /* Ligeramente más pequeño para que encaje mejor */
   color: #1d351d; /* Verde oscuro de la paleta */
 }
 
