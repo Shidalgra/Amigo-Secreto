@@ -315,10 +315,15 @@ document.addEventListener("DOMContentLoaded", () => {
 // ==========================
 // LÓGICA PARA PAGINA-PRINCIPAL.HTML
 // ==========================
-document.addEventListener("DOMContentLoaded", () => {
-  // Solo ejecutar si estamos en pagina-principal.html
-  if (window.location.pathname.endsWith("pagina-principal.html")) {
-    
+
+/**
+ * Inicializa toda la funcionalidad de la página principal.
+ * Se encarga de configurar menús, mostrar datos de la sesión y cargar participantes.
+ */
+function iniciarPaginaPrincipal() {
+  // Obtenemos el sesionID aquí para asegurar que tenemos el valor más reciente al cargar la página.
+  const sesionID = localStorage.getItem("amigoSecreto_sesionID");
+
     // 1. Funcionalidad del Menú Hamburguesa
     const btnMenu = document.getElementById("btn-menu-hamburguesa");
     const menuDesplegable = document.getElementById("menu-desplegable");
@@ -379,7 +384,7 @@ document.addEventListener("DOMContentLoaded", () => {
           // =================================================================
           const botonesAdmin = document.querySelectorAll('.oculto-admin');
           if (snapshot.size >= 2) {
-            // Si hay 2 o más participantes, muestra los botones de admin
+            // Si hay 2 o más participantes, muestra los botones de admin.
             botonesAdmin.forEach(btn => btn.style.display = 'block');
           } else {
             // Si hay menos de 2, los oculta
@@ -424,5 +429,13 @@ document.addEventListener("DOMContentLoaded", () => {
           contenedorParticipantes.innerHTML = `<p class="no-participantes" style="color: red;">Error al cargar la lista de participantes.</p>`;
         });
     }
+}
+
+// ==========================
+// INICIALIZACIÓN DE PÁGINAS
+// ==========================
+document.addEventListener("DOMContentLoaded", () => {
+  if (window.location.pathname.endsWith("pagina-principal.html")) {
+    iniciarPaginaPrincipal();
   }
 });
