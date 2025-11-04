@@ -21,7 +21,7 @@ body {
 }
 
 .oculto-admin {
-    display: none;
+    display: block;
 }
 
 /* ========================== */
