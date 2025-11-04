@@ -134,6 +134,49 @@ async function generarSorteo() {
 }
 
 // ==========================
+// FUNCIÓN: BORRAR LISTA DE PARTICIPANTES
+// ==========================
+async function borrarListaParticipantes() {
+  if (!sesionID) {
+    Swal.fire("Error", "No se ha identificado una sesión activa.", "error");
+    return;
+  }
+
+  const confirmacion = await Swal.fire({
+    title: '¿Estás seguro?',
+    text: "Se borrarán todos los participantes de la lista actual. Esta acción no se puede deshacer.",
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#d33',
+    cancelButtonColor: '#3085d6',
+    confirmButtonText: 'Sí, ¡borrar lista!',
+    cancelButtonText: 'Cancelar'
+  });
+
+  if (!confirmacion.isConfirmed) {
+    return;
+  }
+
+  try {
+    const participantesRef = db.collection("sesiones").doc(sesionID).collection("participantes");
+    const snapshot = await participantesRef.get();
+
+    if (snapshot.empty) {
+      Swal.fire("Información", "La lista de participantes ya está vacía.", "info");
+      return;
+    }
+
+    const batch = db.batch();
+    snapshot.docs.forEach(doc => batch.delete(doc.ref));
+    await batch.commit();
+
+    Swal.fire("¡Lista Borrada!", "Todos los participantes han sido eliminados.", "success");
+  } catch (error) {
+    Swal.fire("Error", `No se pudo borrar la lista: ${error.message}`, "error");
+  }
+}
+
+// ==========================
 // FUNCIÓN: ELIMINAR SESIÓN
 // ==========================
 async function handleDeleteSession() {
@@ -344,16 +387,24 @@ function iniciarPaginaPrincipal() {
 
     // Asignar eventos a los botones del menú desplegable
     const btnGenerarMenu = document.getElementById("btnGenerarEmparejamientoMenu");
+    const btnBorrarListaMenu = document.getElementById("btnBorrarListaMenu");
     const btnEliminarSesionMenu = document.getElementById("btnEliminarSesionMenu");
+    const btnGenerarPrincipal = document.getElementById("btnGenerarEmparejamientoPrincipal");
 
     if (btnGenerarMenu) {
-      // La función generarSorteo ya existe.
       btnGenerarMenu.addEventListener("click", generarSorteo);
     }
 
+    if (btnBorrarListaMenu) {
+      btnBorrarListaMenu.addEventListener("click", borrarListaParticipantes);
+    }
+
     if (btnEliminarSesionMenu) {
-      // La función handleDeleteSession ya existe.
       btnEliminarSesionMenu.addEventListener("click", handleDeleteSession);
+    }
+
+    if (btnGenerarPrincipal) {
+      btnGenerarPrincipal.addEventListener("click", generarSorteo);
     }
 
     // 3. Funcionalidad del formulario para añadir participantes
