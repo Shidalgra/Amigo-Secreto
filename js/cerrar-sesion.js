@@ -4,8 +4,9 @@ const btnSalirMenu = document.getElementById("btnSalirMenu");
 
 // Función para cerrar sesión
 function cerrarSesion() {
-  // Borrar usuario logueado
-  localStorage.removeItem("usuarioLogueado");
+  // Borrar las claves de sesión guardadas por main.js
+  localStorage.removeItem("amigoSecreto_sesionID");
+  localStorage.removeItem("amigoSecreto_tipoUsuario");
 
   // Redirigir al login
   window.location.href = "index.html";

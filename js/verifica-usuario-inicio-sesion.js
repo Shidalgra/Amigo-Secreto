@@ -3,11 +3,11 @@
 // ==========================
 
 // Nombre de la clave que usamos en localStorage para guardar al usuario logueado
-const USUARIO_KEY = "usuarioLogueado";
+const USUARIO_KEY = "amigoSecreto_sesionID"; // Ahora verifica la clave que main.js guarda
 
 // Función para verificar si hay usuario logueado
 function verificarSesion() {
-  const usuario = localStorage.getItem(USUARIO_KEY);
+  const usuario = localStorage.getItem(USUARIO_KEY); // Verifica si existe el ID de la sesión
 
   if (!usuario) {
     // No hay usuario logueado, redirigir a login

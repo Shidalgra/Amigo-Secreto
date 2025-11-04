@@ -26,7 +26,7 @@ const db = firebase.firestore();
 // ==========================
 const STORAGE_PREFIX = "amigoSecreto_";
 let tipoUsuario = localStorage.getItem(`${STORAGE_PREFIX}tipoUsuario`) || "participante";
-let cursoID = localStorage.getItem(`${STORAGE_PREFIX}cursoID`) || "";
+let sesionID = localStorage.getItem(`${STORAGE_PREFIX}sesionID`) || "";
 
 // ==========================
 // FUNCIÓN: AGREGAR PARTICIPANTE
@@ -61,7 +61,7 @@ async function agregarParticipante() {
   if (!formValues) return;
 
   try {
-    await db.collection("sesiones").doc(cursoID).collection("participantes").add(formValues);
+    await db.collection("sesiones").doc(sesionID).collection("participantes").add(formValues);
 
     Swal.fire({
       icon: "success",
@@ -83,7 +83,7 @@ async function agregarParticipante() {
 // ==========================
 async function generarSorteo() {
   try {
-    const participantesRef = db.collection("sesiones").doc(cursoID).collection("participantes");
+    const participantesRef = db.collection("sesiones").doc(sesionID).collection("participantes");
     const snapshot = await participantesRef.get();
     const participantes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
@@ -144,7 +144,7 @@ async function generarSorteo() {
 // FUNCIÓN: ELIMINAR SESIÓN
 // ==========================
 async function handleDeleteSession() {
-  if (!cursoID) {
+  if (!sesionID) {
     Swal.fire({ icon: "error", title: "Error", text: "No hay sesión activa." });
     return;
   }
@@ -152,7 +152,7 @@ async function handleDeleteSession() {
   const confirm1 = await Swal.fire({
     icon: "warning",
     title: "¿Eliminar sesión?",
-    text: `Esto eliminará la sesión "${cursoID}" y todos sus participantes.`,
+    text: `Esto eliminará la sesión "${sesionID}" y todos sus participantes.`,
     showCancelButton: true,
     confirmButtonText: "Sí, eliminar",
     cancelButtonText: "Cancelar",
@@ -173,17 +173,17 @@ async function handleDeleteSession() {
   if (!confirm2.isConfirmed) return;
 
   try {
-    const participantesRef = db.collection("sesiones").doc(cursoID).collection("participantes");
+    const participantesRef = db.collection("sesiones").doc(sesionID).collection("participantes");
     const snapshot = await participantesRef.get();
 
     const batch = db.batch();
     snapshot.forEach(doc => batch.delete(doc.ref));
     await batch.commit();
 
-    await db.collection("sesiones").doc(cursoID).delete();
+    await db.collection("sesiones").doc(sesionID).delete();
 
     localStorage.removeItem(`${STORAGE_PREFIX}tipoUsuario`);
-    localStorage.removeItem(`${STORAGE_PREFIX}cursoID`);
+    localStorage.removeItem(`${STORAGE_PREFIX}sesionID`);
 
     Swal.fire({
       icon: "success",
@@ -294,7 +294,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // Guardar sesión local
         localStorage.setItem("amigoSecreto_tipoUsuario", "participante");
-        localStorage.setItem("amigoSecreto_cursoID", username);
+        localStorage.setItem("amigoSecreto_sesionID", username);
 
         Swal.fire({
           icon: "success",
@@ -304,7 +304,7 @@ document.addEventListener("DOMContentLoaded", () => {
           showConfirmButton: false,
         }).then(() => {
           // Redirigir a la página principal del grupo
-          window.location.href = "dashboard.html";
+          window.location.href = "pagina-principal.html";
         });
 
       } catch (error) {
