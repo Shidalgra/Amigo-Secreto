@@ -129,13 +129,27 @@ exports.handler = async (event, context) => {
     });
     await batchWrite.commit();
 
-    // Enviar todos los correos
-    await resend.emails.send(correosParaEnviar);
+    // Enviar todos los correos de forma concurrente y recopilar resultados
+    const resultadosEnvio = await Promise.allSettled(
+      correosParaEnviar.map(email => resend.emails.send(email))
+    );
+
+    const enviadosConExito = [];
+    resultadosEnvio.forEach((resultado, index) => {
+      if (resultado.status === 'fulfilled') {
+        // Si el correo se envió, agregamos el ID del participante a la lista de éxito
+        const participanteId = emparejamientos[index].de.id;
+        enviadosConExito.push(participanteId);
+      } else {
+        // Opcional: Registrar si un correo específico falló
+        console.error(`Falló el envío para ${correosParaEnviar[index].to}:`, resultado.reason);
+      }
+    });
 
     // 6. RESPUESTA DE ÉXITO
     return {
       statusCode: 200,
-      body: JSON.stringify({ message: `¡Sorteo realizado y ${correosParaEnviar.length} correos enviados con éxito!` }),
+      body: JSON.stringify({ message: `Sorteo finalizado. Se enviaron ${enviadosConExito.length} de ${correosParaEnviar.length} correos.`, enviados: enviadosConExito }),
     };
 
   } catch (error) {

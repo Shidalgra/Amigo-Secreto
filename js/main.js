@@ -118,10 +118,23 @@ async function generarSorteo() {
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Error desconocido en el servidor.');
 
+    // Lógica para marcar visualmente los participantes que recibieron correo
+    if (data.enviados && data.enviados.length > 0) {
+      data.enviados.forEach(participanteId => {
+        const card = document.querySelector(`.participante-card[data-id="${participanteId}"]`);
+        if (card) {
+          const nombreElement = card.querySelector('.card-nombre');
+          if (nombreElement && !nombreElement.textContent.includes('✅')) {
+            nombreElement.textContent += ' ✅';
+          }
+        }
+      });
+    }
+
     Swal.fire({
       icon: "success",
       title: "¡Sorteo Realizado!",
-      text: data.message || "Los correos han sido enviados a todos los participantes.",
+      text: data.message || "El proceso ha finalizado.",
     });
 
   } catch (error) {
@@ -446,7 +459,7 @@ function iniciarPaginaPrincipal() {
           snapshot.forEach(doc => {
             const participante = doc.data();
             cardsHTML += `
-              <div class="participante-card">
+              <div class="participante-card" data-id="${doc.id}">
                 <div class="card-header">
                   <strong class="card-nombre">${participante.nombre}</strong>
                   <button class="btn-borrar-participante" data-id="${doc.id}" title="Eliminar participante">
