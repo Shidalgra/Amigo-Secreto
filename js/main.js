@@ -318,3 +318,41 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 });
+
+// ==========================
+// LÓGICA PARA PAGINA-PRINCIPAL.HTML
+// ==========================
+document.addEventListener("DOMContentLoaded", () => {
+  // Solo ejecutar si estamos en pagina-principal.html
+  if (window.location.pathname.endsWith("pagina-principal.html")) {
+    
+    // 1. Funcionalidad del Menú Hamburguesa
+    const btnMenu = document.getElementById("btn-menu-hamburguesa");
+    const menuDesplegable = document.getElementById("menu-desplegable");
+
+    if (btnMenu && menuDesplegable) {
+      btnMenu.addEventListener("click", () => {
+        btnMenu.classList.toggle("active");
+        menuDesplegable.classList.toggle("active");
+      });
+    }
+
+    // 2. Mostrar nombre de la sesión activa
+    const spanNombreSesion = document.getElementById("nombreSesionActiva");
+    if (spanNombreSesion) {
+      const sesionGuardada = localStorage.getItem("amigoSecreto_sesionID");
+      spanNombreSesion.textContent = sesionGuardada || "No identificada";
+    }
+
+    // 3. Funcionalidad del formulario para añadir participantes
+    const formAnadirParticipante = document.getElementById("formAnadirParticipante");
+    if (formAnadirParticipante) {
+      formAnadirParticipante.addEventListener("submit", (e) => {
+        e.preventDefault(); // Evitar que la página se recargue
+        // La función agregarParticipante() ya existe y usa SweetAlert para pedir los datos.
+        // La llamamos directamente.
+        agregarParticipante();
+      });
+    }
+  }
+});

@@ -25,19 +25,3 @@ function verificarSesion() {
 
 // Ejecutar verificación al cargar la página
 document.addEventListener("DOMContentLoaded", verificarSesion);
-
-// ==========================
-// Funcionalidad de Cerrar Sesión
-// ==========================
-function cerrarSesion() {
-  localStorage.removeItem(USUARIO_KEY);
-  window.location.href = "index.html";
-}
-
-// Botón en el footer
-const btnSalirFooter = document.getElementById("btnSalir");
-// Botón en el menú
-const btnSalirMenu = document.getElementById("btnSalirMenu");
-
-if (btnSalirFooter) btnSalirFooter.addEventListener("click", cerrarSesion);
-if (btnSalirMenu) btnSalirMenu.addEventListener("click", cerrarSesion);
