@@ -14,13 +14,26 @@ btnIngresar.addEventListener("click", async () => {
     const data = await res.json();
 
     if (res.ok) {
-      // ✅ Guardamos que el usuario inició sesión
+      // Guardamos que el usuario inició sesión
       localStorage.setItem("usuarioLogueado", username);
 
-      // Redirigimos a la página principal
-      window.location.href = "pagina-principal.html";
+      // Mostramos Swal de bienvenida genérico
+      Swal.fire({
+        icon: "success",
+        title: `¡Hola, ${username}!`,
+        text: "Has iniciado sesión correctamente. Serás redirigido a la página principal...",
+        timer: 2000,
+        timerProgressBar: true,
+        showConfirmButton: false
+      });
+
+      // Redirigir después de 2 segundos
+      setTimeout(() => {
+        window.location.href = "pagina-principal.html";
+      }, 2000);
+
     } else {
-      // ❌ Mostrar error
+      // Mostrar error
       Swal.fire({
         icon: "error",
         title: "Error al ingresar",

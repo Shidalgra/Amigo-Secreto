@@ -101,7 +101,11 @@ exports.handler = async (event, context) => {
     return {
       statusCode: 201,
       headers,
-      body: JSON.stringify({ message: `Sesión "${username}" creada con éxito.` })
+      body: JSON.stringify({
+        success: true,                // <-- para que el cliente sepa que fue exitoso
+        message: `Sesión "${username}" creada con éxito.`,
+        username: username             // <-- para saludar al usuario desde el cliente
+      })
     };
 
   } catch (error) {
