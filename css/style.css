@@ -35,7 +35,7 @@ body {
 .exam-title {
   display: flex;
   width: 100%;
-  background-color: #072D4E; /* Azul oscuro principal */
+  background-color: #6f0f11; /* Rojo oscuro de la paleta */
   color: white;
   padding: 20px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
@@ -72,7 +72,7 @@ body {
 }
 
 .exam-title .intento-panel {
-    background-color: #004080; /* Azul secundario */
+    background-color: #325632; /* Verde de la paleta */
     color: white;
     padding: 5px 10px;
     margin-top: 10px;
@@ -103,7 +103,7 @@ body {
 
 .login-box h2 {
   text-align: center;
-  color: #004080; /* Azul secundario */
+  color: #6f0f11; /* Rojo oscuro de la paleta */
   margin-bottom: 15px; /* Reducido */
   font-size: 1.5rem; /* Reducido */
 }
@@ -150,8 +150,8 @@ body {
 
 /* Estilo específico para el combo box para que coincida con el menú */
 .login-box select {
-    border: 1px solid #004080; /* Borde consistente con el menú */
-    background-color: #072D4E; /* Color de fondo del menú */
+    border: 1px solid #6f0f11; /* Borde consistente con el menú */
+    background-color: #8b181d; /* Color de fondo del menú */
     color: white; /* Color de texto del menú */
     cursor: pointer;
 }
@@ -160,18 +160,18 @@ body {
 .login-box .submit {
   padding: 10px; /* Reducido */
   border: none;
-  background-color: #004080; /* Azul secundario */
+  background-color: #8b181d; /* Rojo de la paleta */
   color: white;
   cursor: pointer;
   border-radius: 5px;
   font-weight: 700;
   margin-top: 5px; /* Reducido */
-  transition: background-color 0.2s, box-shadow 0.1s, transform 0.1s;
+  transition: background-color 0.2s, box-shadow 0.2s, transform 0.2s;
 }
 
 .login-box .submit:hover {
-  background-color: #0056b3;
-  box-shadow: 0 0 15px rgba(0, 86, 179, 0.5);
+  background-color: #6f0f11; /* Rojo más oscuro */
+  box-shadow: 0 0 15px rgba(111, 15, 17, 0.5);
 }
 
 .login-box .submit:active {
@@ -188,7 +188,7 @@ body {
 }
 
 .register-link a {
-    color: #0056b3;
+    color: #8b181d; /* Rojo de la paleta */
     font-weight: 600;
     text-decoration: none;
 }
@@ -242,8 +242,8 @@ body {
     display: none; /* Oculto por defecto */
     position: absolute;
     top: 60px;
-    left: 0;
-    background-color: #072D4E; /* Azul oscuro principal */
+    left: 0;    
+    background-color: #6f0f11; /* Rojo oscuro de la paleta */
     border-radius: 8px;
     box-shadow: 0 8px 16px rgba(0,0,0,0.3);
     z-index: 1000;
@@ -267,7 +267,7 @@ body {
     text-align: left;
     font-size: 1rem;
     cursor: pointer;
-    border-bottom: 1px solid #004080; /* Separador azul */
+    border-bottom: 1px solid #8b181d; /* Separador rojo */
 }
 
 .menu-desplegable button:last-child {
@@ -275,7 +275,7 @@ body {
 }
 
 .menu-desplegable button:hover {
-    background-color: #004080;
+    background-color: #8b181d;
 }
 
 /* Búsqueda (Derecha Fija en Header) */
@@ -325,7 +325,7 @@ body {
 }
 
 .bienvenida h2 {
-  color: #004080;
+  color: #6f0f11; /* Rojo oscuro de la paleta */
   font-weight: 700;
   margin-bottom: 5px;
 }
@@ -347,16 +347,16 @@ body {
 .form-mensaje .submit {
   padding: 10px 15px;
   border: none;
-  background-color: #004080;
+  background-color: #8b181d; /* Rojo de la paleta */
   color: white;
   cursor: pointer;
   border-radius: 0 8px 8px 0;
   font-weight: 600;
-  transition: background-color 0.2s, box-shadow 0.1s, transform 0.1s;
+  transition: background-color 0.2s, box-shadow 0.2s, transform 0.2s;
 }
 
 .form-mensaje .submit:hover {
-  background-color: #0056b3;
+  background-color: #6f0f11; /* Rojo más oscuro */
 }
 
 .form-mensaje .submit:active {
@@ -385,7 +385,7 @@ body {
 
 .participantes-form h2,
 .lista-participantes-container h2 {
-    color: #004080;
+    color: #6f0f11; /* Rojo oscuro de la paleta */
     font-weight: 700;
     margin-bottom: 15px;
     border-bottom: 2px solid #f0f0f0;
@@ -430,7 +430,7 @@ body {
 
 /* Estilo específico y amigable para el botón de Añadir Participante */
 .form-participante-inline button.submit {
-    background-color: #d9534f; /* Un rojo amigable y festivo */
+    background-color: #8b181d; /* Rojo de la paleta */
     color: white;
     border: none;
     border-radius: 8px;
@@ -441,7 +441,7 @@ body {
 }
 
 .form-participante-inline button.submit:hover {
-    background-color: #c9302c; /* Un rojo un poco más oscuro al pasar el ratón */
+    background-color: #6f0f11; /* Rojo más oscuro */
     box-shadow: 0 4px 8px rgba(0,0,0,0.15);
     transform: translateY(-2px); /* Efecto de elevación */
 }
@@ -472,8 +472,8 @@ body {
 }
 
 .tabla-participantes th {
-    background-color: #eef4fc;
-    color: #004080;
+    background-color: rgba(230, 190, 154, 0.2); /* Beige muy claro */
+    color: #6f0f11; /* Rojo oscuro */
     font-weight: 600;
     text-transform: uppercase;
     font-size: 0.85rem;
@@ -506,7 +506,7 @@ body {
 }
 
 .btn-borrar-participante:hover {
-    color: #d9534f;
+    color: #8b181d; /* Rojo de la paleta */
 }
 
 /* ================================= */
@@ -524,7 +524,7 @@ body {
   background-color: #fff;
   border-radius: 10px;
   box-shadow: 0 2px 5px rgba(0,0,0,0.08);
-  border-left: 5px solid #007bff; /* Borde azul acento */
+  border-left: 5px solid #325632; /* Verde de la paleta */
   transition: transform 0.2s, box-shadow 0.2s;
   display: flex;
   flex-direction: column;
@@ -545,7 +545,7 @@ body {
 
 .card-nombre {
   font-weight: 600;
-  color: #072D4E;
+  color: #6f0f11; /* Rojo oscuro de la paleta */
   font-size: 1.1rem;
 }
 
@@ -577,7 +577,7 @@ body {
 
 /* Estilo para el botón principal "Generar Emparejamiento" */
 .titulo-con-boton button.submit {
-    background-color: #28a745; /* Un verde "éxito" amigable */
+    background-color: #8b181d; /* Rojo de la paleta */
     color: white;
     border: none;
     border-radius: 8px;
@@ -590,7 +590,7 @@ body {
 }
 
 .titulo-con-boton button.submit:hover {
-    background-color: #218838; /* Verde más oscuro */
+    background-color: #6f0f11; /* Rojo más oscuro */
     box-shadow: 0 4px 8px rgba(0,0,0,0.15);
     transform: translateY(-2px);
 }
@@ -606,14 +606,14 @@ body {
   text-align: right;
   margin-bottom: 15px;
   padding: 10px;
-  background-color: #eef4fc;
+  background-color: rgba(230, 190, 154, 0.2); /* Beige muy claro */
   border-radius: 8px;
-  border-left: 5px solid #0056b3; /* Borde azul más oscuro */
+  border-left: 5px solid #325632; /* Verde de la paleta */
 }
 
 .sesion-activa-info h2 {
   font-size: 1.1rem;
-  color: #072D4E;
+  color: #1d351d; /* Verde oscuro de la paleta */
 }
 
 /* Estilos para la tabla de resultados del sorteo en el modal */
@@ -721,9 +721,9 @@ body {
     bottom: 0;
     left: 0;
     width: 100%;
-    z-index: 100;
-    background-color: #000d1a;
-    color: white;
+    z-index: 100;    
+    background-color: #1d351d; /* Verde oscuro de la paleta */
+    color: #e6be9a; /* Beige de la paleta */
     box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.7);
     font-size: 0.85rem;
     display: flex;
@@ -755,17 +755,17 @@ body {
 
 /* Estilo para el botón de Salir */
 #btnSalir {
-    background-color: #007bff; 
+    background-color: #325632; /* Verde de la paleta */
     color: white;
 }
 
 #btnSalir:hover {
-    background-color: #0056b3;
-    box-shadow: 0 0 10px rgba(0, 123, 255, 0.5);
+    background-color: #1d351d; /* Verde oscuro */
+    box-shadow: 0 0 10px rgba(29, 53, 29, 0.5);
 }
 
 #btnSalir:active {
-    background-color: #004080;
+    background-color: #1d351d;
     transform: scale(0.98);
     box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.3);
 }
@@ -829,25 +829,25 @@ body {
 }
 
 .modal-content h3 {
-    border-bottom: 2px solid #004080;
+    border-bottom: 2px solid #8b181d; /* Rojo de la paleta */
     padding-bottom: 5px;
     margin-bottom: 10px;
-    color: #004080;
+    color: #6f0f11; /* Rojo oscuro de la paleta */
     font-size: 1.3rem;
 }
 
 /* Estilo para cada tarjeta de grupo */
 .grupo-card {
-    border: 1px solid #004080;
+    border: 1px solid #8b181d; /* Rojo de la paleta */
     padding: 10px;
     margin-bottom: 15px;
-    border-radius: 8px;
-    background-color: #e6f0ff; 
+    border-radius: 8px;    
+    background-color: rgba(230, 190, 154, 0.2); /* Beige muy claro */
 }
 
 .grupo-card h3 {
-    font-size: 1.1rem;
-    color: #004080;
+    font-size: 1.1rem;    
+    color: #6f0f11; /* Rojo oscuro de la paleta */
     border-bottom: none;
     margin-top: 0;
     padding-bottom: 0;
@@ -865,7 +865,7 @@ body {
     color: #333;
     line-height: 1.4;
     padding-left: 10px;
-    border-left: 3px solid #007bff;
+    border-left: 3px solid #325632; /* Verde de la paleta */
     margin-bottom: 3px;
 }
 
