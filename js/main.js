@@ -3,8 +3,6 @@
 // ==========================
 // La configuración de cursos fijos ya no es necesaria. Las sesiones se crearán dinámicamente.
 
-
-
 // ==========================
 // CONFIGURACIÓN DE FIREBASE
 // ==========================
@@ -303,6 +301,60 @@ document.addEventListener("DOMContentLoaded", () => {
           icon: "error",
           title: "Error al crear la sesión",
           text: error.message,
+        });
+      }
+    });
+  }
+});
+
+// ==========================
+// EVENTO: BOTÓN INGRESAR SESIÓN
+// ==========================
+document.addEventListener("DOMContentLoaded", () => {
+  const btnIngresar = document.getElementById("btnIngresar");
+  if (btnIngresar) {
+    btnIngresar.addEventListener("click", async (e) => {
+      e.preventDefault();
+
+      const username = document.getElementById("username").value.trim();
+      const password = document.getElementById("password").value.trim();
+
+      if (!username || !password) {
+        Swal.fire("Campos incompletos", "Por favor ingresa usuario y contraseña.", "warning");
+        return;
+      }
+
+      try {
+        const res = await fetch("/.netlify/functions/ingresar-sesion", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, password }),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) throw new Error(data.error || "Error al ingresar.");
+
+        // Guardar sesión local
+        localStorage.setItem("amigoSecreto_tipoUsuario", "participante");
+        localStorage.setItem("amigoSecreto_cursoID", username);
+
+        Swal.fire({
+          icon: "success",
+          title: "Sesión iniciada",
+          text: "Bienvenido a tu grupo de Amigo Secreto 🎁",
+          timer: 2500,
+          showConfirmButton: false,
+        }).then(() => {
+          // Redirigir a la página principal del grupo
+          window.location.href = "dashboard.html";
+        });
+
+      } catch (error) {
+        Swal.fire({
+          icon: "error",
+          title: "Error de acceso",
+          text: error.message || "No se pudo ingresar a la sesión.",
         });
       }
     });
