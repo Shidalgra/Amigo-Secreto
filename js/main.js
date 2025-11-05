@@ -17,113 +17,108 @@ if (!firebase.apps.length) {
 const db = firebase.firestore();
 
 // ==========================
-// EVENTO: BOTÓN REGISTRAR SESIÓN
+// CONFIGURACIÓN EMAILJS
 // ==========================
-document.addEventListener("DOMContentLoaded", () => {
-  const btnRegistrar = document.getElementById("btnRegistrar");
-  if (btnRegistrar) {
-    btnRegistrar.addEventListener("click", async (e) => {
-      e.preventDefault();
-
-      const username = document.getElementById("username").value.trim();
-      const password = document.getElementById("password").value.trim();
-      const confirmPassword = document.getElementById("confirmPassword").value.trim();
-
-      if (!username || !password || !confirmPassword) {
-        Swal.fire("Campos incompletos", "Por favor llena todos los campos.", "warning");
-        return;
-      }
-
-      if (password !== confirmPassword) {
-        Swal.fire("Error", "Las contraseñas no coinciden.", "error");
-        return;
-      }
-
-      try {
-        const res = await fetch("/.netlify/functions/crear-sesion", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ username, password }),
-        });
-
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || "Error al crear la sesión.");
-
-        document.getElementById("username").value = "";
-        document.getElementById("password").value = "";
-        document.getElementById("confirmPassword").value = "";
-
-        Swal.fire({
-          icon: "success",
-          title: "Sesión creada correctamente",
-          text: `La sesión "${data.username}" ha sido creada. Viajando a la página de Inicio de Sesión...`,
-          timer: 3000,
-          showConfirmButton: false,
-          timerProgressBar: true,
-        }).then(() => {
-          window.location.href = "index.html";
-        });
-
-      } catch (error) {
-        console.error("Error:", error);
-        Swal.fire({
-          icon: "error",
-          title: "Error al crear la sesión",
-          text: error.message,
-        });
-      }
-    });
+(function() {
+  if (typeof emailjs !== 'undefined' && emailjs.init) {
+    try { emailjs.init("4YuI0Acrrnq98FLr5"); } 
+    catch (e) { console.warn("EmailJS init fallo:", e); }
   }
-});
+})();
+
+async function enviarCorreoAmigoSecreto(nombre, correo, codigo) {
+  if (!correo) return false;
+  const templateParams = { to_name: nombre, to_email: correo, codigo_unico: codigo };
+  try {
+    if (!emailjs || !emailjs.send) return false;
+    const resp = await emailjs.send("service_i2kt2cq", "template_59om0zt", templateParams);
+    console.log(`✅ Correo enviado a ${nombre} (${correo}) — status: ${resp.status}`);
+    return true;
+  } catch (err) { console.error("❌ Error al enviar correo a", correo, err); return false; }
+}
 
 // ==========================
-// EVENTO: BOTÓN INGRESAR SESIÓN
+// VARIABLES
 // ==========================
-document.addEventListener("DOMContentLoaded", () => {
-  const btnIngresar = document.getElementById("btnIngresar");
-  if (btnIngresar) {
-    btnIngresar.addEventListener("click", async (e) => {
-      e.preventDefault();
+const STORAGE_PREFIX = "amigoSecreto_";
 
-      const username = document.getElementById("username").value.trim();
-      const password = document.getElementById("password").value.trim();
+// ==========================
+// REGISTRAR SESIÓN
+// ==========================
+const btnRegistrar = document.getElementById("btnRegistrar");
+if (btnRegistrar) {
+  btnRegistrar.addEventListener("click", async (e) => {
+    e.preventDefault();
+    const username = document.getElementById("username").value.trim();
+    const password = document.getElementById("password").value.trim();
+    const confirmPassword = document.getElementById("confirmPassword").value.trim();
 
-      if (!username || !password) {
-        Swal.fire("Campos incompletos", "Por favor ingresa usuario y contraseña.", "warning");
-        return;
-      }
+    if (!username || !password || !confirmPassword) {
+      Swal.fire("Campos incompletos", "Por favor llena todos los campos.", "warning");
+      return;
+    }
+    if (password !== confirmPassword) {
+      Swal.fire("Error", "Las contraseñas no coinciden.", "error");
+      return;
+    }
 
-      try {
-        const res = await fetch("/.netlify/functions/ingresar-sesion", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ username, password }),
-        });
+    try {
+      const res = await fetch("/.netlify/functions/crear-sesion", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Error al crear la sesión.");
+      document.getElementById("username").value = "";
+      document.getElementById("password").value = "";
+      document.getElementById("confirmPassword").value = "";
+      Swal.fire({
+        icon: "success",
+        title: "Sesión creada correctamente",
+        text: `La sesión "${data.username}" ha sido creada.`,
+        timer: 3000,
+        showConfirmButton: false,
+        timerProgressBar: true,
+      }).then(() => { window.location.href = "index.html"; });
+    } catch (error) {
+      console.error("Error:", error);
+      Swal.fire({ icon: "error", title: "Error al crear la sesión", text: error.message });
+    }
+  });
+}
 
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || "Error al ingresar.");
+// ==========================
+// INGRESAR SESIÓN
+// ==========================
+const btnIngresar = document.getElementById("btnIngresar");
+if (btnIngresar) {
+  btnIngresar.addEventListener("click", async (e) => {
+    e.preventDefault();
+    const username = document.getElementById("username").value.trim();
+    const password = document.getElementById("password").value.trim();
+    if (!username || !password) { Swal.fire("Campos incompletos", "Ingresa usuario y contraseña.", "warning"); return; }
 
-        localStorage.setItem("amigoSecreto_tipoUsuario", "participante");
-        localStorage.setItem("amigoSecreto_sesionID", username);
-
-        Swal.fire({
-          icon: "success",
-          title: `Sesión iniciada: "${data.username}"`,
-          text: "Bienvenido a tu grupo de Amigo Secreto 🎁. Viajando a la página principal...",
-          timer: 2500,
-          showConfirmButton: false,
-          timerProgressBar: true,
-        }).then(() => {
-          window.location.href = "pagina-principal.html";
-        });
-
-      } catch (error) {
-        Swal.fire({
-          icon: "error",
-          title: "Error de acceso",
-          text: error.message || "No se pudo ingresar a la sesión.",
-        });
-      }
-    });
-  }
-});
+    try {
+      const res = await fetch("/.netlify/functions/ingresar-sesion", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Error al ingresar.");
+      localStorage.setItem(`${STORAGE_PREFIX}tipoUsuario`, "participante");
+      localStorage.setItem(`${STORAGE_PREFIX}sesionID`, username);
+      Swal.fire({
+        icon: "success",
+        title: `Sesión iniciada "${data.username}"`,
+        text: "Bienvenido 🎁. Redirigiendo a la página principal.",
+        timer: 2500,
+        showConfirmButton: false,
+        timerProgressBar: true,
+      }).then(() => { window.location.href = "pagina-principal.html"; });
+    } catch (error) {
+      Swal.fire({ icon: "error", title: "Error de acceso", text: error.message || "No se pudo ingresar." });
+    }
+  });
+}
