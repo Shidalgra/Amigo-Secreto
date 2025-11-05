@@ -1,18 +1,14 @@
+// netlify/functions/generar-sorte.js
 // Importamos las "herramientas" que instalamos
 const admin = require('firebase-admin');
-const { Resend } = require('resend');
 const CryptoJS = require('crypto-js');
-const { v4: uuid } = require('uuid'); // Cambio aquí
+const { v4: uuid } = require('uuid');
 
 // --- CONFIGURACIÓN DE SERVICIOS ---
 // Estas variables las configuraremos en Netlify para mantenerlas seguras.
 
 // Clave secreta para cifrar los resultados. ¡Debe ser una frase larga y segura!
 const ENCRYPTION_SECRET_KEY = process.env.ENCRYPTION_SECRET_KEY;
-
-// Configuración para enviar correos con Resend
-const resend = new Resend(process.env.RESEND_API_KEY);
-const fromEmail = process.env.FROM_EMAIL; // El correo desde el que se enviarán los emails
 
 // Configuración para conectar con Firebase de forma segura (como administrador)
 // Solo inicializar si no hay apps existentes
@@ -27,7 +23,6 @@ if (admin.apps.length === 0) {
 const db = admin.firestore();
 
 // --- LÓGICA PRINCIPAL DE LA FUNCIÓN ---
-
 exports.handler = async (event, context) => {
   // Solo permitimos que esta función se llame con el método POST
   if (event.httpMethod !== 'POST') {
@@ -37,7 +32,7 @@ exports.handler = async (event, context) => {
   try {
     // 1. OBTENER DATOS DE LA SOLICITUD
     // El ID de la sesión nos lo enviará la página principal.
-    const { sesionId } = JSON.parse(event.body);
+    const { sesionId } = JSON.parse(event.body || '{}');
     if (!sesionId) {
       return { statusCode: 400, body: JSON.stringify({ error: 'Falta el ID de la sesión.' }) };
     }
@@ -52,7 +47,7 @@ exports.handler = async (event, context) => {
 
     // Validar que todos tengan correo
     if (participantes.some(p => !p.correo)) {
-        return { statusCode: 400, body: JSON.stringify({ error: 'Todos los participantes deben tener un correo electrónico.' }) };
+      return { statusCode: 400, body: JSON.stringify({ error: 'Todos los participantes deben tener un correo electrónico.' }) };
     }
 
     // 3. REALIZAR EL SORTEO
@@ -79,24 +74,30 @@ exports.handler = async (event, context) => {
 
     emparejamientos.forEach(par => {
       const { de, a } = par;
-      const codigoConsulta = `${sesionId}-${uuid().substring(0, 8)}`; // Y cambio aquí
+      const codigoConsulta = `${sesionId}-${uuid().substring(0, 8)}`;
 
       // Ciframos el nombre de la persona a la que se le regala
       const asignacionCifrada = CryptoJS.AES.encrypt(a.nombre, ENCRYPTION_SECRET_KEY).toString();
-      
-      // Preparamos los datos para guardar en Firestore
+
+      // Preparamos los datos para guardar en Firestore (incluimos correo del participante "de")
       const resultado = {
         participante: de.nombre,
+        correo: de.correo || null,
         codigoConsulta: codigoConsulta,
         asignacionCifrada: asignacionCifrada,
         fechaSorteo: admin.firestore.FieldValue.serverTimestamp()
       };
       resultadosParaGuardar.push(resultado);
-      resultadosParaAdmin.push({ participante: de.nombre, codigo: codigoConsulta });
+
+      // Lo que devolvemos al frontend (para mostrar y para enviar correos desde el navegador)
+      resultadosParaAdmin.push({
+        participante: de.nombre,
+        correo: de.correo || null,
+        codigo: codigoConsulta
+      });
     });
 
     // 5. EJECUTAR OPERACIONES EN BATCH (TODO O NADA)
-    
     // Borrar sorteo anterior si existe
     const sorteoAnterior = await db.collection('sesiones').doc(sesionId).collection('sorteo').get();
     if (!sorteoAnterior.empty) {
@@ -117,14 +118,14 @@ exports.handler = async (event, context) => {
     // 6. RESPUESTA DE ÉXITO
     return {
       statusCode: 200,
-      body: JSON.stringify({ 
+      body: JSON.stringify({
         message: `¡Sorteo realizado con éxito!`,
-        resultados: resultadosParaAdmin // Devolvemos los códigos
+        resultados: resultadosParaAdmin // Devolvemos los códigos con correo
       }),
     };
 
   } catch (error) {
-    console.error('Error en la función generar-sorteo:', error);
+    console.error('Error en la función generar-sorte:', error);
     return {
       statusCode: 500,
       body: JSON.stringify({ error: 'Ocurrió un error interno en el servidor.' }),

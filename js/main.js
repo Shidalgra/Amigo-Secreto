@@ -1,3 +1,4 @@
+// js/main.js
 // ==========================
 // CONFIGURACIÓN FIREBASE
 // ==========================
@@ -20,6 +21,50 @@ if (!firebase.apps.length) {
   firebase.initializeApp(firebaseConfig);
 }
 const db = firebase.firestore();
+
+// ==========================
+// CONFIGURACIÓN EMAILJS (añadida)
+// ==========================
+// Nota: asegúrate de haber incluido el script SDK de EmailJS en tu HTML:
+// <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+(function() {
+  if (typeof emailjs !== 'undefined' && emailjs.init) {
+    try {
+      emailjs.init("4YuI0Acrrnq98FLr5"); // Public Key
+    } catch (e) {
+      console.warn("EmailJS init fallo:", e);
+    }
+  } else {
+    console.warn("EmailJS SDK no encontrado. Asegúrate de incluir el script en el HTML.");
+  }
+});
+
+// Función para enviar correo usando EmailJS
+async function enviarCorreoAmigoSecreto(nombre, correo, codigo) {
+  if (!correo) {
+    console.warn("No hay correo para:", nombre);
+    return false;
+  }
+
+  const templateParams = {
+    to_name: nombre,
+    to_email: correo,
+    codigo_unico: codigo
+  };
+
+  try {
+    if (typeof emailjs === 'undefined' || !emailjs.send) {
+      console.error("EmailJS no está disponible en el cliente.");
+      return false;
+    }
+    const resp = await emailjs.send("service_i2kt2cq", "template_59om0zt", templateParams);
+    console.log(`✅ Correo enviado a ${nombre} (${correo}) — status: ${resp.status}`);
+    return true;
+  } catch (err) {
+    console.error("❌ Error al enviar correo a", correo, err);
+    return false;
+  }
+}
 
 // ==========================
 // VARIABLES Y CONSTANTES
@@ -109,7 +154,7 @@ async function generarSorteo() {
   });
 
   try {
-    const res = await fetch('/.netlify/functions/generar-sorteo', {
+    const res = await fetch('/.netlify/functions/generar-sorte', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ sesionId: sesionID })
@@ -126,9 +171,23 @@ async function generarSorteo() {
           <thead><tr><th>Participante</th><th>Código de Consulta</th></tr></thead>
           <tbody>
       `;
-      data.resultados.forEach(res => {
-        resultadosHtml += `<tr><td>${res.participante}</td><td class="codigo-consulta">${res.codigo}</td></tr>`;
-      });
+
+      // Enviar correos a cada participante y construir la tabla
+      for (const resItem of data.resultados) {
+        resultadosHtml += `<tr><td>${resItem.participante}</td><td class="codigo-consulta">${resItem.codigo}</td></tr>`;
+
+        // Enviar correo con EmailJS (se hace desde el navegador)
+        try {
+          if (resItem.correo && resItem.correo.trim() !== "") {
+            await enviarCorreoAmigoSecreto(resItem.participante, resItem.correo, resItem.codigo);
+          } else {
+            console.warn("Participante sin correo:", resItem.participante);
+          }
+        } catch (err) {
+          console.error("Error enviando correo a", resItem.participante, err);
+        }
+      }
+
       resultadosHtml += '</tbody></table>';
 
       Swal.fire({
@@ -379,7 +438,6 @@ document.addEventListener("DOMContentLoaded", () => {
 // ==========================
 // LÓGICA PARA PAGINA-PRINCIPAL.HTML
 // ==========================
-
 /**
  * Inicializa toda la funcionalidad de la página principal.
  * Se encarga de configurar menús, mostrar datos de la sesión y cargar participantes.
