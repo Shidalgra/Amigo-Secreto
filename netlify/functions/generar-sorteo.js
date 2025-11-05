@@ -5,13 +5,10 @@ const CryptoJS = require('crypto-js');
 const { v4: uuid } = require('uuid');
 
 // --- CONFIGURACIÓN DE SERVICIOS ---
-// Estas variables las configuraremos en Netlify para mantenerlas seguras.
-
 // Clave secreta para cifrar los resultados. ¡Debe ser una frase larga y segura!
 const ENCRYPTION_SECRET_KEY = process.env.ENCRYPTION_SECRET_KEY;
 
-// Configuración para conectar con Firebase de forma segura (como administrador)
-// Solo inicializar si no hay apps existentes
+// Inicializar Firebase Admin solo si no hay apps existentes
 if (admin.apps.length === 0) {
   const serviceAccount = JSON.parse(
     Buffer.from(process.env.FIREBASE_SERVICE_ACCOUNT_KEY, 'base64').toString('utf-8')
@@ -24,14 +21,12 @@ const db = admin.firestore();
 
 // --- LÓGICA PRINCIPAL DE LA FUNCIÓN ---
 exports.handler = async (event, context) => {
-  // Solo permitimos que esta función se llame con el método POST
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: 'Method Not Allowed' };
   }
 
   try {
     // 1. OBTENER DATOS DE LA SOLICITUD
-    // El ID de la sesión nos lo enviará la página principal.
     const { sesionId } = JSON.parse(event.body || '{}');
     if (!sesionId) {
       return { statusCode: 400, body: JSON.stringify({ error: 'Falta el ID de la sesión.' }) };
@@ -60,7 +55,7 @@ exports.handler = async (event, context) => {
       let problemas = false;
       for (let i = 0; i < da_a.length; i++) {
         if (da_a[i].id === recibe_de[i].id) {
-          problemas = true; // A alguien le tocó regalarse a sí mismo, re-intentar.
+          problemas = true; // A alguien le tocó regalarse a sí mismo
           break;
         }
         emparejamientos.push({ de: da_a[i], a: recibe_de[i] });
@@ -79,7 +74,7 @@ exports.handler = async (event, context) => {
       // Ciframos el nombre de la persona a la que se le regala
       const asignacionCifrada = CryptoJS.AES.encrypt(a.nombre, ENCRYPTION_SECRET_KEY).toString();
 
-      // Preparamos los datos para guardar en Firestore (incluimos correo del participante "de")
+      // Datos para Firestore
       const resultado = {
         participante: de.nombre,
         correo: de.correo || null,
@@ -89,7 +84,7 @@ exports.handler = async (event, context) => {
       };
       resultadosParaGuardar.push(resultado);
 
-      // Lo que devolvemos al frontend (para mostrar y para enviar correos desde el navegador)
+      // Datos para el frontend / envío de correos
       resultadosParaAdmin.push({
         participante: de.nombre,
         correo: de.correo || null,
@@ -106,7 +101,7 @@ exports.handler = async (event, context) => {
       await batchDelete.commit();
     }
 
-    // Guardar el nuevo sorteo en la sub-colección
+    // Guardar el nuevo sorteo
     const batchWrite = db.batch();
     const coleccionSorteo = db.collection('sesiones').doc(sesionId).collection('sorteo');
     resultadosParaGuardar.forEach(resultado => {
@@ -119,8 +114,8 @@ exports.handler = async (event, context) => {
     return {
       statusCode: 200,
       body: JSON.stringify({
-        message: `¡Sorteo realizado con éxito!`,
-        resultados: resultadosParaAdmin // Devolvemos los códigos con correo
+        message: '¡Sorteo realizado con éxito!',
+        resultados: resultadosParaAdmin
       }),
     };
 

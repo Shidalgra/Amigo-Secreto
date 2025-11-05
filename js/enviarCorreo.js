@@ -8,18 +8,22 @@
 // ==============================
 // FUNCIÓN PARA ENVIAR CORREO
 // ==============================
-function enviarCorreoAmigoSecreto(nombre, correoDestino, codigoUnico) {
+async function enviarCorreoAmigoSecreto(nombre, correoDestino, codigoUnico) {
   const templateParams = {
     to_name: nombre,
+    to_email: correoDestino,
     codigo_unico: codigoUnico,
   };
 
-  emailjs
-    .send("service_i2kt2cq", "template_59om0zt", templateParams)
-    .then((response) => {
-      console.log("✅ Correo enviado correctamente:", response.status, response.text);
-    })
-    .catch((error) => {
-      console.error("❌ Error al enviar el correo:", error);
-    });
+  try {
+    const response = await emailjs.send(
+      "service_i2kt2cq", // Tu Service ID
+      "template_59om0zt", // Tu Template ID
+      templateParams
+    );
+    console.log("✅ Correo enviado correctamente a:", correoDestino, response.status);
+  } catch (error) {
+    console.error("❌ Error al enviar el correo a:", correoDestino, error);
+  }
 }
+
