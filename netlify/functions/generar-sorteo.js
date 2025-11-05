@@ -1,4 +1,4 @@
-// netlify/functions/generar-sorte.js
+// netlify/functions/generar-sorteo.js
 // Importamos las "herramientas" que instalamos
 const admin = require('firebase-admin');
 const CryptoJS = require('crypto-js');

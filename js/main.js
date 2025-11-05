@@ -154,7 +154,7 @@ async function generarSorteo() {
   });
 
   try {
-    const res = await fetch('/.netlify/functions/generar-sorte', {
+    const res = await fetch('/.netlify/functions/generar-sorteo', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ sesionId: sesionID })
