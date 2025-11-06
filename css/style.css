@@ -132,20 +132,23 @@ body {
 
 /* Contenedor para el input de contraseña y el ícono de visibilidad */
 .password-container {
-    position: relative;
-    display: flex;
-    align-items: center;
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.password-container input {
+  flex: 1;
+  padding-right: 40px; /* espacio para el toggle */
 }
 
 .password-container .toggle-password {
-    position: absolute;
-    right: 12px;
-    top: 42%;
-    transform: translateY(-50%);
-    cursor: pointer;
-    user-select: none;
-    color: #888; /* Un color gris para el ícono */
-    display: flex; /* Para centrar el SVG si es necesario */
+  position: absolute;
+  right: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
 }
 
 .password-container .toggle-password svg {
@@ -154,7 +157,7 @@ body {
 }
 
 .password-container .toggle-password .icon-eye-slash {
-  display: none; /* ojo cerrado al inicio */
+  display: none; /* empieza oculto */
 }
 
 /* Estilo específico para el combo box para que coincida con el menú */
