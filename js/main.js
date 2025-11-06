@@ -364,11 +364,11 @@ document.addEventListener("DOMContentLoaded", () => {
         Swal.fire({
           icon: "success",
           title: "Sesión creada correctamente",
-          text: `La sesión "${data.username || username}" ha sido creada. \n Viajando a la página de Inicio de Sesión para que puedas ingresar.`,
+          text: `La sesión "${typeof data.username === "object" ? data.username.username : data.username || username
+            }" ha sido creada. \nViajando a la página de Inicio de Sesión para que puedas ingresar.`,
           timer: 3000,
           showConfirmButton: false,
           timerProgressBar: true
-          //se ejecutara then despues de 3 segundos segun el timer
         }).then(() => window.location.href = "index.html");
       } catch (error) {
         // es buena practica siempre registrar el error que suceda para saber donde esta fallando
