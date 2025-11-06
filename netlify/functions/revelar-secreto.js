@@ -1,68 +1,49 @@
-// netlify/functions/revelar-secreto.js
-
-const admin = require('firebase-admin');
-const CryptoJS = require('crypto-js');
-
-// --- CONFIGURACIÓN DE SERVICIOS ---
-const ENCRYPTION_SECRET_KEY = process.env.ENCRYPTION_SECRET_KEY;
-
-// Solo inicializar si no hay apps existentes
-if (admin.apps.length === 0) {
-  const serviceAccount = JSON.parse(
-    Buffer.from(process.env.FIREBASE_SERVICE_ACCOUNT_KEY, 'base64').toString('utf-8')
-  );
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount)
-  });
-}
-const db = admin.firestore();
-
-// --- LÓGICA PRINCIPAL DE LA FUNCIÓN ---
-
-exports.handler = async (event, context) => {
-  if (event.httpMethod !== 'POST') {
-    return { statusCode: 405, body: 'Method Not Allowed' };
-  }
-
-  try {
-    // 1. OBTENER EL CÓDIGO DE LA SOLICITUD
-    const { codigoConsulta } = JSON.parse(event.body);
-    if (!codigoConsulta) {
-      return { statusCode: 400, body: JSON.stringify({ error: 'Falta el código de consulta.' }) };
-    }
-
-    const sesionId = codigoConsulta.split('-')[0];
-    if (!sesionId) {
-      return { statusCode: 400, body: JSON.stringify({ error: 'El formato del código es inválido.' }) };
-    }
-
-    // 2. BUSCAR EL CÓDIGO EN LA SUB-COLECCIÓN DE FIRESTORE
-    const snapshot = await db.collection('sesiones').doc(sesionId).collection('sorteo').where('codigoConsulta', '==', codigoConsulta).limit(1).get();
-
-    if (snapshot.empty) {
-      return { statusCode: 404, body: JSON.stringify({ error: 'Código no encontrado o inválido.' }) };
-    }
-
-    // 3. DESCIFRAR EL RESULTADO
-    const resultado = snapshot.docs[0].data();
-    const bytes = CryptoJS.AES.decrypt(resultado.asignacionCifrada, ENCRYPTION_SECRET_KEY);
-    const nombreDescifrado = bytes.toString(CryptoJS.enc.Utf8);
-
-    if (!nombreDescifrado) {
-        throw new Error("No se pudo descifrar la asignación. La clave secreta podría ser incorrecta.");
-    }
-
-    // 4. DEVOLVER EL RESULTADO AL USUARIO
-    return {
-      statusCode: 200,
-      body: JSON.stringify({ amigoSecreto: nombreDescifrado }),
-    };
-
-  } catch (error) {
-    console.error('Error en la función revelar-secreto:', error);
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ error: 'Ocurrió un error interno en el servidor.' }),
-    };
-  }
+// Inicializar Firebase
+const firebaseConfig = {
+  apiKey: "TU_API_KEY",
+  authDomain: "TU_AUTH_DOMAIN",
+  projectId: "TU_PROJECT_ID",
+  storageBucket: "TU_STORAGE_BUCKET",
+  messagingSenderId: "TU_MESSAGING_SENDER_ID",
+  appId: "TU_APP_ID"
 };
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+// Clave de encriptación (misma que en generar-sorteo.js)
+const ENCRYPTION_SECRET_KEY = "TU_ENCRYPTION_SECRET_KEY";
+
+// Obtener código del query string
+const params = new URLSearchParams(window.location.search);
+const codigoConsulta = params.get('codigo');
+
+const nombreElemento = document.getElementById('nombre-amigo');
+
+if (!codigoConsulta) {
+  nombreElemento.textContent = "Código no válido 😢";
+} else {
+  db.collectionGroup("sorteo")
+    .where("codigoConsulta", "==", codigoConsulta)
+    .get()
+    .then(snapshot => {
+      if (snapshot.empty) {
+        nombreElemento.textContent = "Código no encontrado 😢";
+      } else {
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          try {
+            const bytes = CryptoJS.AES.decrypt(data.asignacionCifrada, ENCRYPTION_SECRET_KEY);
+            const nombreAmigo = bytes.toString(CryptoJS.enc.Utf8);
+            nombreElemento.textContent = nombreAmigo;
+          } catch (e) {
+            console.error(e);
+            nombreElemento.textContent = "Error al descifrar 😢";
+          }
+        });
+      }
+    })
+    .catch(err => {
+      console.error(err);
+      nombreElemento.textContent = "Error al consultar 😢";
+    });
+}

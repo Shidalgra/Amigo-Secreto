@@ -1,0 +1,36 @@
+body {
+  background: url('https://www.hdwallpapers.in/download/cozy_rustic_fireplace_decorated_with_garlands_of_vibrant_autumn_leaves_and_thanksgiving_themed_stockings__the_scene_features_warm_ambient_lighting_hd_thanksgiving_day-1920x1080.jpg') no-repeat center/cover;
+  font-family: 'Titillium Web', sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  margin: 0;
+}
+
+.card-amigo {
+  background-color: rgba(255, 255, 255, 0.9);
+  padding: 40px 30px;
+  border-radius: 20px;
+  text-align: center;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+  max-width: 500px;
+  animation: fadeIn 1s ease-in-out;
+}
+
+.card-amigo h1 {
+  color: #6f0f11;
+  margin-bottom: 20px;
+}
+
+.card-amigo .nombre {
+  font-size: 28px;
+  font-weight: bold;
+  color: #00FFCC;
+  margin: 20px 0;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-20px);}
+  to { opacity: 1; transform: translateY(0);}
+}
