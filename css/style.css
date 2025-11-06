@@ -148,6 +148,15 @@ body {
     display: flex; /* Para centrar el SVG si es necesario */
 }
 
+.password-container .toggle-password svg {
+  width: 20px;
+  height: 20px;
+}
+
+.password-container .toggle-password .icon-eye-slash {
+  display: none; /* ojo cerrado al inicio */
+}
+
 /* Estilo específico para el combo box para que coincida con el menú */
 .login-box select {
     border: 1px solid #6f0f11; /* Borde consistente con el menú */

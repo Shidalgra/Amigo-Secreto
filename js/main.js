@@ -414,7 +414,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         Swal.fire({
           icon: "success",
-          title: `Sesión iniciada \n "${data.username}" `,
+          title: `Sesión iniciada \n "${data}" `,
           text: "Bienvenido a tu grupo de Amigo Secreto 🎁. \n Viajando a la página principal para que puedas hacer tu lista.",
           timer: 2500,
           timerProgressBar: true,
