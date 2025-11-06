@@ -1,36 +1,82 @@
 body {
   background: url('https://www.hdwallpapers.in/download/cozy_rustic_fireplace_decorated_with_garlands_of_vibrant_autumn_leaves_and_thanksgiving_themed_stockings__the_scene_features_warm_ambient_lighting_hd_thanksgiving_day-1920x1080.jpg') no-repeat center/cover;
-  font-family: 'Titillium Web', sans-serif;
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100vh;
+  font-family: 'Titillium Web', sans-serif;
   margin: 0;
 }
 
-.card-amigo {
-  background-color: rgba(255, 255, 255, 0.9);
-  padding: 40px 30px;
-  border-radius: 20px;
-  text-align: center;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.3);
-  max-width: 500px;
-  animation: fadeIn 1s ease-in-out;
+.card-container {
+  perspective: 1000px;
 }
 
-.card-amigo h1 {
-  color: #6f0f11;
-  margin-bottom: 20px;
+.card-amigo {
+  width: 400px;
+  height: 300px;
+  border-radius: 20px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+  text-align: center;
+  transform-style: preserve-3d;
+  transition: transform 1s;
+}
+
+.card-amigo.flipped {
+  transform: rotateY(180deg);
+}
+
+.card-amigo .front, .card-amigo .back {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  border-radius: 20px;
+  background-color: rgba(255,255,255,0.9);
+}
+
+.card-amigo .back {
+  transform: rotateY(180deg);
+  padding: 20px;
 }
 
 .card-amigo .nombre {
   font-size: 28px;
   font-weight: bold;
   color: #00FFCC;
-  margin: 20px 0;
+  margin-top: 15px;
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-20px);}
-  to { opacity: 1; transform: translateY(0);}
+#contador {
+  font-size: 48px;
+  font-weight: bold;
+  color: #d9534f;
+}
+
+/* Confetti */
+#confetti {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: hidden;
+}
+.confetti-piece {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background-color: #FFD700;
+  opacity: 0.8;
+  border-radius: 50%;
+  animation: fall linear forwards;
+}
+@keyframes fall {
+  0% { transform: translateY(0) rotate(0deg); opacity:1; }
+  100% { transform: translateY(100vh) rotate(360deg); opacity:0; }
 }
