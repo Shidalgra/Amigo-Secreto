@@ -58,13 +58,17 @@ exports.handler = async (event, context) => {
   }
 
   try {
-    const { username, password } = JSON.parse(event.body || '{}');
+    const { username, email, password } = JSON.parse(event.body || '{}');
 
     // ==============================
     // VALIDACIONES
     // ==============================
-    if (!username || !password) {
+    if (!username || !password || !email) {
       return { statusCode: 400, headers, body: JSON.stringify({ error: 'Nombre de usuario y contraseña son requeridos.' }) };
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return { statusCode: 400, headers, body: JSON.stringify({ error: 'Correo electrónico inválido.' }) };
     }
 
     if (username.includes(" ") || username.length < 4) {
@@ -86,13 +90,14 @@ exports.handler = async (event, context) => {
     }
 
     // ==============================
-    // CREAR NUEVA SESIÓN
+    // CREAR NUEVA SESIÓN CON EMAIL
     // ==============================
     const hashedPassword = await bcrypt.hash(password, 10);
 
     await sesionRef.set({
       password: hashedPassword,
       creador: username,
+      correo: email,                  // <--- Guardamos el email aquí
       fechaCreacion: admin.firestore.FieldValue.serverTimestamp()
     });
 
