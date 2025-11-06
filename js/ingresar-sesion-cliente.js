@@ -95,10 +95,15 @@ async function recuperarPassword() {
     const resetLink = `${window.location.origin}/reset-password.html?token=${data.token}`;
 
     // Enviar correo con EmailJS o Resend
-    await emailjs.send("service_i2kt2cq", "template_reset", {
-      to_email: email,
-      reset_link: data.resetLink, // El enlace viene del backend
-    });
+    await emailjs.send(
+  "service_i2kt2cq",     // ID de tu servicio en EmailJS
+  "template_jq2mjhk",    // ID de tu plantilla (confirmado)
+  {
+    email: email,          // Debe coincidir con {{email}} en tu template
+    resetLink: data.resetLink // Debe coincidir con {{resetLink}} en tu template
+  },
+  "4YuI0Acrrnq98FLr5"    // 🔑 Reemplaza con tu EmailJS Public Key
+);
 
     Swal.fire({
       icon: "success",
