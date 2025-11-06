@@ -12,6 +12,17 @@
   <link rel="stylesheet" href="css/nieve.css">
   <script src="js/nieve.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+  <script>
+    (function () {
+      emailjs.init("4YuI0Acrrnq98FLr5"); // Tu PUBLIC KEY de EmailJS
+    })();
+  </script>
+
+  <style>
+    /* ====== MODAL DE RECUPERAR CONTRASEÑA ====== */
+   
+  </style>
 </head>
 
 <body>
@@ -26,6 +37,7 @@
       </div>
     </div>
   </header>
+
   <main class="login-container">
     <div class="login-box">
       <h2>Iniciar Sesión</h2>
@@ -41,19 +53,50 @@
       </div>
       <button class="submit" id="btnIngresar">Ingresar a la Sesión</button>
       <div class="register-link">
+        <p class="forgot-pass">
+          <a href="#" id="btnOlvidoPass" onclick="abrirModal()">¿Olvidaste tu contraseña?</a>
+        </p>
+      </div>
+      <div class="register-link">
         <p>¿No tienes una sesión? <a href="register.html">Crea una aquí</a></p>
       </div>
     </div>
   </main>
+
+  <!-- 🔒 MODAL DE RECUPERAR CONTRASEÑA -->
+  <div id="modalRecuperar" class="modal">
+    <div class="modal-content">
+      <h3>Recuperar contraseña</h3>
+      <p>Ingresa tu correo electrónico registrado para enviarte un enlace:</p>
+      <input type="email" id="emailRecuperar" placeholder="tu@correo.com">
+      <div>
+        <button class="enviar" onclick="recuperarPassword()">Enviar enlace</button>
+        <button class="cancelar" onclick="cerrarModal()">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
   <footer class="creditos">
     <p>© 2025 | Hecho por Sergio Hidalgo Granados — <strong>shidalgra</strong><br>
       <em>Activando Coeficiente Intelectual</em>
     </p>
   </footer>
+
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
   <script src="js/main.js"></script>
   <script src="js/ojosPass.js"></script>
+
+  <script>
+    // Funciones para abrir y cerrar el modal
+    function abrirModal() {
+      document.getElementById("modalRecuperar").style.display = "flex";
+    }
+
+    function cerrarModal() {
+      document.getElementById("modalRecuperar").style.display = "none";
+    }
+  </script>
 </body>
 
 </html>

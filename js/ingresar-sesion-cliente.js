@@ -48,3 +48,74 @@ btnIngresar.addEventListener("click", async () => {
     });
   }
 });
+
+// ==========================
+// Función para recuperar contraseña
+// ==========================
+
+async function recuperarPassword() {
+  const { value: email } = await Swal.fire({
+    title: "Recuperar contraseña",
+    input: "email",
+    inputLabel: "Ingresa tu correo electrónico registrado",
+    inputPlaceholder: "correo@ejemplo.com",
+    confirmButtonText: "Enviar enlace",
+    showCancelButton: true,
+    cancelButtonText: "Cancelar",
+    inputValidator: (value) => {
+      if (!value) {
+        return "Por favor, ingresa tu correo";
+      }
+    },
+  });
+
+  if (!email) return; // Usuario canceló
+
+  Swal.fire({
+    title: "Enviando enlace...",
+    text: "Por favor espera un momento",
+    allowOutsideClick: false,
+    didOpen: () => {
+      Swal.showLoading();
+    },
+  });
+
+  try {
+    // Llamar a la función serverless
+    const res = await fetch("/.netlify/functions/request-reset", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ usuario: email }),
+    });
+    const data = await res.json();
+
+    if (!res.ok) throw new Error(data.error || "No se pudo generar el enlace");
+
+    //Construir el enlace para el correo
+    const resetLink = `${window.location.origin}/reset-password.html?token=${data.token}`;
+
+    // Enviar correo con EmailJS o Resend
+    await emailjs.send("service_i2kt2cq", "template_reset", {
+      to_email: email,
+      reset_link: data.resetLink, // El enlace viene del backend
+    });
+
+    Swal.fire({
+      icon: "success",
+      title: "¡Correo enviado!",
+      text: "Revisa tu bandeja para restablecer tu contraseña.",
+    });
+  } catch (error) {
+    Swal.fire({
+      icon: "error",
+      title: "Error al enviar correo",
+      text: error.message,
+    });
+  }
+}
+
+//Enlazar el enlace de pedi la contraseña para que se dispare el flujo de recuperacion
+document.getElementById("btnOlvidoPass").addEventListener("click", (e) => {
+  e.preventDefault();
+  recuperarPassword();
+});
