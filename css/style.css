@@ -87,12 +87,13 @@ body {
   justify-content: center;
   align-items: center;
   width: 100%;
-  margin-bottom: 50px; /* Espacio para el footer */
+  margin-top: 20px;
+  margin-bottom: 20px; /* Espacio para el footer */
 }
 
 .login-box {
   background-color: rgba(255, 255, 255, 0.95); /* Ligera transparencia */
-  padding: 25px; /* Reducido */
+  padding: 20px; /* Reducido */
   border-radius: 10px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   width: 100%;
@@ -104,7 +105,6 @@ body {
 .login-box h2 {
   text-align: center;
   color: #6f0f11; /* Rojo oscuro de la paleta */
-  margin-bottom: 15px; /* Reducido */
   font-size: 1.5rem; /* Reducido */
 }
 
@@ -119,8 +119,7 @@ body {
 .login-box input[type="email"],
 .password-container input[type="text"], /* Aplicar a contraseña visible */
 .login-box select {
-    padding: 8px 12px; /* Reducido */
-    margin-bottom: 10px; /* Reducido */
+    padding: 5px 12px; /* Reducido */
     border: 1px solid #ccc;
     border-radius: 5px;
     font-size: 1rem;
@@ -136,7 +135,6 @@ body {
   position: relative;
   display: flex;
   align-items: center;
-  margin-bottom: 15px;
 }
 
 .password-container input {
@@ -178,7 +176,7 @@ body {
   cursor: pointer;
   border-radius: 5px;
   font-weight: 700;
-  margin-top: 5px; /* Reducido */
+  margin-top: 15px; /* Reducido */
   transition: background-color 0.2s, box-shadow 0.2s, transform 0.2s;
 }
 
