@@ -42,7 +42,8 @@ async function revelarAmigo() {
       return;
     }
 
-    const nombreAmigo = json.nombreAmigo || json.data?.nombreAmigo; // compatibilidad
+    const nombreAmigo = json.nombreAmigo;
+
     if (!nombreAmigo) {
       nombreElemento.textContent = "No se encontró nombre 😢";
       return;
