@@ -355,6 +355,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (!res.ok) throw new Error(data.error || "Error al crear la sesión.");
 
+        console.log("Respuesta del servidor:", data);
+
         // Limpiar los campos
         document.getElementById("username").value = "";
         document.getElementById("email").value = "";
