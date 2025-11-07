@@ -1,25 +1,30 @@
-// netlify/functions/revelar-secreto.js
 const admin = require('firebase-admin');
 const CryptoJS = require('crypto-js');
 
-// ==========================
-// Inicializar Firebase Admin
-// ==========================
-if (!process.env.FIREBASE_SERVICE_ACCOUNT_KEY) {
-  throw new Error("No se encontró FIREBASE_SERVICE_ACCOUNT_KEY en variables de entorno");
-}
-
-const serviceAccount = JSON.parse(
-  Buffer.from(process.env.FIREBASE_SERVICE_ACCOUNT_KEY, 'base64').toString('utf8')
-);
-
 if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
-  });
+  try {
+    if (!process.env.FIREBASE_SERVICE_ACCOUNT_KEY) {
+      throw new Error("No se encontró FIREBASE_SERVICE_ACCOUNT_KEY");
+    }
+
+    const serviceAccount = JSON.parse(
+      Buffer.from(process.env.FIREBASE_SERVICE_ACCOUNT_KEY, "base64").toString("utf8")
+    );
+
+    admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount),
+    });
+
+  } catch (err) {
+    console.error("Error inicializando Firebase:", err);
+    throw err; // fuerza 500 si falla
+  }
 }
 
 const db = admin.firestore();
+
+// resto de la función...
+
 
 // ==========================
 // Función principal
