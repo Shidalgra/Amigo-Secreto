@@ -26,8 +26,7 @@ async function revelarAmigo() {
   }
 
   try {
-    // Mostrar loader si quieres (opcional)
-    // Llamar la función netlify que hace la búsqueda y el descifrado
+    // Llamada a la función Netlify
     const res = await fetch('/.netlify/functions/revelar-secreto', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -43,13 +42,12 @@ async function revelarAmigo() {
     }
 
     const nombreAmigo = json.nombreAmigo;
-
     if (!nombreAmigo) {
       nombreElemento.textContent = "No se encontró nombre 😢";
       return;
     }
 
-    // Animación
+    // --- Animación ---
     card.classList.add('flipped');
     let contador = 5;
     contadorElemento.textContent = contador;
@@ -66,7 +64,7 @@ async function revelarAmigo() {
     }, 1000);
 
   } catch (err) {
-    console.error(err);
+    console.error('Error conectando con la función:', err);
     nombreElemento.textContent = "Error al conectar 😢";
   }
 }

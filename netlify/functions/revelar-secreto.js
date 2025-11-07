@@ -1,33 +1,46 @@
+// netlify/functions/revelar-secreto.js
 const admin = require('firebase-admin');
 const CryptoJS = require('crypto-js');
 
-// Leer JSON parcial desde archivo
-const serviceAccountPartial = require('./firebase-credentials.json');
+// ==========================
+// Inicializar Firebase Admin
+// ==========================
+if (!process.env.FIREBASE_SERVICE_ACCOUNT_KEY) {
+  throw new Error("No se encontró FIREBASE_SERVICE_ACCOUNT_KEY en variables de entorno");
+}
 
-// Tomar private_key de la variable de Netlify FIREBASE_SERVICE_ACCOUNT_KEY
-const serviceAccountFromEnv = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY);
+const serviceAccount = JSON.parse(
+  Buffer.from(process.env.FIREBASE_SERVICE_ACCOUNT_KEY, 'base64').toString('utf8')
+);
 
 if (!admin.apps.length) {
   admin.initializeApp({
-    credential: admin.credential.cert({
-      ...serviceAccountPartial, // campos públicos del JSON
-      private_key: (serviceAccountFromEnv.private_key || "").replace(/\\n/g, '\n'), // <-- aquí la clave real
-      client_email: serviceAccountFromEnv.client_email, // si quieres, también puede venir del JSON
-      private_key_id: serviceAccountFromEnv.private_key_id
-    })
+    credential: admin.credential.cert(serviceAccount),
   });
 }
 
 const db = admin.firestore();
 
+// ==========================
+// Función principal
+// ==========================
 exports.handler = async (event) => {
-  const headers = { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' };
-  if (event.httpMethod !== 'POST') return { statusCode: 405, headers, body: JSON.stringify({ error: 'Method Not Allowed' }) };
+  const headers = {
+    'Content-Type': 'application/json',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  };
+
+  // Manejar preflight CORS
+  if (event.httpMethod === 'OPTIONS') return { statusCode: 200, headers, body: 'OK' };
+  if (event.httpMethod !== 'POST') return { statusCode: 405, headers, body: JSON.stringify({ error: 'Método no permitido' }) };
 
   try {
     const { codigoConsulta } = JSON.parse(event.body || '{}');
     if (!codigoConsulta) return { statusCode: 400, headers, body: JSON.stringify({ error: 'Falta codigoConsulta' }) };
 
+    // Buscar documento en cualquier subcolección "sorteo"
     const snapshot = await db.collectionGroup('sorteo').where('codigoConsulta', '==', codigoConsulta).get();
     if (snapshot.empty) return { statusCode: 404, headers, body: JSON.stringify({ error: 'Código no encontrado' }) };
 
@@ -37,6 +50,7 @@ exports.handler = async (event) => {
 
     if (!asignacionCifrada) return { statusCode: 500, headers, body: JSON.stringify({ error: 'Documento sin campo asignacionCifrada' }) };
 
+    // ---- DESCIFRADO ----
     const bytes = CryptoJS.AES.decrypt(asignacionCifrada, process.env.ENCRYPTION_SECRET_KEY);
     const nombreAmigo = bytes.toString(CryptoJS.enc.Utf8);
 
@@ -46,6 +60,6 @@ exports.handler = async (event) => {
 
   } catch (err) {
     console.error('Error revelar-secreto:', err);
-    return { statusCode: 500, headers, body: JSON.stringify({ error: 'Error interno' }) };
+    return { statusCode: 500, headers, body: JSON.stringify({ error: 'Error interno del servidor' }) };
   }
 };
