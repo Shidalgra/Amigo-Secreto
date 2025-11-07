@@ -1,26 +1,13 @@
 .copo-nieve {
-  position: fixed;
-  top: -50px;
-  z-index: 9999;
-  pointer-events: none;
-  animation-name: caer;
-  animation-timing-function: linear;
-  animation-iteration-count: infinite;
-  color: white; /* <-- Esto fuerza los copos a ser blancos */
-}
-
-.snowflake {
-  color: white;
-  font-size: 1rem;
-  position: fixed;
-  top: -2rem;
-  z-index: 9999;
   user-select: none;
   pointer-events: none;
 }
 
 @keyframes caer {
-  0% { transform: translateY(0) rotate(0deg); }
-  100% { transform: translateY(100vh) rotate(360deg); }
+  0% {
+    transform: translateY(0) rotate(0deg);
+  }
+  100% {
+    transform: translateY(100vh) rotate(360deg);
+  }
 }
-
