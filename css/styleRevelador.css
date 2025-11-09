@@ -227,7 +227,8 @@ body {
   align-items: center;
   gap: 20px;
   margin: 20px 0;
-  flex-wrap: wrap; /* para móviles */
+  flex-wrap: wrap;
+  /* para móviles */
 }
 
 /* Estilos base compartidos */
@@ -286,7 +287,8 @@ body {
 .formulario-deseos,
 .formulario-resultados {
   width: 90%;
-  max-width: 850px; /* ambos exactamente igual */
+  max-width: 850px;
+  /* ambos exactamente igual */
   border: none;
   border-radius: 12px;
   display: none;
@@ -305,7 +307,8 @@ body {
 .formulario-resultados {
   width: 1000px;
   height: auto;
-  min-height: 500px; /* igual al formulario */
+  min-height: 500px;
+  /* igual al formulario */
 }
 
 
@@ -320,28 +323,62 @@ body {
   .card-amigo {
     width: 300px;
     height: 220px;
+    border-radius: 20px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    text-align: center;
+    transform-style: preserve-3d;
+    transition: transform 1s;
+  }
+
+  .login-box {
+    background-color: rgba(255, 255, 255, 0);
+    padding: 20px;
+    border-radius: 10px;
+    width: 100%;
+    max-width: 400px;
+    display: flex;
+    flex-direction: row;
+    align-content: center;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: nowrap;
+  }
+
+  .formulario-deseos {
+    background-color: rgb(175 161 130 / 54%);
+    width: 1000px;
+    height: auto;
+    min-height: 3200px;
+  }
+
+  .formulario-resultados {
+    width: 1000px;
+    height: auto;
+    min-height: 1200px;
   }
 
   .btn-results,
   .btn-form {
-    width: 250px;
+    width: 300px;
+    height: 50px;
     font-size: 15px;
   }
 }
 
 @media (max-width: 768px) {
   body {
-    background-attachment: scroll; /* mejora rendimiento móvil */
+    background-attachment: scroll;
+    /* mejora rendimiento móvil */
   }
 
   .formulario-deseos {
     width: 95%;
-    min-height: 3800px;
+    min-height: 2800px;
   }
 
   .formulario-resultados {
     width: 95%;
-    min-height: 800px;
+    min-height: 1000px;
   }
 
   .exam-title {
@@ -356,7 +393,7 @@ body {
 
   .btn-results,
   .btn-form {
-    width: 90%;
+    width: 70%;
   }
 }
 
@@ -366,18 +403,21 @@ body {
   }
 
   .card-amigo {
-    width: 260px;
+    width: 360px;
     height: 200px;
   }
 
-  .formulario-deseos,
+  .formulario-deseos {
+    min-height: 2700px;
+  }
+
   .formulario-resultados {
-    min-height: auto;
+    min-height: 900;
   }
 
   .btn-results,
   .btn-form {
-    width: 100%;
+    width: 70%;
     padding: 10px 16px;
   }
 
