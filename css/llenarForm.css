@@ -173,6 +173,9 @@
   flex-direction: column;
   gap: 20px;
   margin: 0 auto;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-word;
 }
 
 .wishlist-card {
